@@ -1,0 +1,119 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Make & Go</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Fredoka', 'sans-serif'],
+              display: ['Space Grotesk', 'sans-serif'],
+            },
+            colors: {
+              brand: {
+                purple: '#8B5CF6', // Brighter purple
+                yellow: '#FDE047', // Brighter, softer yellow
+                pink: '#F472B6',   // Punchy pink
+                cyan: '#22D3EE',   // Solid cyan
+                dark: '#09090B',   // Near black
+                green: '#4ADE80',  // Vivid green
+              }
+            },
+            boxShadow: {
+              'neo': '4px 4px 0px 0px rgba(0,0,0,1)',
+              'neo-sm': '2px 2px 0px 0px rgba(0,0,0,1)',
+              'neo-lg': '8px 8px 0px 0px rgba(0,0,0,1)',
+              'neo-xl': '12px 12px 0px 0px rgba(0,0,0,1)',
+            },
+            animation: {
+              'float': 'float 6s ease-in-out infinite',
+              'wiggle': 'wiggle 1s ease-in-out infinite',
+              'fade-in-up': 'fadeInUp 0.8s ease-out forwards',
+              'marquee': 'marquee 25s linear infinite',
+              'blob': 'blob 7s infinite',
+            },
+            keyframes: {
+              float: {
+                '0%, 100%': { transform: 'translateY(0)' },
+                '50%': { transform: 'translateY(-10px)' },
+              },
+              wiggle: {
+                '0%, 100%': { transform: 'rotate(-3deg)' },
+                '50%': { transform: 'rotate(3deg)' },
+              },
+              fadeInUp: {
+                '0%': { opacity: '0', transform: 'translateY(20px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
+              marquee: {
+                '0%': { transform: 'translateX(0)' },
+                '100%': { transform: 'translateX(-100%)' },
+              },
+              blob: {
+                '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                '100%': { transform: 'translate(0px, 0px) scale(1)' },
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      body {
+        background-color: #fffbeb; /* Very light yellow tint */
+        background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+        background-size: 30px 30px;
+        overflow-x: hidden;
+      }
+      
+      .hover-lift {
+        transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+      }
+      .hover-lift:hover {
+        transform: translate(-4px, -4px);
+        box-shadow: 8px 8px 0px 0px rgba(0,0,0,1) !important;
+      }
+      
+      .text-stroke-3 {
+        -webkit-text-stroke: 3px black;
+      }
+
+      /* 3D Perspective Utilities */
+      .perspective-1000 {
+        perspective: 1000px;
+      }
+      .rotate-y-90 {
+        transform: rotateY(90deg);
+      }
+      .rotate-y-0 {
+        transform: rotateY(0deg);
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.556.0",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.31.0",
+    "recharts": "https://aistudiocdn.com/recharts@^2.15.0",
+    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^6.29.0",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.1/"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>

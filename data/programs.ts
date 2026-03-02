@@ -1,0 +1,117 @@
+
+import { Program } from '../types';
+
+export const initialPrograms: Program[] = [
+  {
+    id: '1',
+    title: 'Pilote le Drone de la Finale CAN 2025',
+    category: 'Robotics',
+    ageGroup: '8+ Ans',
+    duration: '3 Heures',
+    price: '400 DHS',
+    description: 'Ne sois pas spectateur. Construis le drone qui filmera (peut-être) le but décisif. Apprends la mécanique, le calibrage et fais tes premières acrobaties aériennes.',
+    image: 'https://images.unsplash.com/photo-1506947411487-a56738267384?q=80&w=1000&auto=format&fit=crop',
+    imagePrompt: 'A futuristic racing drone flying inside a massive soccer stadium with Moroccan flag colors red and green, bright neon lights, dynamic angle, neo-brutalist style vector illustration, thick black outlines, flat colors, pop art.',
+    stats: [{ name: 'Pilotage', value: 95 }, { name: 'Mécanique', value: 80 }, { name: 'Reflexes', value: 100 }],
+    active: true,
+    schedule: ['Samedi 10:00', 'Dimanche 14:00']
+  },
+  {
+    id: '2',
+    title: 'Design le Stade Hassan II en 3D',
+    category: 'Design',
+    ageGroup: '10+ Ans',
+    duration: '3 Heures',
+    price: '400 DHS',
+    description: 'Deviens l\'architecte du futur. Utilise des outils de modélisation pour créer une maquette du grand stade et repars avec ton trophée imprimé en 3D.',
+    image: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=1000&auto=format&fit=crop',
+    imagePrompt: 'A 3D printed architectural model of a futuristic soccer stadium in Casablanca, glowing cyan and purple, neo-brutalist poster style, vector art, comic book halftone pattern background.',
+    stats: [{ name: 'Architecture', value: 90 }, { name: '3D Soft', value: 75 }, { name: 'Créativité', value: 95 }],
+    active: true,
+    schedule: ['Samedi 14:00']
+  },
+  {
+    id: '3',
+    title: 'Crée ta Marque de Streetwear',
+    category: 'Design',
+    ageGroup: '12+ Ans',
+    duration: '3 Heures',
+    price: '400 DHS',
+    description: 'Ton style, ta marque. Design ton logo, tes mockups de t-shirts et hoodies, et lance ta boutique en ligne avant la fin de la séance.',
+    image: 'https://images.unsplash.com/photo-1529374255404-311a2a4f1fd9?q=80&w=1000&auto=format&fit=crop',
+    imagePrompt: 'A trendy streetwear hoodie design with geometric moroccan patterns, floating in a pop-art studio, vibrant pink and yellow background, thick black outlines, memphis design style.',
+    stats: [{ name: 'Branding', value: 100 }, { name: 'Graphisme', value: 70 }, { name: 'E-com', value: 80 }],
+    active: true,
+    schedule: ['Dimanche 10:00']
+  },
+  {
+    id: '4',
+    title: 'Code le "FIFA" Marocain',
+    category: 'Coding',
+    ageGroup: '10+ Ans',
+    duration: '3 Heures',
+    price: '400 DHS',
+    description: 'Pourquoi jouer quand tu peux coder ? Crée un jeu de penalty shootout, personnalise les joueurs avec les maillots des Lions de l\'Atlas.',
+    image: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=1000&auto=format&fit=crop',
+    imagePrompt: 'A retro-style pixel art soccer video game screen showing a penalty kick with a lion character, energetic neo-brutalist frame, vibrant colors, glitch effect, poster design.',
+    stats: [{ name: 'Logique', value: 95 }, { name: 'Python/Blocks', value: 80 }, { name: 'Fun', value: 100 }],
+    active: true,
+    schedule: ['Samedi 10:00']
+  },
+  {
+    id: '5',
+    title: 'L\'App qui Révolutionne Ton Quartier',
+    category: 'Coding',
+    ageGroup: '12+ Ans',
+    duration: '3 Heures',
+    price: '400 DHS',
+    description: 'Une idée pour aider ta ville ? Code une application mobile fonctionnelle (livraison, guide touristique, entraide) et installe-la sur ton téléphone.',
+    image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1000&auto=format&fit=crop',
+    imagePrompt: 'A smartphone displaying a colorful map application of Casablanca, pop-art style, floating apps icons around it, yellow background with halftone dots, thick borders.',
+    stats: [{ name: 'UX Design', value: 75 }, { name: 'Code', value: 85 }, { name: 'Impact', value: 90 }],
+    active: true,
+    schedule: ['Dimanche 15:00']
+  },
+  {
+    id: '6',
+    title: 'Deviens CEO en 3 Heures',
+    category: 'Business',
+    ageGroup: '14+ Ans',
+    duration: '3 Heures',
+    price: '400 DHS',
+    description: 'De l\'idée au Pitch Deck. Analyse le marché, crée ton Business Model Canvas et ta landing page. Prêt à lever des fonds ?',
+    image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=1000&auto=format&fit=crop',
+    imagePrompt: 'A young entrepreneur presenting a colorful pitch deck with charts and rockets, comic book style energetic background, "CEO" text in bold 3D letters, neo-brutalist.',
+    stats: [{ name: 'Stratégie', value: 100 }, { name: 'Marketing', value: 85 }, { name: 'Finance', value: 50 }],
+    active: true,
+    schedule: ['Samedi 16:00']
+  },
+  {
+    id: '7',
+    title: 'Entraîne ton Commentateur IA',
+    category: 'AI',
+    ageGroup: '12+ Ans',
+    duration: '3 Heures',
+    price: '400 DHS',
+    description: 'Apprends à l\'IA à commenter un match ou à écrire des articles de blog. Comprends le "Machine Learning" en créant ton propre bot.',
+    image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=1000&auto=format&fit=crop',
+    imagePrompt: 'A robot head with a microphone commentary headset, digital sound waves, vibrant cyan and purple matrix background, vector illustration, neo-brutalist style.',
+    stats: [{ name: 'Data', value: 90 }, { name: 'Prompting', value: 95 }, { name: 'Logique', value: 80 }],
+    active: true,
+    schedule: ['Dimanche 11:00']
+  },
+  {
+    id: '8',
+    title: 'Fabrique ta Lampe Connectée',
+    category: 'Robotics',
+    ageGroup: '10+ Ans',
+    duration: '3 Heures',
+    price: '400 DHS',
+    description: 'L\'Internet des Objets (IoT) facile. Programme une lampe qui change de couleur quand ton équipe marque un but ou quand tu reçois un email.',
+    image: 'https://images.unsplash.com/photo-1565814636199-ae8133055c1c?q=80&w=1000&auto=format&fit=crop',
+    imagePrompt: 'A glowing smart lamp on a desk, connecting to wifi signals, schematic lines in background, pop-art style, vivid colors, thick black outlines.',
+    stats: [{ name: 'Électronique', value: 85 }, { name: 'IoT', value: 90 }, { name: 'Code', value: 70 }],
+    active: false,
+    schedule: []
+  }
+];

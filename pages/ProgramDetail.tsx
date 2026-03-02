@@ -1,0 +1,164 @@
+import React from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { usePrograms } from '../contexts/ProgramContext';
+import { Button } from '../components/Button';
+import { ArrowLeft, CheckCircle, Clock, Users, Calendar } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { ScrollReveal } from '../components/ScrollReveal';
+
+export const ProgramDetail: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const { getProgram } = usePrograms();
+  const program = getProgram(id || '');
+
+  if (!program) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <h2 className="text-4xl font-bold mb-4">Atelier non trouvé !</h2>
+        <Link to="/programs"><Button>Retour aux ateliers</Button></Link>
+      </div>
+    );
+  }
+
+  // Updated vibrant chart colors
+  const colors = ['#FACC15', '#22D3EE', '#EC4899', '#A3E635'];
+
+  return (
+    <div className="min-h-screen py-12 px-4 bg-white">
+      <div className="container mx-auto max-w-6xl">
+        <Link to="/programs" className="inline-block mb-8">
+           <Button variant="outline" size="sm" className="bg-white hover:bg-gray-100"><ArrowLeft size={16} strokeWidth={3}/> Retour au catalogue</Button>
+        </Link>
+
+        <ScrollReveal>
+          <div className="bg-white rounded-[2.5rem] border-4 border-black shadow-neo-xl overflow-hidden mb-12">
+            {/* Header Image */}
+            <div className="h-72 md:h-[500px] w-full relative bg-brand-dark">
+              <img
+                src={program.image}
+                alt={program.title}
+                className="w-full h-full object-cover opacity-90"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-90"></div>
+              
+              <div className="absolute bottom-0 left-0 w-full p-8 md:p-16">
+                <div className="flex flex-wrap gap-4 mb-6">
+                  <span className="bg-brand-yellow text-black px-6 py-2 rounded-xl border-2 border-black font-bold text-lg shadow-neo-sm transform -rotate-2">
+                    {program.category}
+                  </span>
+                  <span className="bg-white text-black px-6 py-2 rounded-xl border-2 border-black font-bold text-lg shadow-neo-sm transform rotate-1 flex items-center gap-2">
+                    <Clock size={20} strokeWidth={3} /> {program.duration}
+                  </span>
+                </div>
+                <h1 className="font-display font-bold text-5xl md:text-8xl text-white leading-none shadow-black drop-shadow-lg mb-4">
+                  {program.title}
+                </h1>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3">
+              {/* Main Content */}
+              <div className="lg:col-span-2 p-8 md:p-12 border-b-4 lg:border-b-0 lg:border-r-4 border-black bg-white">
+                <h2 className="font-display font-bold text-4xl mb-6 flex items-center gap-3">
+                  <span className="bg-brand-purple text-white w-10 h-10 flex items-center justify-center rounded-lg border-2 border-black text-2xl">1</span>
+                  Ta mission
+                </h2>
+                <div className="bg-brand-cyan/10 p-6 rounded-2xl border-l-8 border-brand-cyan mb-10">
+                    <p className="text-gray-900 text-xl leading-relaxed font-bold">
+                    {program.description}
+                    </p>
+                    <p className="mt-4 text-gray-700 font-medium">
+                    Pas de théorie inutile. Tu viens chez MakerLab, tu prends tes outils, et tu repars 3 heures plus tard avec ton projet terminé et une fierté immense.
+                    </p>
+                </div>
+
+                <h3 className="font-display font-bold text-2xl mb-6 flex items-center gap-3">
+                    <span className="bg-brand-pink text-white w-10 h-10 flex items-center justify-center rounded-lg border-2 border-black text-2xl">2</span>
+                    Ce que tu obtiens
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-12">
+                  {['Mentors Experts', 'Matériel Inclus', 'Projet à emporter', 'Certificat Make & Go'].map((item, i) => (
+                    <div key={i} className="flex items-center gap-4 bg-gray-50 p-4 rounded-xl border-2 border-black shadow-sm hover:shadow-neo transition-all group">
+                      <div className="bg-brand-green p-2 rounded-lg border-2 border-black group-hover:rotate-12 transition-transform">
+                        <CheckCircle className="text-black w-6 h-6" strokeWidth={3} />
+                      </div>
+                      <span className="font-bold text-lg">{item}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Skills Chart */}
+                <div className="bg-brand-dark text-white p-8 rounded-3xl border-4 border-black shadow-neo relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-32 bg-brand-purple opacity-20 blur-3xl rounded-full"></div>
+                  <h3 className="font-display font-bold text-2xl mb-8 relative z-10 flex items-center gap-2">XP Gagnée 📈</h3>
+                  <div className="h-64 w-full relative z-10">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={program.stats}>
+                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#fff', fontWeight: 'bold', fontSize: 14}} dy={10} />
+                        <YAxis hide />
+                        <Tooltip 
+                          cursor={{fill: 'rgba(255,255,255,0.1)'}}
+                          contentStyle={{ borderRadius: '12px', border: '2px solid white', backgroundColor: '#000', color: '#fff', fontWeight: 'bold' }}
+                        />
+                        <Bar dataKey="value" radius={[12, 12, 12, 12]} barSize={60}>
+                          {program.stats.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={colors[index % colors.length]} stroke="black" strokeWidth={2} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sidebar / Sticky Action */}
+              <div className="lg:col-span-1 bg-brand-cyan p-8 md:p-12 flex flex-col justify-between border-black">
+                <div>
+                  <div className="bg-white p-8 rounded-3xl border-4 border-black shadow-neo mb-8 transform rotate-1 hover:rotate-0 transition-transform">
+                    <p className="text-gray-500 font-bold uppercase tracking-wider text-sm mb-2">Prix par atelier</p>
+                    <div className="flex items-baseline gap-2 mb-6">
+                      <span className="text-6xl font-display font-bold text-brand-purple drop-shadow-sm">{program.price}</span>
+                    </div>
+                    
+                    <div className="space-y-4 mb-8">
+                       <div className="flex items-start gap-3 text-gray-900 font-bold">
+                        <div className="bg-brand-yellow p-1 rounded border border-black"><Calendar size={18} strokeWidth={3}/></div>
+                        <div>
+                            <span>Prochaines Sessions :</span>
+                            <ul className="mt-2 space-y-1 text-brand-purple">
+                                {program.schedule && program.schedule.length > 0 ? (
+                                    program.schedule.map((date, idx) => <li key={idx}>• {date}</li>)
+                                ) : (
+                                    <li>Dates à venir</li>
+                                )}
+                            </ul>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 text-gray-900 font-bold">
+                        <div className="bg-brand-pink text-white p-1 rounded border border-black"><Users size={18} strokeWidth={3} /></div>
+                        <span>Max 10 places / session</span>
+                      </div>
+                    </div>
+
+                    <Link to="/register" className="block">
+                      <Button variant="primary" className="w-full justify-center text-xl py-4 shadow-neo hover:shadow-none hover:translate-x-1 hover:translate-y-1 bg-brand-yellow">
+                        Réserver ma place
+                      </Button>
+                    </Link>
+                  </div>
+
+                  <div className="text-center">
+                    <p className="font-bold text-sm text-black/70 mb-2">Besoin d'aide ?</p>
+                    <a href="tel:+212600000000" className="text-lg font-bold underline decoration-4 decoration-black hover:text-white transition-colors">
+                      +212 6 00 00 00 00
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ScrollReveal>
+      </div>
+    </div>
+  );
+};
