@@ -46,10 +46,10 @@ export const AiImage: React.FC<AiImageProps> = ({ prompt, src, alt, className = 
       {loading && !error && (
         <div className="absolute inset-0 z-20 bg-brand-dark flex flex-col items-center justify-center">
            <div className="relative">
-             <div className="absolute inset-0 bg-brand-purple blur-xl opacity-50 animate-blob"></div>
-             <Loader2 className="text-brand-yellow animate-spin relative z-10" size={48} />
+             <div className="absolute inset-0 bg-brand-red blur-xl opacity-50 animate-blob"></div>
+             <Loader2 className="text-brand-orange animate-spin relative z-10" size={48} />
            </div>
-           <span className="mt-4 text-brand-yellow font-display font-bold text-xl tracking-widest animate-pulse">GENERATING...</span>
+           <span className="mt-4 text-brand-orange font-display font-bold text-xl tracking-widest animate-pulse">GENERATING...</span>
         </div>
       )}
       
@@ -64,7 +64,7 @@ export const AiImage: React.FC<AiImageProps> = ({ prompt, src, alt, className = 
       {showRegenerate && !loading && (
         <button
           onClick={handleGenerate}
-          className="absolute bottom-3 right-3 z-10 bg-white p-2.5 rounded-full border-2 border-black shadow-neo-sm opacity-0 group-hover:opacity-100 transition-all hover:bg-brand-yellow hover:scale-110 active:scale-95 flex items-center justify-center"
+          className="absolute bottom-3 right-3 z-10 bg-white p-2.5 rounded-full border-2 border-black shadow-neo-sm opacity-0 group-hover:opacity-100 transition-all hover:bg-brand-orange hover:scale-110 active:scale-95 flex items-center justify-center"
         >
           {error ? <RefreshCw size={20} className="text-red-500"/> : (generated ? <RefreshCw size={20} /> : <Sparkles size={20} />)}
         </button>
@@ -72,7 +72,7 @@ export const AiImage: React.FC<AiImageProps> = ({ prompt, src, alt, className = 
 
       {/* Status Badges */}
       {generated && (
-         <div className="absolute top-2 left-2 bg-black/70 text-brand-yellow text-[10px] font-bold px-2 py-0.5 rounded border border-white/20 backdrop-blur-sm">
+         <div className="absolute top-2 left-2 bg-black/70 text-brand-orange text-[10px] font-bold px-2 py-0.5 rounded border border-white/20 backdrop-blur-sm">
            AI ART
          </div>
       )}

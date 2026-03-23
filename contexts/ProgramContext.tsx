@@ -1,8 +1,8 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Program } from '../types';
 import { initialPrograms } from '../data/programs';
-import { API_URL } from '../config';
+import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
+import { db } from '../firebase';
 
 interface ProgramContextType {
   programs: Program[];
@@ -22,22 +22,22 @@ export const ProgramProvider: React.FC<{ children: ReactNode }> = ({ children })
   useEffect(() => {
     const fetchPrograms = async () => {
       try {
-        const res = await fetch(`${API_URL}/programs`);
-        if (res.ok) {
-          const data = await res.json();
-          const formattedData = data.map((p: any) => ({ 
-            ...p, 
-            id: String(p.id),
-            schedule: typeof p.schedule === 'string' ? JSON.parse(p.schedule) : (p.schedule || []),
-            stats: typeof p.stats === 'string' ? JSON.parse(p.stats) : (p.stats || [])
-          }));
-          
-          if (formattedData.length > 0) {
-            setPrograms(formattedData);
-          }
+        const querySnapshot = await getDocs(collection(db, 'website-programs'));
+        const data = querySnapshot.docs.map(doc => {
+          const docData = doc.data();
+          return {
+            ...docData,
+            id: doc.id,
+            active: docData.active ?? true,
+            format: docData.format ?? 'Workshop',
+          } as Program;
+        });
+
+        if (data.length > 0) {
+          setPrograms(data);
         }
       } catch (error) {
-        console.warn("⚠️ Backend offline or unreachable. Using local fallback data.", error);
+        console.warn("⚠️ Firebase offline or unreachable. Using local fallback data.", error);
       } finally {
         setIsLoading(false);
       }
@@ -47,47 +47,44 @@ export const ProgramProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, []);
 
   const addProgram = async (program: Program) => {
+    // Generate a temporary ID for optimistic UI update
     const tempId = Date.now().toString();
     const newProgramWithTempId = { ...program, id: tempId };
     setPrograms(prev => [...prev, newProgramWithTempId]);
 
     try {
-        const { id, ...programData } = program;
-        const res = await fetch(`${API_URL}/programs`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(programData)
-        });
-        if (res.ok) {
-            const saved = await res.json();
-            setPrograms(prev => prev.map(p => p.id === tempId ? { ...saved, id: String(saved.id) } : p));
-        }
+      const { id, ...programData } = program;
+      const docRef = await addDoc(collection(db, 'website-programs'), programData);
+      // Replace tempId with the real Firebase document ID
+      setPrograms(prev => prev.map(p => p.id === tempId ? { ...program, id: docRef.id } : p));
     } catch (e) {
-        console.error("Failed to save to DB", e);
+      console.error("Failed to save to DB", e);
     }
   };
 
   const updateProgram = async (id: string, updatedProgram: Partial<Program>) => {
+    // Optimistic UI update
     setPrograms(prev => prev.map(p => p.id === id ? { ...p, ...updatedProgram } : p));
-    
+
     try {
-        await fetch(`${API_URL}/programs/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(updatedProgram)
-        });
-    } catch (e) { 
-        console.error("Failed to update DB", e); 
+      const docRef = doc(db, 'website-programs', id);
+      // Exclude the ID field if it exists in updatedProgram
+      const { id: _, ...dataToUpdate } = updatedProgram as any;
+      await updateDoc(docRef, dataToUpdate);
+    } catch (e) {
+      console.error("Failed to update DB", e);
     }
   };
 
   const deleteProgram = async (id: string) => {
+    // Optimistic UI update
     setPrograms(prev => prev.filter(p => p.id !== id));
-    
+
     try {
-        await fetch(`${API_URL}/programs/${id}`, { method: 'DELETE' });
-    } catch (e) { 
-        console.error("Failed to delete from DB", e); 
+      const docRef = doc(db, 'website-programs', id);
+      await deleteDoc(docRef);
+    } catch (e) {
+      console.error("Failed to delete from DB", e);
     }
   };
 

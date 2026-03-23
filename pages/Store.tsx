@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ShoppingCart, Hammer, Info, Tag, Layers, Filter } from 'lucide-react';
 import { ScrollReveal } from '../components/ScrollReveal';
+import { useSettings } from '../contexts/SettingsContext';
 
 // Mock Data for the Store
 const KITS_DATA = [
@@ -13,7 +14,7 @@ const KITS_DATA = [
         skills: ["Mécanique des fluides", "Assemblage géométrique"],
         materials: ["Pièces découpées laser", "Seringues", "Tubes"],
         description: "Concevez et assemblez un véritable bras robotique actionné par la pression de l'eau. Pas de moteurs, juste de la physique pure.",
-        color: "bg-brand-yellow",
+        color: "bg-brand-orange",
         image: "https://images.unsplash.com/photo-1581092336203-8d69781ce7d0?auto=format&fit=crop&q=80&w=800"
     },
     {
@@ -25,7 +26,7 @@ const KITS_DATA = [
         skills: ["Modélisation 3D", "Électronique de base (LEDs)", "Câblage"],
         materials: ["Cylindre acrylique", "Filament PLA", "Bandeau LED RGB"],
         description: "Imprimez votre base en 3D et câblez un circuit LED pour créer une lampe d'ambiance holographique.",
-        color: "bg-brand-cyan",
+        color: "bg-brand-blue",
         image: "https://images.unsplash.com/photo-1555529902-5261145633bf?auto=format&fit=crop&q=80&w=800"
     },
     {
@@ -37,7 +38,7 @@ const KITS_DATA = [
         skills: ["Physique solaire", "Transmission mécanique"],
         materials: ["Châssis bois", "Panneau solaire 5V", "Micro-moteur DC"],
         description: "Découvrez comment l'énergie lumineuse se transforme en énergie mécanique en construisant un mini-bolide solaire.",
-        color: "bg-brand-pink",
+        color: "bg-brand-green",
         image: "https://images.unsplash.com/photo-1590400512686-27ff15b6fb89?auto=format&fit=crop&q=80&w=800"
     }
 ];
@@ -45,6 +46,7 @@ const KITS_DATA = [
 export const Store: React.FC = () => {
     const [selectedCategory, setSelectedCategory] = useState<string>('Tous');
     const categories = ['Tous', 'Ingénierie Mécanique', 'Électronique & CAO', 'Énergies Renouvelables'];
+    const { settings } = useSettings();
 
     const filteredKits = selectedCategory === 'Tous'
         ? KITS_DATA
@@ -56,20 +58,23 @@ export const Store: React.FC = () => {
             {/* HEADER SECTION */}
             <section className="relative pb-16">
                 <div className="bg-brand-dark px-4 py-20 text-center relative overflow-hidden">
+                    {settings?.hero_images?.hero_bg_store && (
+                        <div className="absolute inset-0 z-0 opacity-40 mix-blend-screen" style={{ backgroundImage: `url(${settings.hero_images.hero_bg_store})`, backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
+                    )}
                     {/* Abstract Background for Header */}
-                    <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(#fff 2px, transparent 2px)', backgroundSize: '30px 30px' }}></div>
+                    <div className="absolute inset-0 z-0 opacity-10" style={{ backgroundImage: 'radial-gradient(#fff 2px, transparent 2px)', backgroundSize: '30px 30px' }}></div>
 
                     <div className="container mx-auto relative z-10">
                         <h1 className="font-display font-bold text-5xl md:text-7xl text-white mb-6 leading-tight drop-shadow-md">
-                            Skill-Builder <span className="text-brand-yellow">Store.</span>
+                            Skill-Builder <span className="text-brand-orange">Store.</span>
                         </h1>
                         <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto font-medium leading-relaxed">
-                            De vrais projets d'ingénierie éducatifs. Achetez le kit pour le <span className="text-brand-cyan font-bold">construire à la maison</span>, ou réservez une <span className="text-brand-pink font-bold">Masterclass</span> pour le fabriquer avec nos experts à l'Académie.
+                            De vrais projets d'ingénierie éducatifs. Achetez le kit pour le <span className="text-brand-blue font-bold">construire à la maison</span>, ou réservez une <span className="text-brand-green font-bold">Masterclass</span> pour le fabriquer avec nos experts à l'Académie.
                         </p>
                     </div>
 
                     {/* Decorative bottom border */}
-                    <div className="absolute bottom-0 left-0 w-full h-4 bg-brand-yellow"></div>
+                    <div className="absolute bottom-0 left-0 w-full h-4 bg-brand-orange"></div>
                 </div>
             </section>
 
@@ -87,7 +92,7 @@ export const Store: React.FC = () => {
                                         key={cat}
                                         onClick={() => setSelectedCategory(cat)}
                                         className={`px-5 py-2 md:py-2.5 rounded-none border-4 border-black font-black uppercase tracking-wider transition-all text-sm md:text-base ${selectedCategory === cat
-                                            ? 'bg-brand-purple text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transform translate-x-1 translate-y-1'
+                                            ? 'bg-brand-red text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transform translate-x-1 translate-y-1'
                                             : 'bg-white text-black hover:bg-black hover:text-white hover:-translate-y-1 hover:-translate-x-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]'
                                             }`}
                                     >
@@ -135,10 +140,10 @@ export const Store: React.FC = () => {
                                         </div>
 
                                         <div className="mt-auto space-y-4">
-                                            <button className="w-full py-4 bg-brand-yellow text-black rounded-none font-black flex items-center justify-center gap-2 hover:bg-black hover:text-white transition-colors border-4 border-black uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1">
+                                            <button className="w-full py-4 bg-brand-red text-white rounded-none font-black flex items-center justify-center gap-2 hover:bg-black hover:text-white transition-colors border-4 border-black uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1">
                                                 <ShoppingCart size={24} strokeWidth={3} /> Acheter le Kit
                                             </button>
-                                            <button className={`w-full py-4 ${kit.color} ${kit.color === 'bg-brand-pink' ? 'text-white' : 'text-black'} rounded-none font-black flex items-center justify-center gap-2 border-4 border-black uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all`}>
+                                            <button className={`w-full py-4 ${kit.color} ${kit.color === 'bg-brand-green' ? 'text-white' : 'text-black'} rounded-none font-black flex items-center justify-center gap-2 border-4 border-black uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all`}>
                                                 <Hammer size={24} strokeWidth={3} /> Masterclass
                                             </button>
                                         </div>

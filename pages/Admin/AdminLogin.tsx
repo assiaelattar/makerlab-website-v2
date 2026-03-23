@@ -20,9 +20,9 @@ export const AdminLogin: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-brand-yellow/10">
+    <div className="min-h-screen flex items-center justify-center bg-brand-red/10">
       <div className="bg-white p-8 rounded-2xl border-4 border-black shadow-neo-xl max-w-md w-full text-center">
-        <div className="bg-brand-purple w-16 h-16 rounded-full flex items-center justify-center border-2 border-black mx-auto mb-6 shadow-neo">
+        <div className="bg-brand-red w-16 h-16 rounded-full flex items-center justify-center border-2 border-black mx-auto mb-6 shadow-neo">
            <Lock className="text-white" size={32} />
         </div>
         <h1 className="font-display font-bold text-3xl mb-2">Admin Panel</h1>

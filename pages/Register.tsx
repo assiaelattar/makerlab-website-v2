@@ -12,7 +12,7 @@ export const Register: React.FC = () => {
   if (submitted) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
-        <div className="bg-brand-yellow p-12 rounded-3xl border-4 border-black shadow-neo text-center max-w-lg">
+        <div className="bg-brand-red text-white p-12 rounded-3xl border-4 border-black shadow-neo text-center max-w-lg">
           <div className="text-6xl mb-6">🎉</div>
           <h2 className="font-display font-bold text-4xl mb-4">Tu es sur la liste !</h2>
           <p className="font-medium text-lg mb-8">Nous avons reçu ton inscription. Vérifie tes emails pour la confirmation et les détails du paiement (400 DHS).</p>
@@ -28,8 +28,8 @@ export const Register: React.FC = () => {
         <div className="bg-white rounded-3xl border-4 border-black shadow-neo-lg p-8 md:p-12 relative">
           
           {/* Decorative Elements */}
-          <div className="absolute -top-6 -right-6 bg-brand-pink w-16 h-16 rounded-full border-4 border-black hidden md:block animate-bounce"></div>
-          <div className="absolute -bottom-6 -left-6 bg-brand-cyan w-12 h-12 rotate-45 border-4 border-black hidden md:block"></div>
+          <div className="absolute -top-6 -right-6 bg-brand-green w-16 h-16 rounded-full border-4 border-black hidden md:block animate-bounce"></div>
+          <div className="absolute -bottom-6 -left-6 bg-brand-blue w-12 h-12 rotate-45 border-4 border-black hidden md:block"></div>
 
           <h1 className="font-display font-bold text-4xl mb-2 text-center">Rejoins Make & Go</h1>
           <p className="text-center text-gray-500 font-bold mb-8">Réserve ta place maintenant (400 DHS)</p>
@@ -78,7 +78,7 @@ export const Register: React.FC = () => {
             </div>
 
             <div className="pt-4">
-              <Button type="submit" size="lg" className="w-full justify-center bg-brand-purple text-white hover:bg-purple-800">
+              <Button type="submit" size="lg" className="w-full justify-center bg-brand-red text-white hover:bg-purple-800">
                 Confirmer l'inscription
               </Button>
             </div>

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Clock, Trophy, Zap, Star, Calendar } from 'lucide-react';
 import { Program } from '../types';
@@ -13,17 +13,53 @@ interface Props {
 export const ProgramCard: React.FC<Props> = ({ program, index = 0 }) => {
   // Brand colors cycle
   const colors = [
-    { bg: 'bg-brand-yellow', text: 'text-black', subtext: 'text-gray-900', border: 'border-black', badge: 'bg-black text-white' },
-    { bg: 'bg-brand-cyan', text: 'text-black', subtext: 'text-gray-900', border: 'border-black', badge: 'bg-black text-white' },
-    { bg: 'bg-brand-pink', text: 'text-white', subtext: 'text-white', border: 'border-black', badge: 'bg-white text-black' },
-    { bg: 'bg-brand-green', text: 'text-black', subtext: 'text-gray-900', border: 'border-black', badge: 'bg-black text-white' },
-    { bg: 'bg-brand-purple', text: 'text-white', subtext: 'text-white', border: 'border-black', badge: 'bg-white text-black' },
+    { bg: 'bg-brand-red', text: 'text-white', subtext: 'text-gray-200', border: 'border-black', badge: 'bg-black text-white' },
+    { bg: 'bg-brand-blue', text: 'text-white', subtext: 'text-gray-200', border: 'border-black', badge: 'bg-white text-black' },
+    { bg: 'bg-brand-orange', text: 'text-black', subtext: 'text-gray-800', border: 'border-black', badge: 'bg-black text-white' },
+    { bg: 'bg-brand-green', text: 'text-white', subtext: 'text-gray-200', border: 'border-black', badge: 'bg-white text-black' },
+    { bg: 'bg-brand-red', text: 'text-white', subtext: 'text-gray-200', border: 'border-black', badge: 'bg-white text-black' },
   ];
 
   const theme = colors[index % colors.length];
 
+  const [transform, setTransform] = useState('');
+  const [isHovered, setIsHovered] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const rotateX = ((y - centerY) / centerY) * -8;
+    const rotateY = ((x - centerX) / centerX) * 8;
+
+    setTransform(`perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`);
+  };
+
+  const handleMouseLeave = () => {
+    setTransform('');
+    setIsHovered(false);
+  };
+
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+  };
+
   return (
-    <div className={`${theme.bg} ${theme.text} rounded-2xl border-4 border-black shadow-neo overflow-hidden flex flex-col h-full group hover:shadow-neo-xl hover:-translate-y-2 hover:rotate-1 transition-all duration-300 relative`}>
+    <div
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      onMouseEnter={handleMouseEnter}
+      style={{
+        transform: isHovered ? transform : '',
+        transition: isHovered ? 'transform 0.1s ease-out, box-shadow 0.3s' : 'transform 0.5s ease-out, box-shadow 0.3s'
+      }}
+      className={`${theme.bg} ${theme.text} rounded-2xl border-4 border-black shadow-neo overflow-hidden flex flex-col h-full group hover:shadow-neo-xl relative z-10 hover:z-20`}
+    >
 
       {/* Image Header */}
       <div className="h-64 overflow-hidden border-b-4 border-black relative bg-gray-100">
@@ -41,13 +77,13 @@ export const ProgramCard: React.FC<Props> = ({ program, index = 0 }) => {
 
         {/* Level/XP Badge */}
         <div className="absolute bottom-0 left-0 bg-black text-white px-4 py-2 rounded-tr-xl font-bold text-xs md:text-sm flex items-center gap-2 border-t-2 border-r-2 border-white/20">
-          <Star size={14} strokeWidth={3} className="text-brand-yellow fill-brand-yellow" />
+          <Star size={14} strokeWidth={3} className="text-brand-orange fill-brand-orange" />
           <span>XP: +300</span>
         </div>
 
         {/* Overlay on hover */}
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-sm">
-          <span className="bg-brand-yellow text-black border-2 border-black px-6 py-3 rounded-xl font-bold transform translate-y-8 group-hover:translate-y-0 transition-transform duration-300 shadow-neo flex items-center gap-2">
+          <span className="bg-brand-orange text-black border-2 border-black px-6 py-3 rounded-xl font-bold transform translate-y-8 group-hover:translate-y-0 transition-transform duration-300 shadow-neo flex items-center gap-2">
             <Zap size={20} className="fill-black" strokeWidth={3} />
             Lancer la mission
           </span>
@@ -76,9 +112,9 @@ export const ProgramCard: React.FC<Props> = ({ program, index = 0 }) => {
           <div className={`${theme.badge} p-2 rounded-none border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] shrink-0`}>
             <Trophy size={20} strokeWidth={3} />
           </div>
-          <div className="flex flex-col overflow-hidden">
+          <div className="flex flex-col overflow-hidden text-black">
             <span className={`text-[10px] md:text-xs font-black uppercase tracking-widest opacity-80`}>Tu repars avec :</span>
-            <span className="text-xs md:text-sm font-black truncate uppercase">1 Projet Complet + Certif</span>
+            <span className="text-xs md:text-sm font-black truncate uppercase">{program.benefits || 'Compétences + Certif'}</span>
           </div>
         </div>
 
@@ -93,13 +129,36 @@ export const ProgramCard: React.FC<Props> = ({ program, index = 0 }) => {
           </div>
         </div>
 
-        {/* Footer Button */}
-        <div className="mt-auto">
-          <Link to={`/programs/${program.id}`}>
-            <button className={`w-full ${theme.badge} p-4 rounded-none border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:bg-black hover:text-white transition-all flex items-center justify-center gap-2 font-black uppercase tracking-widest hover:shadow-none hover:translate-x-1 hover:translate-y-1`}>
-              Voir les détails <ArrowRight size={20} strokeWidth={3} />
-            </button>
-          </Link>
+        {/* Footer Buttons */}
+        <div className="mt-auto space-y-3">
+          <div className="flex gap-2">
+            <Link to={`/programs/${program.id}`} className="flex-1">
+              <button className={`w-full bg-white text-black p-3 rounded-none border-4 border-black font-black uppercase tracking-widest text-xs flex items-center justify-center gap-1 hover:bg-gray-100 transition-all`}>
+                Détails
+              </button>
+            </Link>
+            
+            {program.trialAvailable && (
+              <Link to={`/booking/${program.id}?type=trial`} className="flex-1">
+                <button className={`w-full bg-brand-blue text-black p-3 rounded-none border-4 border-black font-black uppercase tracking-widest text-xs flex items-center justify-center gap-1 hover:translate-x-0.5 hover:translate-y-0.5 transition-all shadow-neo-sm`}>
+                   Essai Offert
+                </button>
+              </Link>
+            )}
+          </div>
+
+          <button 
+            onClick={() => {
+              if (program.bookingType === 'external' && program.externalBookingUrl) {
+                window.open(program.externalBookingUrl, '_blank');
+              } else {
+                window.location.href = `#/booking/${program.id}`;
+              }
+            }}
+            className={`w-full ${theme.badge} p-4 rounded-none border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all flex items-center justify-center gap-2 font-black uppercase tracking-widest`}
+          >
+            Réserver <ArrowRight size={20} strokeWidth={3} />
+          </button>
         </div>
       </div>
     </div>

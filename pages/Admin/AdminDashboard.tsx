@@ -1,89 +1,103 @@
-
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { usePrograms } from '../../contexts/ProgramContext';
 import { Button } from '../../components/Button';
 import { Plus, Edit2, Trash2, Power, Eye } from 'lucide-react';
 
-export const AdminDashboard: React.FC = () => {
-  const { programs, deleteProgram, updateProgram } = usePrograms();
-  const navigate = useNavigate();
+import { initialPrograms } from '../../data/programs';
+import { DatabaseBackup } from 'lucide-react';
 
-  const handleLogout = () => {
-    localStorage.removeItem('isAdmin');
-    navigate('/admin');
+export const AdminDashboard: React.FC = () => {
+  const { programs, deleteProgram, updateProgram, addProgram } = usePrograms();
+
+  const handleSeedData = async () => {
+    if (window.confirm("Voulez-vous charger les programmes par défaut de MakerLab Academy ? Cela ajoutera les 7 programmes originaux.")) {
+      for (const prog of initialPrograms) {
+        // Create a copy without the id so addProgram generates a clean one
+        const { id, ...progData } = prog;
+        await addProgram(progData as any);
+      }
+      alert("Programmes chargés avec succès !");
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
-      <div className="container mx-auto max-w-6xl">
-        <div className="flex justify-between items-center mb-12">
-           <h1 className="font-display font-bold text-4xl">Admin Dashboard</h1>
-           <div className="flex gap-4">
-              <Link to="/admin/program/new">
-                <Button variant="primary" className="shadow-neo"><Plus size={20}/> Nouveau Workshop</Button>
-              </Link>
-              <Button variant="outline" onClick={handleLogout}>Déconnexion</Button>
-           </div>
+    <div className="max-w-6xl mx-auto">
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="font-display font-black text-4xl mb-2">Programmes</h1>
+          <p className="text-gray-600 font-medium">Gérez vos différentes offres et ateliers.</p>
         </div>
+        <div className="flex gap-4">
+          <Button variant="outline" onClick={handleSeedData} className="shadow-neo-sm border-2 border-dashed bg-white flex items-center gap-2">
+            <DatabaseBackup size={20} />
+            Charger Démo
+          </Button>
+          <Link to="/admin/program/new">
+            <Button variant="primary" className="shadow-neo"><Plus size={20} /> Nouveau Programme</Button>
+          </Link>
+        </div>
+      </div>
 
-        <div className="bg-white border-4 border-black rounded-3xl shadow-neo overflow-hidden">
-          <table className="w-full text-left">
-            <thead className="bg-gray-100 border-b-4 border-black">
-              <tr>
-                <th className="p-6 font-bold uppercase text-sm text-gray-500">Workshop</th>
-                <th className="p-6 font-bold uppercase text-sm text-gray-500">Catégorie</th>
-                <th className="p-6 font-bold uppercase text-sm text-gray-500">Prix</th>
-                <th className="p-6 font-bold uppercase text-sm text-gray-500">Status</th>
-                <th className="p-6 font-bold uppercase text-sm text-gray-500 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y-2 divide-gray-200">
-              {programs.map(program => (
-                <tr key={program.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="p-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-gray-200 rounded-lg border-2 border-black overflow-hidden shrink-0">
-                         <img src={program.image} alt="" className="w-full h-full object-cover"/>
-                      </div>
-                      <span className="font-bold text-lg">{program.title}</span>
+      <div className="bg-white border-4 border-black rounded-3xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
+        <table className="w-full text-left">
+          <thead className="bg-brand-orange border-b-4 border-black">
+            <tr>
+              <th className="p-6 font-black uppercase text-sm border-r-4 border-black">Programme</th>
+              <th className="p-6 font-black uppercase text-sm border-r-4 border-black">Format</th>
+              <th className="p-6 font-black uppercase text-sm border-r-4 border-black">Status</th>
+              <th className="p-6 font-black uppercase text-sm text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y-4 divide-black">
+            {programs.map(program => (
+              <tr key={program.id} className="hover:bg-gray-50 transition-colors">
+                <td className="p-6 border-r-4 border-black">
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 bg-gray-200 rounded-xl border-4 border-black overflow-hidden shrink-0">
+                      <img src={program.image} alt="" className="w-full h-full object-cover" />
                     </div>
-                  </td>
-                  <td className="p-6 font-medium text-gray-600">
-                    <span className="bg-gray-200 px-3 py-1 rounded-full text-xs font-bold uppercase border border-gray-400">{program.category}</span>
-                  </td>
-                  <td className="p-6 font-bold font-display">{program.price}</td>
-                  <td className="p-6">
-                    <button 
-                      onClick={() => updateProgram(program.id, { active: !program.active })}
-                      className={`px-3 py-1 rounded-full text-xs font-bold border-2 flex items-center gap-1 w-fit ${program.active ? 'bg-green-100 border-green-500 text-green-700' : 'bg-red-100 border-red-500 text-red-700'}`}
+                    <div>
+                      <span className="font-bold text-lg block">{program.title}</span>
+                      <span className="text-sm font-bold text-gray-500 uppercase">{program.category}</span>
+                    </div>
+                  </div>
+                </td>
+                <td className="p-6 font-medium text-gray-600 border-r-4 border-black">
+                  <span className="bg-white px-3 py-1 rounded-none border-2 border-black font-bold text-sm shadow-neo-sm">
+                    {program.format || 'Workshop'}
+                  </span>
+                </td>
+                <td className="p-6 border-r-4 border-black">
+                  <button
+                    onClick={() => updateProgram(program.id, { active: !program.active })}
+                    className={`px-4 py-2 font-black uppercase tracking-widest border-4 flex items-center gap-2 w-fit transition-transform hover:-translate-y-1 hover:shadow-neo-sm ${program.active ? 'bg-green-400 border-black text-black' : 'bg-red-400 border-black text-black'}`}
+                  >
+                    <Power size={16} strokeWidth={3} />
+                    {program.active ? 'ACTIF' : 'INACTIF'}
+                  </button>
+                </td>
+                <td className="p-6 text-right">
+                  <div className="flex justify-end gap-3">
+                    <Link to={`/programs/${program.id}`} target="_blank">
+                      <button className="w-12 h-12 flex items-center justify-center bg-white border-4 border-black hover:bg-brand-blue hover:-translate-y-1 hover:shadow-neo-sm transition-all rounded-xl" title="Voir"><Eye size={20} className="text-black" /></button>
+                    </Link>
+                    <Link to={`/admin/program/${program.id}`}>
+                      <button className="w-12 h-12 flex items-center justify-center bg-white border-4 border-black hover:bg-brand-green hover:-translate-y-1 hover:shadow-neo-sm transition-all rounded-xl" title="Editer"><Edit2 size={20} className="text-black" /></button>
+                    </Link>
+                    <button
+                      onClick={() => { if (window.confirm('Supprimer ce programme ?')) deleteProgram(program.id) }}
+                      className="w-12 h-12 flex items-center justify-center bg-white border-4 border-black hover:bg-red-500 hover:-translate-y-1 hover:shadow-neo-sm transition-all rounded-xl hover:text-white group"
+                      title="Supprimer"
                     >
-                      <Power size={12} />
-                      {program.active ? 'ACTIF' : 'INACTIF'}
+                      <Trash2 size={20} className="text-black group-hover:text-white" />
                     </button>
-                  </td>
-                  <td className="p-6 text-right">
-                    <div className="flex justify-end gap-2">
-                       <Link to={`/programs/${program.id}`} target="_blank">
-                         <button className="p-2 hover:bg-gray-200 rounded-lg transition-colors" title="Voir"><Eye size={20} className="text-gray-500" /></button>
-                       </Link>
-                       <Link to={`/admin/program/${program.id}`}>
-                         <button className="p-2 hover:bg-blue-100 rounded-lg transition-colors" title="Editer"><Edit2 size={20} className="text-blue-600" /></button>
-                       </Link>
-                       <button 
-                         onClick={() => { if(window.confirm('Supprimer ce workshop ?')) deleteProgram(program.id) }} 
-                         className="p-2 hover:bg-red-100 rounded-lg transition-colors"
-                         title="Supprimer"
-                       >
-                         <Trash2 size={20} className="text-red-600" />
-                       </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );

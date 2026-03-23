@@ -1,10 +1,12 @@
-
 export interface Program {
   id: string;
   title: string;
   category: 'Coding' | 'Robotics' | 'AI' | 'Design' | 'Business';
   ageGroup: string;
   description: string;
+  shortDescription?: string;
+  format?: 'Workshop' | 'Year Program' | 'School Program';
+  isFeatured?: boolean;
   image: string;
   imagePrompt?: string;
   duration: string;
@@ -12,6 +14,11 @@ export interface Program {
   stats: { name: string; value: number }[];
   active: boolean;
   schedule: string[]; // List of upcoming dates e.g. "12 Nov", "19 Nov"
+  benefits?: string; // e.g. "1 Projet Complet + Certif"
+  bookingType?: 'internal' | 'external';
+  externalBookingUrl?: string;
+  spotsAvailable?: number;
+  trialAvailable?: boolean;
 }
 
 export interface BlogPost {
@@ -31,4 +38,12 @@ export interface Testimonial {
   role: string;
   content: string;
   avatar: string;
+}
+
+export interface DynamicHeroMessage {
+  id: string;
+  passive: string;
+  action: string;
+  result: string;
+  color: string;
 }

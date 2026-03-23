@@ -2,15 +2,29 @@
 import { GoogleGenAI, Chat, GenerateContentResponse } from "@google/genai";
 import { API_URL } from "../config";
 
-const apiKey = process.env.API_KEY || '';
-const ai = new GoogleGenAI({ apiKey });
+// Dynamic AI instance
+let ai: GoogleGenAI | null = null;
+let currentApiKey = '';
 
 // Cache for the chat session
 let activeChat: Chat | null = null;
 
-export const startAssistantChat = (systemInstruction: string): Chat => {
+export const startAssistantChat = (systemInstruction: string, apiKey?: string): Chat => {
+  const useKey = apiKey || currentApiKey;
+  
+  if (!ai || useKey !== currentApiKey) {
+    if (useKey) {
+        currentApiKey = useKey;
+        ai = new GoogleGenAI({ apiKey: currentApiKey });
+    }
+  }
+
+  if (!ai) {
+    throw new Error("Clé API Gemini non configurée.");
+  }
+
   activeChat = ai.chats.create({
-    model: 'gemini-3-flash-preview',
+    model: 'gemini-2.0-flash', // Updated to a more stable version
     config: {
       systemInstruction,
     },
@@ -47,8 +61,6 @@ export const getCourseRecommendation = async (childAge: string, interests: strin
       console.log("Backend AI unavailable, trying direct...");
   }
 
-  if (!apiKey) return "Veuillez configurer la clé API Gemini.";
-
   try {
     const prompt = `
       Tu es un conseiller pédagogique énergique pour 'Make & Go' par MakerLab Academy.
@@ -57,15 +69,17 @@ export const getCourseRecommendation = async (childAge: string, interests: strin
       Recommande UN atelier. Réponse courte fun emoji français.
     `;
 
+    if (!ai) return "Veuillez configurer la clé API Gemini.";
+
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-2.0-flash',
       contents: prompt,
     });
 
     return response.text || "Erreur de recommandation.";
   } catch (error: any) {
     console.error("Gemini Direct Error:", error);
-    return "Oups ! Notre robot IA fait une sieste.";
+    return "Oups ! Notre robot IA fait une sieste (Vérifiez la clé API).";
   }
 };
 
@@ -84,13 +98,13 @@ export const generateImage = async (prompt: string): Promise<string | null> => {
         console.log("Backend AI unavailable, trying direct...");
     }
 
-  if (!apiKey) return null;
+  if (!ai) return null;
 
   const styleGuide = " . Art Style: Neo-brutalist pop-art poster style. Vibrant yellow background with comic-book halftone dot pattern. 3D geometric shapes in purple and cyan. High energy, vector illustration, bold black outlines, flat shading, fun and educational tech vibe. Moroccan touch implies subtle geometric patterns if applicable.";
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-image', 
+      model: 'gemini-2.0-flash', 
       contents: {
         parts: [{ text: prompt + styleGuide }]
       }

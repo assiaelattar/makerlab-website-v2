@@ -1,0 +1,46 @@
+
+/* Global Paper Aesthetic */
+body {
+  background-color: #fffdfa !important; /* Warm paper white */
+  background-image: 
+    linear-gradient(#f1f5f9 1px, transparent 1px), 
+    linear-gradient(90deg, #f1f5f9 1px, transparent 1px) !important;
+  background-size: 40px 40px !important;
+  position: relative;
+}
+
+/* Subtle Paper Grain Overlay */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.04;
+  background-image: url("https://www.transparenttextures.com/patterns/felt.png");
+  /* Alternative noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E") */
+}
+
+/* Custom Scrollbar for Paper feel */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+  background: #e87722; /* brand-orange */
+  border: 2px solid #f1f1f1;
+  border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #c0272d; /* brand-red */
+}
+
+/* Enhance Neobrutalist Cards for Paper Look */
+.shadow-neo, .shadow-neo-lg, .shadow-neo-xl {
+    transition: all 0.2s ease-out;
+}

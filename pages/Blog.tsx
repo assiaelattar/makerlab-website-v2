@@ -39,7 +39,7 @@ export const Blog: React.FC = () => {
         <ScrollReveal>
           <div className="text-center mb-16">
             <h1 className="font-display font-bold text-5xl mb-4">Le Blog</h1>
-            <div className="w-20 h-2 bg-brand-yellow mx-auto"></div>
+            <div className="w-20 h-2 bg-brand-orange mx-auto"></div>
           </div>
         </ScrollReveal>
         
@@ -58,10 +58,10 @@ export const Blog: React.FC = () => {
                   <div className="p-8 flex flex-col justify-center">
                     <div className="flex gap-2 mb-4">
                       {post.tags.map(tag => (
-                        <span key={tag} className="bg-brand-purple text-white text-xs font-bold px-3 py-1 rounded-full border border-black uppercase tracking-wide">{tag}</span>
+                        <span key={tag} className="bg-brand-red text-white text-xs font-bold px-3 py-1 rounded-full border border-black uppercase tracking-wide">{tag}</span>
                       ))}
                     </div>
-                    <h2 className="font-display font-bold text-2xl mb-4 hover:text-brand-purple cursor-pointer transition-colors leading-tight">{post.title}</h2>
+                    <h2 className="font-display font-bold text-2xl mb-4 hover:text-brand-red cursor-pointer transition-colors leading-tight">{post.title}</h2>
                     <p className="text-gray-600 mb-6 font-medium text-sm leading-relaxed">{post.preview}</p>
                     <div className="flex justify-between items-center text-sm font-bold text-gray-400 mt-auto pt-4 border-t-2 border-dashed border-gray-200">
                       <span>{post.author}</span>
