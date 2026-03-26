@@ -5,10 +5,12 @@ import { Button } from '../components/Button';
 import { ArrowLeft, CheckCircle, Clock, Users, Calendar, ChevronDown, ChevronUp, Heart, Shield, Star, Rocket } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { ScrollReveal } from '../components/ScrollReveal';
+import { useSettings } from '../contexts/SettingsContext';
 
 export const ProgramDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { getProgram } = usePrograms();
+  const { settings } = useSettings();
   const program = getProgram(id || '');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
@@ -151,8 +153,8 @@ export const ProgramDetail: React.FC = () => {
 
                   <div className="text-center">
                     <p className="font-bold text-sm text-black/70 mb-2">Besoin d'aide ?</p>
-                    <a href="tel:+212600000000" className="text-lg font-bold underline decoration-4 decoration-black hover:text-white transition-colors">
-                      +212 6 00 00 00 00
+                    <a href={`tel:${settings?.contact_info?.phone?.replace(/\s/g, '') || '+212600000000'}`} className="text-lg font-bold underline decoration-4 decoration-black hover:text-white transition-colors">
+                      {settings?.contact_info?.phone || '+212 6 00 00 00 00'}
                     </a>
                   </div>
                 </div>

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, FileText, Settings, Image as ImageIcon, LogOut, Package, CalendarDays } from 'lucide-react';
+import { LayoutDashboard, FileText, Settings, Image as ImageIcon, LogOut, Package, CalendarDays, BookOpen, School, Ticket } from 'lucide-react';
 
 export const AdminLayout: React.FC = () => {
     const navigate = useNavigate();
@@ -24,6 +24,10 @@ export const AdminLayout: React.FC = () => {
         { label: 'Programmes', path: '/admin/programs', icon: Package },
         { label: 'Réservations', path: '/admin/bookings', icon: CalendarDays },
         { label: 'Médias', path: '/admin/media', icon: ImageIcon },
+        { label: 'Catalogue Ateliers', path: '/admin/workshop-catalog', icon: BookOpen },
+        { label: 'Partenaires', path: '/admin/partners', icon: School },
+        { label: 'Gestion Périodes', path: '/admin/periods', icon: CalendarDays },
+        { label: 'Offres Scolaires', path: '/admin/offers', icon: Ticket },
         { label: 'Configuration', path: '/admin/settings', icon: Settings },
     ];
 

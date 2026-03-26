@@ -7,10 +7,14 @@ export const AdminSettings: React.FC = () => {
     const { settings, updateSetting, isLoading } = useSettings();
     const [contactData, setContactData] = useState({
         email: 'hello@makerlab.ma',
+        jobs_email: 'jobs@makerlab.ma',
+        partners_email: 'partners@makerlab.ma',
         phone: '+212 6 00 00 00 00',
         address: 'Casablanca, Technopark',
         instagram: 'https://instagram.com/makerlab',
-        linkedin: 'https://linkedin.com/company/makerlab'
+        linkedin: 'https://linkedin.com/company/makerlab',
+        facebook: 'https://facebook.com/makerlab',
+        twitter: 'https://twitter.com/makerlab'
     });
     const [chatbotData, setChatbotData] = useState({
         apiKey: '',
@@ -52,6 +56,14 @@ export const AdminSettings: React.FC = () => {
                         <label className="block font-bold mb-2">Téléphone</label>
                         <input name="phone" value={contactData.phone} onChange={handleChange} className="w-full border-4 border-black p-3 rounded-none font-bold shadow-neo-sm focus:translate-x-1 focus:translate-y-1 outline-none transition-all" />
                     </div>
+                    <div>
+                        <label className="block font-bold mb-2">Email Recrutement (Jobs)</label>
+                        <input name="jobs_email" value={contactData.jobs_email} onChange={handleChange} className="w-full border-4 border-black p-3 rounded-none font-bold shadow-neo-sm focus:translate-x-1 focus:translate-y-1 outline-none transition-all" />
+                    </div>
+                    <div>
+                        <label className="block font-bold mb-2">Email Partenariats</label>
+                        <input name="partners_email" value={contactData.partners_email} onChange={handleChange} className="w-full border-4 border-black p-3 rounded-none font-bold shadow-neo-sm focus:translate-x-1 focus:translate-y-1 outline-none transition-all" />
+                    </div>
                     <div className="md:col-span-2">
                         <label className="block font-bold mb-2">Adresse Physique</label>
                         <input name="address" value={contactData.address} onChange={handleChange} className="w-full border-4 border-black p-3 rounded-none font-bold shadow-neo-sm focus:translate-x-1 focus:translate-y-1 outline-none transition-all" />
@@ -69,6 +81,14 @@ export const AdminSettings: React.FC = () => {
                     <div>
                         <label className="block font-bold mb-2">LinkedIn URL</label>
                         <input name="linkedin" value={contactData.linkedin} onChange={handleChange} className="w-full border-4 border-black p-3 rounded-none font-medium shadow-neo-sm focus:translate-x-1 focus:translate-y-1 outline-none transition-all" />
+                    </div>
+                    <div>
+                        <label className="block font-bold mb-2">Facebook URL</label>
+                        <input name="facebook" value={contactData.facebook} onChange={handleChange} className="w-full border-4 border-black p-3 rounded-none font-medium shadow-neo-sm focus:translate-x-1 focus:translate-y-1 outline-none transition-all" />
+                    </div>
+                    <div>
+                        <label className="block font-bold mb-2">Twitter URL</label>
+                        <input name="twitter" value={contactData.twitter} onChange={handleChange} className="w-full border-4 border-black p-3 rounded-none font-medium shadow-neo-sm focus:translate-x-1 focus:translate-y-1 outline-none transition-all" />
                     </div>
                 </div>
                 

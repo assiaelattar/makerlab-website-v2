@@ -14,7 +14,16 @@ import { AdminContent } from './pages/Admin/AdminContent';
 import { AdminMedia } from './pages/Admin/AdminMedia';
 import { ProgramEditor } from './pages/Admin/ProgramEditor';
 import { AdminLayout } from './components/AdminLayout';
+import { WorkshopCatalog } from './pages/Admin/WorkshopCatalog';
+import { WorkshopEditor } from './pages/Admin/WorkshopEditor';
+import { SchoolPartners } from './pages/Admin/SchoolPartners';
+import { SchoolPartnerEditor } from './pages/Admin/SchoolPartnerEditor';
+import { Offers } from './pages/Admin/Offers';
+import { OfferEditor } from './pages/Admin/OfferEditor';
+import { PeriodManager } from './pages/Admin/PeriodManager';
+import { SchoolLanding } from './pages/SchoolLanding';
 import { ProgramProvider } from './contexts/ProgramContext';
+import { SchoolProvider } from './contexts/SchoolContext';
 import { SettingsProvider } from './contexts/SettingsContext';
 import { AnnouncementBar } from './components/AnnouncementBar';
 
@@ -49,7 +58,8 @@ const App: React.FC = () => {
   return (
     <SettingsProvider>
       <ProgramProvider>
-        <Router>
+        <SchoolProvider>
+          <Router>
           <ScrollToTop />
           <div className="font-sans text-brand-dark min-h-screen flex flex-col bg-transparent relative">
             <BackgroundElements />
@@ -90,7 +100,18 @@ const App: React.FC = () => {
                   <Route path="bookings" element={<AdminBookings />} />
                   <Route path="programs" element={<AdminDashboard />} /> {/* Alias for dashboard since dashboard IS programs list */}
                   <Route path="program/:id" element={<ProgramEditor />} />
+                  
+                  {/* School Partner Admin Routes */}
+                  <Route path="workshop-catalog" element={<WorkshopCatalog />} />
+                  <Route path="workshop/:id" element={<WorkshopEditor />} />
+                  <Route path="partners" element={<SchoolPartners />} />
+                  <Route path="partner/:id" element={<SchoolPartnerEditor />} />
+                  <Route path="periods" element={<PeriodManager />} />
+                  <Route path="offers" element={<Offers />} />
+                  <Route path="offer/:id" element={<OfferEditor />} />
                 </Route>
+
+                <Route path="/s/:slug" element={<SchoolLanding />} />
 
                 <Route path="*" element={<div className="container py-12 text-center"><h1>404 - Page non trouvée</h1></div>} />
               </Routes>
@@ -99,8 +120,9 @@ const App: React.FC = () => {
             <Footer />
           </div>
         </Router>
-      </ProgramProvider>
-    </SettingsProvider>
+      </SchoolProvider>
+    </ProgramProvider>
+  </SettingsProvider>
   );
 };
 

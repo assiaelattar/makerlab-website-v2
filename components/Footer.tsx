@@ -1,8 +1,20 @@
 import React from 'react';
-import { Facebook, Twitter, Instagram, Mail, MapPin, Phone, Lock } from 'lucide-react';
+import { Facebook, Twitter, Instagram, Mail, MapPin, Phone, Lock, Linkedin } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useSettings } from '../contexts/SettingsContext';
 
 export const Footer: React.FC = () => {
+  const { settings } = useSettings();
+  const contactInfo = settings?.contact_info || {
+    email: 'hello@makerlab.ma',
+    phone: '+212 6 00 00 00 00',
+    address: 'Casablanca, Maroc',
+    facebook: '#',
+    twitter: '#',
+    instagram: '#',
+    linkedin: '#'
+  };
+
   return (
     <footer className="mt-20 bg-black text-white pt-16 pb-8 border-t-8 border-brand-red">
       <div className="container mx-auto px-4">
@@ -40,19 +52,28 @@ export const Footer: React.FC = () => {
             <h4 className="font-display font-bold text-2xl mb-6 text-brand-green uppercase tracking-wide">Contact</h4>
             <div className="flex flex-col gap-4 items-center md:items-start text-gray-300 font-medium">
               <div className="flex items-center gap-3">
-                <MapPin size={20} className="text-brand-red" /> Casablanca, Maroc
+                <MapPin size={20} className="text-brand-red" /> {contactInfo.address}
               </div>
               <div className="flex items-center gap-3">
-                <Phone size={20} className="text-brand-blue" /> +212 6 00 00 00 00
+                <Phone size={20} className="text-brand-blue" /> {contactInfo.phone}
               </div>
               <div className="flex items-center gap-3">
-                <Mail size={20} className="text-brand-green" /> hello@makerlab.ma
+                <Mail size={20} className="text-brand-green" /> {contactInfo.email}
               </div>
             </div>
             <div className="flex justify-center md:justify-start gap-4 mt-8">
-              <a href="#" className="bg-white/10 p-3 rounded-full hover:bg-brand-red hover:text-white transition-all"><Facebook size={20} /></a>
-              <a href="#" className="bg-white/10 p-3 rounded-full hover:bg-brand-blue hover:text-black transition-all"><Twitter size={20} /></a>
-              <a href="#" className="bg-white/10 p-3 rounded-full hover:bg-brand-green hover:text-white transition-all"><Instagram size={20} /></a>
+              {contactInfo.facebook && contactInfo.facebook !== '#' && (
+                <a href={contactInfo.facebook} target="_blank" rel="noopener noreferrer" className="bg-white/10 p-3 rounded-full hover:bg-brand-red hover:text-white transition-all"><Facebook size={20} /></a>
+              )}
+              {contactInfo.twitter && contactInfo.twitter !== '#' && (
+                <a href={contactInfo.twitter} target="_blank" rel="noopener noreferrer" className="bg-white/10 p-3 rounded-full hover:bg-brand-blue hover:text-black transition-all"><Twitter size={20} /></a>
+              )}
+              {contactInfo.instagram && contactInfo.instagram !== '#' && (
+                <a href={contactInfo.instagram} target="_blank" rel="noopener noreferrer" className="bg-white/10 p-3 rounded-full hover:bg-brand-green hover:text-white transition-all"><Instagram size={20} /></a>
+              )}
+              {contactInfo.linkedin && contactInfo.linkedin !== '#' && (
+                <a href={contactInfo.linkedin} target="_blank" rel="noopener noreferrer" className="bg-white/10 p-3 rounded-full hover:bg-brand-blue hover:text-white transition-all"><Linkedin size={20} /></a>
+              )}
             </div>
           </div>
 

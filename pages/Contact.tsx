@@ -48,7 +48,7 @@ export const Contact: React.FC = () => {
                                     <div>
                                         <h2 className="font-display font-bold text-2xl mb-3">Recrutement & Mentorat</h2>
                                         <p className="text-lg font-medium text-gray-700 mb-4">Ingénieur ? Maker passionné ? Étudiant brillant ? Nous cherchons constamment des talents pour encadrer nos jeunes.</p>
-                                        <a href="mailto:jobs@makerlab.ma" className="font-bold text-brand-red text-xl hover:underline">jobs@makerlab.ma</a>
+                                        <a href={`mailto:${settings?.contact_info?.jobs_email || 'jobs@makerlab.ma'}`} className="font-bold text-brand-red text-xl hover:underline">{settings?.contact_info?.jobs_email || 'jobs@makerlab.ma'}</a>
                                     </div>
                                 </div>
                             </ScrollReveal>
@@ -61,7 +61,7 @@ export const Contact: React.FC = () => {
                                     <div>
                                         <h2 className="font-display font-bold text-2xl mb-3">Devenir Partenaire</h2>
                                         <p className="text-lg font-medium text-gray-700 mb-6">Fournisseurs de matériel, écoles, institutions publiques : bâtissons l'écosystème ensemble.</p>
-                                        <a href="mailto:partners@makerlab.ma" className="inline-flex items-center gap-2 font-bold px-6 py-3 bg-white border-4 border-black rounded-xl shadow-[4px_4px_0px_0px_black] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_black] transition-all">
+                                        <a href={`mailto:${settings?.contact_info?.partners_email || 'partners@makerlab.ma'}`} className="inline-flex items-center gap-2 font-bold px-6 py-3 bg-white border-4 border-black rounded-xl shadow-[4px_4px_0px_0px_black] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_black] transition-all">
                                             <Mail size={20} /> Contact Partenariats
                                         </a>
                                     </div>
@@ -72,11 +72,11 @@ export const Contact: React.FC = () => {
                             <ScrollReveal delay={200}>
                                 <div className="bg-white p-6 rounded-2xl border-4 border-black shadow-none flex items-center gap-4">
                                     <MapPin size={24} className="text-brand-green shrink-0" strokeWidth={2.5} />
-                                    <span className="font-bold text-lg text-gray-800">Casablanca, Maroc (Rabat Bientôt !)</span>
+                                    <span className="font-bold text-lg text-gray-800">{settings?.contact_info?.address || 'Casablanca, Maroc (Rabat Bientôt !)'}</span>
                                 </div>
                                 <div className="bg-white p-6 rounded-2xl border-4 border-black shadow-none flex items-center gap-4 mt-4 border-t-0 -mt-2">
                                     <Phone size={24} className="text-brand-blue shrink-0" strokeWidth={2.5} />
-                                    <span className="font-bold text-lg text-gray-800">+212 (0) 6 00 00 00 00</span>
+                                    <span className="font-bold text-lg text-gray-800">{settings?.contact_info?.phone || '+212 (0) 6 00 00 00 00'}</span>
                                 </div>
                             </ScrollReveal>
                         </div>
