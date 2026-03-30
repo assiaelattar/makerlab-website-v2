@@ -58,6 +58,45 @@ const App: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // 🛡️ Global Security: Anti-Copy & Image Protection
+  React.useEffect(() => {
+    const handleContextMenu = (e: MouseEvent) => {
+      // Don't block right-click in Admin panel or on form inputs
+      if (window.location.pathname.startsWith('/admin')) return;
+      
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
+      
+      e.preventDefault();
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (window.location.pathname.startsWith('/admin')) return;
+
+      // Block Ctrl+S (Save), Ctrl+U (View Source)
+      if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 's' || e.key.toLowerCase() === 'u')) {
+        e.preventDefault();
+      }
+    };
+
+    const handleDragStart = (e: DragEvent) => {
+      if (window.location.pathname.startsWith('/admin')) return;
+      if ((e.target as HTMLElement).tagName === 'IMG') {
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener('contextmenu', handleContextMenu);
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('dragstart', handleDragStart as any);
+    
+    return () => {
+      window.removeEventListener('contextmenu', handleContextMenu);
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('dragstart', handleDragStart as any);
+    };
+  }, []);
+
   return (
     <SettingsProvider>
       <ProgramProvider>
