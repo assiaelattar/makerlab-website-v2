@@ -76,7 +76,7 @@ export const Offers: React.FC = () => {
                             <button 
                               onClick={() => {
                                 const slug = schoolPartners.find(s => s.id === offer.schoolId)?.slug;
-                                const url = `${window.location.origin}/#/s/${slug}`;
+                                const url = `${window.location.origin}/s/${slug}`;
                                 navigator.clipboard.writeText(url);
                                 alert("Lien copié !");
                               }}
