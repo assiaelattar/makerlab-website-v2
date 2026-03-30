@@ -18,8 +18,8 @@ export const AdminContent: React.FC = () => {
     const [isUploading, setIsUploading] = useState(false);
 
     // Initial States
-    const [heroData, setHeroData] = useState({
-        home_bento_1: '', home_bento_2: '', home_bento_3: '',
+    const [heroData, setHeroData] = useState<Record<string, any>>({
+        home_bento_1: [], home_bento_2: [], home_bento_3: [],
         hero_bg_adultes: '', hero_bg_ecoles: '', hero_bg_programs: ''
     });
 
@@ -63,7 +63,18 @@ export const AdminContent: React.FC = () => {
         if (!contextIsLoading && settings) {
             if (settings.home_video) setVideoData(settings.home_video);
             if (settings.home_projects) setProjectsData(settings.home_projects);
-            if (settings.hero_images) setHeroData(settings.hero_images);
+            if (settings.hero_images) {
+                // Normalize bento slots to arrays if they are strings
+                const normalized = { ...settings.hero_images };
+                ['home_bento_1', 'home_bento_2', 'home_bento_3'].forEach(key => {
+                    if (typeof normalized[key] === 'string' && normalized[key] !== '') {
+                        normalized[key] = [normalized[key]];
+                    } else if (!normalized[key]) {
+                        normalized[key] = [];
+                    }
+                });
+                setHeroData(normalized);
+            }
             if (settings.announcement_bar) setAnnouncementData(settings.announcement_bar);
             if (settings.hero_dynamic_messages && settings.hero_dynamic_messages.length > 0) {
                 setDynamicMessages(settings.hero_dynamic_messages);
@@ -140,6 +151,25 @@ export const AdminContent: React.FC = () => {
         await updateSetting('hero_images', heroData);
         alert('Images d\'en-tête enregistrées!');
     };
+
+    const handleAddBentoImage = (field: string, url: string) => {
+        if (!url) return;
+        setHeroData(prev => ({
+            ...prev,
+            [field]: [...(Array.isArray(prev[field]) ? prev[field] : []), url]
+        }));
+    };
+
+    const handleRemoveBentoImage = (field: string, idx: number) => {
+        setHeroData(prev => ({
+            ...prev,
+            [field]: (prev[field] as string[]).filter((_, i) => i !== idx)
+        }));
+    };
+
+    const [bentoInputs, setBentoInputs] = useState<Record<string, string>>({
+        home_bento_1: '', home_bento_2: '', home_bento_3: ''
+    });
 
     // --- VIDEO ---
     const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setVideoData({ ...videoData, [e.target.name]: e.target.value });
@@ -436,15 +466,46 @@ export const AdminContent: React.FC = () => {
             <div className="bg-white border-4 border-black rounded-3xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-4 sm:p-8 mb-8">
                 <h2 className="font-display font-bold text-2xl mb-6">Images d'en-tête (Hero Sections)</h2>
 
-                <h3 className="font-black text-lg mb-4 text-brand-blue">Page Accueil - Grille "Bento"</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <h3 className="font-black text-lg mb-4 text-brand-blue">Page Accueil - Grille "Bento" (Images en boucle)</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
                     {['home_bento_1', 'home_bento_2', 'home_bento_3'].map((field, idx) => (
-                        <div key={field}>
-                            <div className="font-bold mb-2 flex flex-col gap-2">Image Bento {idx + 1}
-                                <input name={field} value={(heroData as any)[field] || ''} onChange={handleHeroChange} className="w-full border-4 border-black p-2 rounded-lg bg-gray-50 text-sm font-medium" placeholder="URL" />
-                                <label htmlFor={`hero-upload-${field}`} className="text-xs bg-gray-200 px-3 py-2 rounded border-2 border-black cursor-pointer hover:bg-gray-300 flex items-center justify-center gap-2 font-bold uppercase transition-colors"><Upload size={14} /> Uploader</label>
-                                <input id={`hero-upload-${field}`} type="file" accept="image/*" onChange={(e) => handleHeroImageUpload(field, e)} className="hidden" />
-                                {(heroData as any)[field] && <img src={(heroData as any)[field]} alt="" className="w-full h-24 object-cover mt-2 border-2 border-black rounded" />}
+                        <div key={field} className="p-4 border-2 border-black rounded-2xl bg-gray-50 shadow-neo-sm">
+                            <h4 className="font-bold mb-4 uppercase text-sm border-b-2 border-black pb-1">Carte Bento {idx + 1}</h4>
+                            
+                            {/* Current Images List */}
+                            <div className="space-y-2 mb-4 max-h-48 overflow-y-auto pr-1">
+                                {Array.isArray(heroData[field]) && heroData[field].map((url: string, i: number) => (
+                                    <div key={i} className="flex items-center gap-2 bg-white border-2 border-black p-1.5 rounded-lg group">
+                                        <img src={url} alt="" className="w-10 h-10 object-cover border border-gray-200 rounded shrink-0" />
+                                        <span className="text-[10px] font-mono truncate flex-grow text-gray-500">{url.split('/').pop()}</span>
+                                        <button onClick={() => handleRemoveBentoImage(field, i)} className="text-red-500 opacity-0 group-hover:opacity-100 hover:scale-110 transition-all"><Trash2 size={14} /></button>
+                                    </div>
+                                ))}
+                                {(!Array.isArray(heroData[field]) || heroData[field].length === 0) && (
+                                    <div className="text-center py-4 text-xs italic text-gray-400">Aucune image. En boucle activée.</div>
+                                )}
+                            </div>
+
+                            {/* Add Image */}
+                            <div className="flex flex-col gap-2">
+                                <div className="flex gap-2">
+                                    <input 
+                                        value={bentoInputs[field] || ''} 
+                                        onChange={(e) => setBentoInputs(prev => ({ ...prev, [field]: e.target.value }))}
+                                        className="flex-grow border-2 border-black p-2 rounded-lg text-xs" 
+                                        placeholder="URL de l'image" 
+                                    />
+                                    <button onClick={() => { handleAddBentoImage(field, bentoInputs[field]); setBentoInputs(p => ({ ...p, [field]: '' })); }} className="bg-black text-white px-3 py-1 rounded-lg hover:bg-gray-800"><Plus size={16} /></button>
+                                </div>
+                                <label htmlFor={`hero-upload-${field}`} className="w-full bg-brand-blue text-black p-2 border-2 border-black rounded-lg text-xs font-black uppercase text-center cursor-pointer hover:bg-cyan-300 transition-colors shadow-neo-sm">
+                                    + Uploader Photo
+                                    <input id={`hero-upload-${field}`} type="file" accept="image/*" onChange={async (e) => {
+                                        if (e.target.files?.[0]) {
+                                            const url = await handleImageUpload('website-hero-images', e.target.files[0]);
+                                            if (url) handleAddBentoImage(field, url);
+                                        }
+                                    }} className="hidden" />
+                                </label>
                             </div>
                         </div>
                     ))}

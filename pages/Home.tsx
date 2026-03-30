@@ -7,6 +7,7 @@ import { ScrollReveal } from '../components/ScrollReveal';
 import { VideoSection } from '../components/VideoSection';
 import { PhotoGallery } from '../components/PhotoGallery';
 import { FeaturedPrograms } from '../components/FeaturedPrograms';
+import { LoopingBentoImage } from '../components/LoopingBentoImage';
 import { useSettings } from '../contexts/SettingsContext';
 import { SEO } from '../components/SEO';
 
@@ -110,7 +111,11 @@ export const Home: React.FC = () => {
 
               {/* Center Large Card: Robotics */}
               <div className="absolute top-4 right-8 bottom-12 left-4 bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] rounded-2xl overflow-hidden group hover:shadow-none hover:-translate-y-2 hover:translate-x-2 transition-all duration-300 z-10 cursor-pointer">
-                <img src={settings?.hero_images?.home_bento_1 || "https://placehold.co/800x800/27A060/ffffff.png?text=PROMPT:+Robotics+Rover\n\nRATIO:+1:1+or+16:9\n\nFOCUS:+Centered"} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="Robotics Program Placeholder" />
+                <LoopingBentoImage 
+                  images={settings?.hero_images?.home_bento_1} 
+                  className="group-hover:scale-110 transition-transform duration-700" 
+                  alt="Robotics Program" 
+                />
 
                 {/* Gradient Overlay for Text Visibility */}
                 <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-black/60 to-transparent"></div>
@@ -134,7 +139,11 @@ export const Home: React.FC = () => {
 
               {/* Top Right Card: Drone App */}
               <div className="absolute -top-8 -right-4 w-44 h-48 md:w-56 md:h-56 bg-brand-blue border-4 border-black shadow-neo rounded-2xl overflow-hidden group z-20 transform rotate-6 hover:-translate-y-2 hover:rotate-3 transition-all duration-300 cursor-pointer">
-                <img src={settings?.hero_images?.home_bento_2 || "https://placehold.co/500x500/2563A8/ffffff.png?text=PROMPT:+Drone+Coding\n\nRATIO:+1:1\n\nTHEME:+build+Blue"} className="w-full h-full object-cover grayscale mix-blend-multiply opacity-50 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500" alt="Drone App Placeholder" />
+                <LoopingBentoImage 
+                  images={settings?.hero_images?.home_bento_2} 
+                  className="grayscale mix-blend-multiply opacity-50 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500" 
+                  alt="Drone App Building" 
+                />
 
                 <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-black/80 to-transparent"></div>
 
@@ -149,8 +158,11 @@ export const Home: React.FC = () => {
 
               {/* Bottom Left Card: Book Design */}
               <div className="absolute bottom-4 -left-6 md:-left-12 w-40 h-44 md:w-48 md:h-52 bg-brand-orange border-4 border-black shadow-neo rounded-2xl overflow-hidden group z-20 transform -rotate-6 hover:-translate-y-2 hover:rotate-0 transition-all duration-300 cursor-pointer flex flex-col justify-between">
-                {/* Instead of image, let's use a stylized block mimicking the poster */}
-                <img src={settings?.hero_images?.home_bento_3 || "https://placehold.co/500x600/E87722/ffffff.png?text=PROMPT:+Book+Press\n\nRATIO:+4:5\n\nTHEME:+CODE+Orange"} className="absolute inset-0 w-full h-full object-cover filter brightness-75 group-hover:brightness-100 transition-all duration-500" alt="Book Binding Placeholder" />
+                <LoopingBentoImage 
+                  images={settings?.hero_images?.home_bento_3} 
+                  className="filter brightness-75 group-hover:brightness-100 transition-all duration-500" 
+                  alt="Book Design & Binding" 
+                />
 
                 <div className="absolute top-2 left-2 z-10">
                   <span className="bg-brand-blue text-white px-2 py-0.5 text-[10px] font-bold rounded-full uppercase shadow-neo-sm">Book Design & Binding</span>
