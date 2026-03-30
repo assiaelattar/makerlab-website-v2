@@ -70,15 +70,27 @@ export const ProgramCard: React.FC<Props> = ({ program, index = 0 }) => {
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
         />
 
-        {/* Floating Category Badge */}
-        <div className="absolute top-4 right-4 bg-white px-4 py-1.5 border-2 border-black rounded-lg font-bold text-xs md:text-sm shadow-neo-sm z-10 uppercase tracking-wider transform group-hover:rotate-3 transition-transform text-black">
-          {program.category}
+        {/* Floating Category Badge (Audience) */}
+        <div className="absolute top-4 right-4 bg-white px-4 py-1.5 border-2 border-black rounded-lg font-bold text-xs md:text-sm shadow-neo-sm z-10 uppercase tracking-wider transform group-hover:rotate-3 transition-transform text-black flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-brand-red animate-pulse"></span>
+            {program.category}
         </div>
+
+        {/* Tags / Themes - Individual mini badges */}
+        {program.tags && program.tags.length > 0 && (
+          <div className="absolute top-16 right-4 flex flex-col items-end gap-2 z-10 pointer-events-none">
+            {program.tags.map((tag, i) => (
+              <span key={i} className="bg-black text-white px-2 py-1 border border-white text-[10px] font-black uppercase tracking-tighter shadow-neo-sm transform translate-x-2 group-hover:translate-x-0 transition-transform duration-300" style={{ transitionDelay: `${i * 50}ms` }}>
+                #{tag}
+              </span>
+            ))}
+          </div>
+        )}
 
         {/* Level/XP Badge */}
         <div className="absolute bottom-0 left-0 bg-black text-white px-4 py-2 rounded-tr-xl font-bold text-xs md:text-sm flex items-center gap-2 border-t-2 border-r-2 border-white/20">
           <Star size={14} strokeWidth={3} className="text-brand-orange fill-brand-orange" />
-          <span>XP: +300</span>
+          <span>XP: +{program.stats?.[0]?.value || 300}</span>
         </div>
 
         {/* Overlay on hover */}

@@ -13,7 +13,8 @@ import imageCompression from 'browser-image-compression';
 const emptyProgram: Program = {
   id: '',
   title: '',
-  category: 'Coding',
+  category: 'Enfants & Familles',
+  tags: [],
   ageGroup: '',
   description: '',
   image: '',
@@ -45,6 +46,7 @@ export const ProgramEditor: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [scheduleInput, setScheduleInput] = useState('');
+  const [tagInput, setTagInput] = useState('');
 
   useEffect(() => {
     if (id && id !== 'new') {
@@ -126,6 +128,16 @@ export const ProgramEditor: React.FC = () => {
     setFormData(prev => ({ ...prev, schedule: prev.schedule?.filter((_, i) => i !== idx) }));
   };
 
+  const handleAddTag = () => {
+    if (!tagInput || formData.tags?.includes(tagInput)) return;
+    setFormData(prev => ({ ...prev, tags: [...(prev.tags || []), tagInput] }));
+    setTagInput('');
+  };
+
+  const handleRemoveTag = (tag: string) => {
+    setFormData(prev => ({ ...prev, tags: prev.tags?.filter(t => t !== tag) || [] }));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (id === 'new') {
@@ -181,14 +193,49 @@ export const ProgramEditor: React.FC = () => {
                 </select>
               </div>
               <div>
-                <label className="block font-bold mb-2">Catégorie</label>
-                <select name="category" value={formData.category} onChange={handleChange} className="w-full p-3 border-2 border-black rounded-lg">
-                  <option value="Coding">Coding</option>
-                  <option value="Robotics">Robotics</option>
-                  <option value="AI">AI</option>
-                  <option value="Design">Design</option>
-                  <option value="Business">Business</option>
-                </select>
+                <label className="block font-bold mb-2">Audience (Catégorie principale)</label>
+                <input 
+                  name="category" 
+                  value={formData.category} 
+                  onChange={handleChange} 
+                  list="category-suggestions"
+                  className="w-full p-3 border-2 border-black rounded-lg" 
+                  placeholder="ex: Enfants & Familles, Écoles..."
+                />
+                <datalist id="category-suggestions">
+                  <option value="Enfants & Familles" />
+                  <option value="Écoles & Éducation" />
+                  <option value="Entrepreneuriat" />
+                  <option value="Professionnels" />
+                </datalist>
+              </div>
+            </div>
+
+            {/* Tags Section */}
+            <div className="p-4 bg-brand-blue/5 border-2 border-black rounded-xl">
+              <label className="block font-bold mb-2 text-brand-blue uppercase text-xs">Thématiques & Compétences (Tags)</label>
+              <div className="flex gap-2 mb-3">
+                <input 
+                  value={tagInput} 
+                  onChange={(e) => setTagInput(e.target.value)} 
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
+                  placeholder="Ajouter un thème (ex: Robotique, Arduino...)" 
+                  className="flex-grow p-2 border-2 border-black rounded-lg text-sm" 
+                />
+                <Button type="button" size="sm" onClick={handleAddTag} className="bg-brand-blue text-white shadow-neo-sm"><Plus size={18} /></Button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {formData.tags?.map((tag, idx) => (
+                  <span key={idx} className="bg-white px-3 py-1 rounded-full border-2 border-black text-xs font-black flex items-center gap-2 shadow-neo-sm">
+                    #{tag}
+                    <button type="button" onClick={() => handleRemoveTag(tag)} className="text-red-500 hover:scale-125 transition-transform">
+                      <Trash2 size={12} strokeWidth={3} />
+                    </button>
+                  </span>
+                ))}
+                {(!formData.tags || formData.tags.length === 0) && (
+                  <span className="text-gray-400 text-xs italic">Aucun tag ajouté</span>
+                )}
               </div>
             </div>
 

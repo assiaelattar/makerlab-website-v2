@@ -1,7 +1,8 @@
 export interface Program {
   id: string;
   title: string;
-  category: 'Coding' | 'Robotics' | 'AI' | 'Design' | 'Business';
+  category: string; // e.g. "Enfants & Familles", "Écoles & Éducation"
+  tags?: string[];   // e.g. ["Coding", "Robotics"]
   ageGroup: string;
   description: string;
   shortDescription?: string;

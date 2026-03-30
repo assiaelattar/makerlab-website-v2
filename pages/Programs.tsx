@@ -12,10 +12,20 @@ export const Programs: React.FC = () => {
   const { programs } = usePrograms();
   const { settings } = useSettings();
   const activePrograms = programs.filter(p => p.active);
-
-  // Categorize programs based on format
-  const kidsPrograms = activePrograms.filter(p => p.format !== 'School Program');
-  const schoolPrograms = activePrograms.filter(p => p.format === 'School Program');
+  
+  // Robust filtering: supports new categories AND legacy formats/themes
+  const kidsPrograms = activePrograms.filter(p => 
+    p.category === 'Enfants & Familles' || 
+    (['Coding', 'Robotics', 'AI', 'Design'].includes(p.category)) ||
+    (p.format !== 'School Program' && p.category !== 'Écoles & Éducation')
+  );
+  
+  const schoolPrograms = activePrograms.filter(p => 
+    p.category === 'Écoles & Éducation' || 
+    p.category === 'Entrepreneuriat' ||
+    p.category === 'Business' ||
+    p.format === 'School Program'
+  );
   const projectsGallery = settings?.home_projects;
 
   return (

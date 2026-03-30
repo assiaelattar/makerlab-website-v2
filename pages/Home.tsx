@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import { ScrollReveal } from '../components/ScrollReveal';
 import { VideoSection } from '../components/VideoSection';
 import { PhotoGallery } from '../components/PhotoGallery';
+import { FeaturedPrograms } from '../components/FeaturedPrograms';
 import { useSettings } from '../contexts/SettingsContext';
 import { SEO } from '../components/SEO';
 
@@ -236,6 +237,9 @@ export const Home: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* FEATURED PROGRAMS SECTION */}
+      <FeaturedPrograms />
 
       {/* VIDEO SHOWCASE SECTION */}
       <section className="py-20 md:py-32 px-4 bg-gray-50 border-t-4 border-black relative overflow-hidden">
