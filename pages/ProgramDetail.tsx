@@ -85,7 +85,7 @@ export const ProgramDetail: React.FC = () => {
                   Ce que tu vas apprendre
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-12">
-                  {['Mentors Experts', 'Matériel Inclus', 'Projet à emporter', 'Certificat Make & Go'].map((item, i) => (
+                  {['Mentors Experts', 'Matériel Inclus', 'Projet à emporter', 'Certificat MakerLab'].map((item, i) => (
                     <div key={i} className="flex items-center gap-4 bg-gray-50 p-4 rounded-xl border-2 border-black shadow-sm hover:shadow-neo transition-all group">
                       <div className="bg-brand-green p-2 rounded-lg border-2 border-black group-hover:rotate-12 transition-transform">
                         <CheckCircle className="text-black w-6 h-6" strokeWidth={3} />

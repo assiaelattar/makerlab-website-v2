@@ -18,7 +18,7 @@ export const AdminSettings: React.FC = () => {
     });
     const [chatbotData, setChatbotData] = useState({
         apiKey: '',
-        knowledge: "Tu es 'GoBot', l'assistant super cool de Make & Go Casablanca. Tes ateliers durent 3h et coûtent 400 DHS. Sois enthousiaste et concis !"
+        knowledge: "Tu es 'MakerBot', l'assistant super cool de MakerLab Academy Casablanca. Nos ateliers durent 3h et coûtent 400 DHS. Sois enthousiaste et concis !"
     });
 
     useEffect(() => {

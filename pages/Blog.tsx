@@ -23,7 +23,7 @@ const posts: BlogPost[] = [
     title: 'Top 5 des choses à imprimer en 3D',
     author: 'Sarah Maker',
     date: '28 Oct, 2024',
-    preview: 'Tu as accès à une imprimante 3D mais pas d\'idée ? Voici 5 objets utiles, funs et faciles à designer pour ta première session Make & Go.',
+    preview: 'Tu as accès à une imprimante 3D mais pas d\'idée ? Voici 5 objets utiles, funs et faciles à designer pour ta première session MakerLab.',
     content: '<p>Contenu de test pour le blog...</p>',
     tags: ['3D Print', 'DIY'],
     image: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=1000&auto=format&fit=crop',

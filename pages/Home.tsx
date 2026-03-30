@@ -122,7 +122,7 @@ export const Home: React.FC = () => {
 
                 {/* Text Overlay (Top) */}
                 <div className="absolute top-4 left-4">
-                  <span className="bg-[#27A060] text-white px-3 py-1 text-xs font-bold rounded-full uppercase tracking-wider shadow-sm">Programme "Make & Go"</span>
+                  <span className="bg-[#27A060] text-white px-3 py-1 text-xs font-bold rounded-full uppercase tracking-wider shadow-sm">Programme MakerLab</span>
                 </div>
 
                 {/* Text Overlay (Bottom) */}
@@ -222,7 +222,7 @@ export const Home: React.FC = () => {
               </div>
               <h3 className="font-display font-black text-2xl mb-3 text-white tracking-wide">Enfants & Ados</h3>
               <p className="text-gray-50 font-medium text-base leading-relaxed">
-                Programmes StemQuest, Make & Go, et ateliers interactifs ("No Legos").
+                Programmes StemQuest, MakerLab Academy, et ateliers interactifs ("No Legos").
               </p>
             </Link>
 
