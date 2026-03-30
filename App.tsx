@@ -31,10 +31,13 @@ import { Schools } from './pages/Schools';
 import { KidsFamilies } from './pages/KidsFamilies';
 import { Store } from './pages/Store';
 import { Contact } from './pages/Contact';
+import { About } from './pages/About';
+import { BlogDetail } from './pages/BlogDetail';
 import { ChatAssistant } from './components/ChatAssistant';
 import { BackgroundElements } from './components/BackgroundElements';
 import { BookingPage } from './pages/BookingPage';
 import { AdminBookings } from './pages/Admin/AdminBookings';
+import { AdminBlogs } from './pages/Admin/AdminBlogs';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -80,6 +83,7 @@ const App: React.FC = () => {
                 <Route path="/programs" element={<Programs />} />
                 <Route path="/programs/:id" element={<ProgramDetail />} />
                 <Route path="/blog" element={<Blog />} />
+                <Route path="/blog/:id" element={<BlogDetail />} />
                 <Route path="/register" element={<Register />} />
 
                 {/* New Application Routes */}
@@ -88,7 +92,7 @@ const App: React.FC = () => {
                 <Route path="/store" element={<Store />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/booking/:id" element={<BookingPage />} />
-                <Route path="/about" element={<div className="container py-20 text-center"><h1 className="font-display text-4xl font-bold">About MakerLab Academy</h1><p className="mt-4">Page en construction</p></div>} />
+                <Route path="/about" element={<About />} />
 
                 {/* Admin Routes */}
                 <Route path="/admin" element={<AdminLogin />} />
@@ -98,6 +102,7 @@ const App: React.FC = () => {
                   <Route path="media" element={<AdminMedia />} />
                   <Route path="settings" element={<AdminSettings />} />
                   <Route path="bookings" element={<AdminBookings />} />
+                  <Route path="blogs" element={<AdminBlogs />} />
                   <Route path="programs" element={<AdminDashboard />} /> {/* Alias for dashboard since dashboard IS programs list */}
                   <Route path="program/:id" element={<ProgramEditor />} />
                   

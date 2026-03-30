@@ -47,7 +47,7 @@ export const AdminBookings: React.FC = () => {
     const filtered = bookings.filter(b => filter === 'all' || b.bookingType === filter);
 
     return (
-        <div className="p-8">
+        <div className="p-4 md:p-8">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div>
                     <h1 className="font-display font-black text-4xl uppercase mb-2">Réservations</h1>

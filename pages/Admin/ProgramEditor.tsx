@@ -8,6 +8,7 @@ import { generateImage } from '../../services/geminiService';
 import { ArrowLeft, Save, Sparkles, Plus, Trash2, Upload, Image as ImageIcon } from 'lucide-react';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../../firebase';
+import imageCompression from 'browser-image-compression';
 
 const emptyProgram: Program = {
   id: '',
@@ -65,10 +66,17 @@ export const ProgramEditor: React.FC = () => {
   
       setIsUploadingImage(true);
       try {
+        const options = {
+          maxSizeMB: 0.8,
+          maxWidthOrHeight: 1200,
+          useWebWorker: true,
+        };
+        const compressedFile = await imageCompression(file, options);
+        
         const storagePath = `website-programs-images/${Date.now()}_${file.name}`;
-        console.log(`Attempting upload to: ${storagePath}`);
+        console.log(`Attempting upload to: ${storagePath} (Compressed)`);
         const storageRef = ref(storage, storagePath);
-        const snapshot = await uploadBytes(storageRef, file);
+        const snapshot = await uploadBytes(storageRef, compressedFile);
         const downloadURL = await getDownloadURL(snapshot.ref);
         console.log("Upload successful:", downloadURL);
         setFormData(prev => ({ ...prev, image: downloadURL }));

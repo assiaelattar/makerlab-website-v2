@@ -4,6 +4,7 @@ import { Button } from '../../components/Button';
 import { Save, Plus, Trash2, Upload, Sparkles, Image as ImageIcon, BarChart2 } from 'lucide-react';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../../firebase';
+import imageCompression from 'browser-image-compression';
 
 const colorOptions = [
     { label: 'Bleu (brand-blue)', value: 'brand-blue' },
@@ -79,10 +80,17 @@ export const AdminContent: React.FC = () => {
     const handleImageUpload = async (folder: string, file: File) => {
         setIsUploading(true);
         try {
+            const options = {
+                maxSizeMB: 0.8,
+                maxWidthOrHeight: 1600,
+                useWebWorker: true,
+            };
+            const compressedFile = await imageCompression(file, options);
+            
             const storagePath = `${folder}/${Date.now()}_${file.name}`;
-            console.log(`Attempting upload to: ${storagePath}`);
+            console.log(`Attempting upload to: ${storagePath} (Compressed)`);
             const storageRef = ref(storage, storagePath);
-            const snapshot = await uploadBytes(storageRef, file);
+            const snapshot = await uploadBytes(storageRef, compressedFile);
             const downloadURL = await getDownloadURL(snapshot.ref);
             console.log("Upload successful:", downloadURL);
             return downloadURL;
@@ -204,7 +212,7 @@ export const AdminContent: React.FC = () => {
             <h1 className="font-display font-black text-4xl mb-8">Contenu du Site</h1>
 
             {/* DYNAMIC HERO MESSAGES */}
-            <div className="bg-white border-4 border-black rounded-3xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-8 mb-8">
+            <div className="bg-white border-4 border-black rounded-3xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-4 sm:p-8 mb-8">
                 <div className="flex items-center gap-3 mb-2">
                     <Sparkles size={24} className="text-brand-orange" />
                     <h2 className="font-display font-bold text-2xl">Phrases d'Accroche Dynamiques (Hero)</h2>
@@ -280,7 +288,7 @@ export const AdminContent: React.FC = () => {
             </div>
 
             {/* GALLERY MANAGER */}
-            <div className="bg-white border-4 border-black rounded-3xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-8 mb-8">
+            <div className="bg-white border-4 border-black rounded-3xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-4 sm:p-8 mb-8">
                 <div className="flex items-center gap-3 mb-2">
                     <ImageIcon size={24} className="text-brand-blue" />
                     <h2 className="font-display font-bold text-2xl">Gestionnaire de Galerie</h2>
@@ -343,7 +351,7 @@ export const AdminContent: React.FC = () => {
             </div>
 
             {/* KEY STATS */}
-            <div className="bg-white border-4 border-black rounded-3xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-8 mb-8">
+            <div className="bg-white border-4 border-black rounded-3xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-4 sm:p-8 mb-8">
                 <div className="flex items-center gap-3 mb-2">
                     <BarChart2 size={24} className="text-brand-red" />
                     <h2 className="font-display font-bold text-2xl">Chiffres Clés (Stats)</h2>
@@ -379,7 +387,7 @@ export const AdminContent: React.FC = () => {
             </div>
 
             {/* ANNOUNCEMENT BAR */}
-            <div className="bg-white border-4 border-black rounded-3xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-8 mb-8">
+            <div className="bg-white border-4 border-black rounded-3xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-4 sm:p-8 mb-8">
                 <h2 className="font-display font-bold text-2xl mb-6">Barre d'Annonce Flash</h2>
                 <div className="flex items-center gap-4 mb-6 p-4 rounded-xl border-4 bg-gray-50 border-black">
                     <input type="checkbox" name="enabled" checked={announcementData.enabled} onChange={handleAnnouncementChange} className="w-6 h-6 border-4 border-black accent-brand-blue" />
@@ -425,7 +433,7 @@ export const AdminContent: React.FC = () => {
             </div>
 
             {/* HERO IMAGES */}
-            <div className="bg-white border-4 border-black rounded-3xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-8 mb-8">
+            <div className="bg-white border-4 border-black rounded-3xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-4 sm:p-8 mb-8">
                 <h2 className="font-display font-bold text-2xl mb-6">Images d'en-tête (Hero Sections)</h2>
 
                 <h3 className="font-black text-lg mb-4 text-brand-blue">Page Accueil - Grille "Bento"</h3>
@@ -467,7 +475,7 @@ export const AdminContent: React.FC = () => {
             </div>
 
             {/* VIDEO SECTION */}
-            <div className="bg-white border-4 border-black rounded-3xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-8 mb-8">
+            <div className="bg-white border-4 border-black rounded-3xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-4 sm:p-8 mb-8">
                 <h2 className="font-display font-bold text-2xl mb-6">Vidéo Principal (Accueil)</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>

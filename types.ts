@@ -24,12 +24,16 @@ export interface Program {
 export interface BlogPost {
   id: string;
   title: string;
+  slug: string;
   author: string;
   date: string;
   preview: string;
+  content: string;
   tags: string[];
   image: string;
   imagePrompt?: string;
+  seoKeywords?: string[];
+  status?: 'draft' | 'published';
 }
 
 export interface Testimonial {

@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useSchool } from '../contexts/SchoolContext';
 import { Offer, SchoolPartner, Period, Workshop, Enrollment } from '../types';
 import { Button } from '../components/Button';
-import { Calendar, Users, Clock, ArrowRight, CheckCircle, Sparkles, X, Send } from 'lucide-react';
+import { Calendar, Users, Clock, Sparkles, ShoppingCart, CheckCircle, X, Send, ArrowRight } from 'lucide-react';
 
 export const SchoolLanding: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -17,7 +17,7 @@ export const SchoolLanding: React.FC = () => {
   } | null>(null);
   
   const [loading, setLoading] = useState(true);
-  const [selectedWorkshop, setSelectedWorkshop] = useState<Workshop | null>(null);
+  const [cart, setCart] = useState<Workshop[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -30,6 +30,54 @@ export const SchoolLanding: React.FC = () => {
     parentPhone: ''
   });
 
+  const toggleCart = (workshop: Workshop) => {
+    setCart(prev => 
+      prev.some(w => w.id === workshop.id) 
+        ? prev.filter(w => w.id !== workshop.id)
+        : [...prev, workshop]
+    );
+  };
+
+  const formatPriceMAD = (rawPrice?: string) => {
+    if (!rawPrice) return 'Tarif École';
+    const num = rawPrice.replace(/[^0-9]/g, '');
+    if (num) return `${num} MAD`;
+    return rawPrice;
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!data || cart.length === 0) return;
+    
+    setIsSubmitting(true);
+    try {
+      for (const workshop of cart) {
+        const enrollment: Omit<Enrollment, 'id'> = {
+          offerId: data.offer.id,
+          workshopId: workshop.id,
+          ...formData,
+          status: 'Pending',
+          createdAt: new Date().toISOString()
+        };
+        await addEnrollment(enrollment);
+      }
+      setSubmitted(true);
+      setTimeout(() => {
+        setShowModal(false);
+        setSubmitted(false);
+        setCart([]);
+        setFormData({ childName: '', childAge: '', parentName: '', parentEmail: '', parentPhone: '' });
+      }, 3000);
+    } catch (err) {
+      alert("Erreur lors de l'envoi. Veuillez réessayer.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   useEffect(() => {
     const fetchOffer = async () => {
       if (slug) {
@@ -48,41 +96,6 @@ export const SchoolLanding: React.FC = () => {
     };
   }, [slug, getOfferBySlug]);
 
-  const handleOpenEnrollment = (workshop: Workshop) => {
-    setSelectedWorkshop(workshop);
-    setShowModal(true);
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!data || !selectedWorkshop) return;
-    
-    setIsSubmitting(true);
-    try {
-      const enrollment: Omit<Enrollment, 'id'> = {
-        offerId: data.offer.id,
-        workshopId: selectedWorkshop.id,
-        ...formData,
-        status: 'Pending',
-        createdAt: new Date().toISOString()
-      };
-      await addEnrollment(enrollment);
-      setSubmitted(true);
-      setTimeout(() => {
-        setShowModal(false);
-        setSubmitted(false);
-        setFormData({ childName: '', childAge: '', parentName: '', parentEmail: '', parentPhone: '' });
-      }, 3000);
-    } catch (err) {
-      alert("Erreur lors de l'envoi. Veuillez réessayer.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -160,12 +173,12 @@ export const SchoolLanding: React.FC = () => {
          </div>
       </section>
 
-      {/* Workshop Grid */}
-      <section className="py-24 px-6 container mx-auto" id="workshops">
-        <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+      {/* Workshop Sections */}
+      <section className="py-24 container mx-auto bg-white" id="workshops">
+        <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6 px-6">
           <div className="max-w-xl">
              <h2 className="font-display font-black text-4xl md:text-5xl uppercase mb-4">Découvrez nos ateliers</h2>
-             <p className="text-lg font-bold text-gray-500">Sélectionnez l'atelier qui passionnera votre enfant et réservez sa place dès maintenant.</p>
+             <p className="text-lg font-bold text-gray-500">Sélectionnez l'atelier qui passionnera votre enfant et découvrez son programme détaillé.</p>
           </div>
           <div className="hidden md:flex gap-2">
              <div className="w-12 h-4 bg-brand-blue border-2 border-black"></div>
@@ -174,37 +187,72 @@ export const SchoolLanding: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-          {activeWorkshops.map(workshop => (
-            <div key={workshop.id} className="group bg-white border-4 border-black rounded-[2.5rem] overflow-hidden shadow-neo hover:shadow-neo-lg transition-all hover:-translate-y-2 flex flex-col">
-              <div className="aspect-[4/3] overflow-hidden border-b-4 border-black relative">
-                <img src={workshop.image} alt={workshop.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                <div className="absolute top-4 left-4 flex flex-wrap gap-2">
-                   {workshop.tags?.map(tag => (
-                     <span key={tag} className="bg-white border-2 border-black px-3 py-1 rounded-full text-[10px] font-black uppercase shadow-neo-sm">{tag}</span>
-                   ))}
+        <div className="flex flex-col gap-24 py-8">
+          {activeWorkshops.map((workshop, index) => {
+            const isReversed = index % 2 !== 0; // Alternate layout
+            const isInCart = cart.some(w => w.id === workshop.id);
+            const price = formatPriceMAD(offer.customPrices[workshop.id]);
+
+            return (
+              <div key={workshop.id} className={`flex flex-col gap-12 px-6 ${isReversed ? 'lg:flex-row-reverse' : 'lg:flex-row'} items-stretch lg:h-[550px]`}>
+                
+                {/* Image Section */}
+                <div className="w-full lg:w-1/2 relative group h-full">
+                  <div className="absolute inset-0 bg-brand-blue translate-x-4 translate-y-4 rounded-[3rem] border-4 border-black transition-transform group-hover:translate-x-6 group-hover:translate-y-6"></div>
+                  <div className="relative h-full min-h-[400px] border-4 border-black rounded-[3rem] overflow-hidden bg-white z-10 flex flex-col">
+                    <img src={workshop.image} alt={workshop.name} className="w-full h-full flex-grow object-cover scale-[1.15] group-hover:scale-[1.25] transition-transform duration-700 origin-center" />
+                    <div className="absolute top-6 left-6 flex flex-wrap gap-2">
+                      {workshop.tags?.map(tag => (
+                        <span key={tag} className="bg-white border-2 border-black px-4 py-2 rounded-full text-xs font-black uppercase shadow-neo-sm transform -rotate-2">{tag}</span>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-                <div className="absolute bottom-4 right-4 bg-brand-blue text-white border-4 border-black px-4 py-1 rounded-xl font-black text-lg shadow-neo-sm">
-                   {offer.customPrices[workshop.id] || 'Tarif École'}
+
+                {/* Content Section */}
+                <div className="w-full lg:w-1/2 flex flex-col justify-center h-full">
+                  <div className="flex items-center gap-6 mb-6">
+                    <div className="flex items-center gap-2 bg-brand-orange/10 px-4 py-2 rounded-2xl border-2 border-brand-orange/20 text-brand-orange font-black uppercase text-sm">
+                       <Users size={18} /> {workshop.ageRange}
+                    </div>
+                    <div className="flex items-center gap-2 bg-brand-blue/10 px-4 py-2 rounded-2xl border-2 border-brand-blue/20 text-brand-blue font-black uppercase text-sm">
+                       <Clock size={18} /> {workshop.duration}
+                    </div>
+                  </div>
+                  
+                  <h3 className="font-display font-black text-4xl md:text-5xl uppercase mb-6 leading-none">
+                    {workshop.name}
+                  </h3>
+                  
+                  <div className="bg-brand-blue/5 border-4 border-black p-6 md:p-8 rounded-3xl mb-8 shadow-neo-sm relative overflow-hidden flex-1">
+                    <Sparkles className="absolute -bottom-4 -right-4 text-brand-blue opacity-10" size={100} />
+                    <p className="text-gray-700 font-bold text-lg leading-relaxed whitespace-pre-line relative z-10">
+                      {workshop.description}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row items-center gap-6 mt-auto">
+                    <div className="bg-black text-brand-orange px-6 py-4 rounded-xl font-black text-2xl border-4 border-black shadow-[2px_2px_0px_0px_rgba(232,119,34,1)] whitespace-nowrap">
+                       {price}
+                    </div>
+                    
+                    <Button 
+                      onClick={() => toggleCart(workshop)} 
+                      variant={isInCart ? 'outline' : 'primary'} 
+                      className={`w-full sm:w-auto py-4 text-lg flex-1 ${isInCart ? 'border-brand-orange text-brand-orange hover:bg-brand-orange hover:text-white' : ''}`}
+                    >
+                      {isInCart ? (
+                        <>Retirer du panier <X className="ml-2" /></>
+                      ) : (
+                        <>Ajouter au panier <ShoppingCart className="ml-2" /></>
+                      )}
+                    </Button>
+                  </div>
                 </div>
+
               </div>
-              <div className="p-8 flex-grow flex flex-col">
-                <div className="flex items-center gap-4 text-xs font-black uppercase mb-4 opacity-70">
-                   <span className="flex items-center gap-1"><Users size={14} className="text-brand-orange" /> {workshop.ageRange}</span>
-                   <span className="flex items-center gap-1"><Clock size={14} className="text-brand-blue" /> {workshop.duration}</span>
-                </div>
-                <h3 className="font-display font-black text-2xl uppercase mb-4 group-hover:text-brand-blue transition-colors leading-tight">{workshop.name}</h3>
-                <p className="text-gray-500 font-bold mb-8 line-clamp-3 text-sm leading-relaxed">
-                  {workshop.description}
-                </p>
-                <div className="mt-auto">
-                   <Button onClick={() => handleOpenEnrollment(workshop)} variant="primary" className="w-full py-4 text-lg group/btn">
-                     Pré-inscription <ArrowRight className="ml-2 group-hover/btn:translate-x-2 transition-transform" />
-                   </Button>
-                </div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
@@ -234,39 +282,66 @@ export const SchoolLanding: React.FC = () => {
          </div>
       </section>
 
+      {/* Floating Cart Toolbar */}
+      {cart.length > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-2xl bg-white border-4 border-black rounded-full shadow-neo-lg p-2 flex items-center justify-between px-6 animate-in slide-in-from-bottom-10 fade-in duration-300">
+          <div className="flex items-center gap-4">
+            <div className="relative">
+               <ShoppingCart size={24} className="text-brand-blue" />
+               <div className="absolute -top-2 -right-2 bg-brand-orange text-white text-xs font-black w-5 h-5 flex items-center justify-center rounded-full border-2 border-black">
+                 {cart.length}
+               </div>
+            </div>
+            <div className="hidden sm:block">
+              <span className="font-black text-sm uppercase">{cart.length} Atelier{cart.length > 1 ? 's' : ''} sélectionné{cart.length > 1 ? 's' : ''}</span>
+            </div>
+          </div>
+          <Button onClick={() => setShowModal(true)} className="bg-brand-blue text-white whitespace-nowrap px-6 py-3">
+            S'inscrire ({cart.length}) <ArrowRight size={18} className="ml-2" />
+          </Button>
+        </div>
+      )}
+
       {/* Enrollment Modal */}
-      {showModal && selectedWorkshop && (
+      {showModal && cart.length > 0 && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
            <div className="bg-white border-4 border-black rounded-[3rem] w-full max-w-2xl overflow-hidden shadow-[20px_20px_0px_0px_rgba(0,0,0,1)] relative animate-in fade-in zoom-in duration-300">
               <button onClick={() => setShowModal(false)} className="absolute top-6 right-6 p-2 hover:bg-gray-100 rounded-full transition-colors z-10">
                 <X size={24} className="text-black" />
               </button>
 
-              <div className="flex flex-col md:flex-row">
-                 <div className="md:w-1/3 bg-brand-blue p-8 text-white relative h-40 md:h-auto">
+              <div className="flex flex-col md:flex-row max-h-[90vh] overflow-y-auto">
+                 <div className="md:w-1/3 bg-brand-blue p-8 text-white relative">
                     <div className="relative z-10">
-                       <h3 className="font-display font-black text-2xl uppercase mb-2">Pré-inscription</h3>
-                       <p className="text-sm font-bold opacity-80 uppercase leading-tight">{selectedWorkshop.name}</p>
+                       <h3 className="font-display font-black text-2xl uppercase mb-6">Votre Inscription</h3>
+                       <div className="space-y-4">
+                         {cart.map(w => (
+                           <div key={w.id} className="bg-white/10 p-3 rounded-xl border border-white/20">
+                             <p className="text-sm font-bold uppercase leading-tight line-clamp-2 mb-1">{w.name}</p>
+                             <p className="text-brand-orange text-xs font-black">{formatPriceMAD(offer.customPrices[w.id])}</p>
+                           </div>
+                         ))}
+                       </div>
                     </div>
                     <div className="absolute bottom-0 right-0 opacity-20 pointer-events-none translate-x-4 translate-y-4">
                        <Sparkles size={160} />
                     </div>
                  </div>
 
-                 <div className="md:w-2/3 p-8 lg:p-12">
+                 <div className="md:w-2/3 p-8 lg:p-12 bg-white">
                     {submitted ? (
                       <div className="flex flex-col items-center justify-center h-full text-center py-12">
                          <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-6 border-4 border-green-600 scale-110">
                             <CheckCircle size={40} />
                          </div>
                          <h4 className="font-display font-black text-2xl uppercase mb-2">C'est envoyé !</h4>
-                         <p className="font-bold text-gray-500 uppercase tracking-tighter text-sm">Nous vous contacterons très prochainement pour confirmer l'inscription.</p>
+                         <p className="font-bold text-gray-500 uppercase tracking-tighter text-sm">Nous vous contacterons très prochainement pour confirmer l'inscription aux {cart.length} atelier(s).</p>
                       </div>
                     ) : (
                       <form onSubmit={handleSubmit} className="space-y-6">
                          <div className="grid grid-cols-2 gap-4">
                             <div>
-                               <label className="block text-[10px] font-black uppercase mb-1 opacity-50">Nom de l'enfant</label>
+                               <label className="block text-[10px] font-black uppercase mb-1 opacity-50">Nom du participant</label>
                                <input name="childName" value={formData.childName} onChange={handleInputChange} className="w-full p-3 border-2 border-black rounded-xl font-bold focus:bg-brand-blue/5 outline-none transition-all" required />
                             </div>
                             <div>
@@ -276,7 +351,7 @@ export const SchoolLanding: React.FC = () => {
                          </div>
                          <hr className="border-gray-100" />
                          <div>
-                            <label className="block text-[10px] font-black uppercase mb-1 opacity-50">Nom du parent</label>
+                            <label className="block text-[10px] font-black uppercase mb-1 opacity-50">Nom du représentant (Parent)</label>
                             <input name="parentName" value={formData.parentName} onChange={handleInputChange} className="w-full p-3 border-2 border-black rounded-xl font-bold focus:bg-brand-blue/5 outline-none transition-all" required />
                          </div>
                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -285,15 +360,15 @@ export const SchoolLanding: React.FC = () => {
                                <input type="email" name="parentEmail" value={formData.parentEmail} onChange={handleInputChange} className="w-full p-3 border-2 border-black rounded-xl font-bold focus:bg-brand-blue/5 outline-none transition-all" required />
                             </div>
                             <div>
-                               <label className="block text-[10px] font-black uppercase mb-1 opacity-50">Téléphone</label>
+                               <label className="block text-[10px] font-black uppercase mb-1 opacity-50">Téléphone (WhatsApp)</label>
                                <input name="parentPhone" value={formData.parentPhone} onChange={handleInputChange} className="w-full p-3 border-2 border-black rounded-xl font-bold focus:bg-brand-blue/5 outline-none transition-all" required />
                             </div>
                          </div>
                          <Button type="submit" loading={isSubmitting} className="w-full py-4 bg-brand-blue text-white shadow-neo border-2 border-black mt-4 uppercase">
-                            Envoyer ma demande <Send size={18} className="ml-2" />
+                            Confirmer {cart.length} Workshop(s) <Send size={18} className="ml-2" />
                          </Button>
                          <p className="text-[10px] font-bold text-gray-400 text-center uppercase tracking-widest mt-4 italic">
-                            Les informations seront transmises à MakerLab Academy.
+                            Les informations seront directement transmises à l'école.
                          </p>
                       </form>
                     )}
@@ -302,6 +377,7 @@ export const SchoolLanding: React.FC = () => {
            </div>
         </div>
       )}
+
     </div>
   );
 };

@@ -44,7 +44,7 @@ export const AdminSettings: React.FC = () => {
         <div className="max-w-4xl mx-auto">
             <h1 className="font-display font-black text-4xl mb-8">Configuration Globale</h1>
 
-            <div className="bg-white border-4 border-black rounded-3xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-8 mb-8">
+            <div className="bg-white border-4 border-black rounded-3xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-4 sm:p-8 mb-8">
                 <h2 className="font-display font-bold text-2xl mb-6">Informations de Contact</h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

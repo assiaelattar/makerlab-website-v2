@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { ref, listAll, getDownloadURL, deleteObject } from 'firebase/storage';
+import { ref, listAll, getDownloadURL, deleteObject, uploadBytes } from 'firebase/storage';
 import { storage } from '../../firebase';
 import { Button } from '../../components/Button';
-import { Trash2, Image as ImageIcon, Loader2, Copy } from 'lucide-react';
+import { Trash2, Image as ImageIcon, Loader2, Copy, Upload } from 'lucide-react';
+import imageCompression from 'browser-image-compression';
 
 export const AdminMedia: React.FC = () => {
     const [images, setImages] = useState<{ url: string, name: string, path: string }[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isUploading, setIsUploading] = useState(false);
     const [activeTab, setActiveTab] = useState('website-hero-images');
 
     const folders = [
@@ -40,6 +42,33 @@ export const AdminMedia: React.FC = () => {
         }
     };
 
+    const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploading(true);
+        try {
+            const options = {
+                maxSizeMB: 1,
+                maxWidthOrHeight: 1920,
+                useWebWorker: true,
+            };
+            const compressedFile = await imageCompression(file, options);
+            
+            const storagePath = `${activeTab}/${Date.now()}_${file.name}`;
+            const storageRef = ref(storage, storagePath);
+            await uploadBytes(storageRef, compressedFile);
+            
+            alert('Image uploadée avec succès !');
+            fetchImages();
+        } catch (error) {
+            console.error("Erreur upload", error);
+            alert("Erreur lors de l'upload de l'image.");
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
     const handleDelete = async (path: string) => {
         if (!window.confirm('Voulez-vous vraiment supprimer cette image définitivement ?')) return;
         try {
@@ -54,9 +83,16 @@ export const AdminMedia: React.FC = () => {
 
     return (
         <div className="max-w-6xl mx-auto">
-            <h1 className="font-display font-black text-4xl mb-8 flex items-center gap-4">
-                <ImageIcon size={36} /> Médiathèque
-            </h1>
+            <div className="flex justify-between items-center mb-8">
+                <h1 className="font-display font-black text-4xl flex items-center gap-4 uppercase tracking-tighter">
+                    <ImageIcon size={36} /> Médiathèque
+                </h1>
+                <label className={`cursor-pointer bg-black text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-brand-red transition-all shadow-neo-sm ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                    {isUploading ? <Loader2 size={20} className="animate-spin" /> : <Upload size={20} />}
+                    <span>{isUploading ? 'Chargement...' : 'Uploader Image'}</span>
+                    <input type="file" accept="image/*" onChange={handleUpload} className="hidden" disabled={isUploading} />
+                </label>
+            </div>
 
             {/* Tabs */}
             <div className="flex gap-4 mb-8 overflow-x-auto pb-2">
@@ -75,7 +111,7 @@ export const AdminMedia: React.FC = () => {
             </div>
 
             {/* Gallery */}
-            <div className="bg-white border-4 border-black rounded-3xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-8 min-h-[500px]">
+            <div className="bg-white border-4 border-black rounded-3xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-4 sm:p-8 min-h-[500px]">
                 {loading ? (
                     <div className="flex flex-col items-center justify-center h-64 text-gray-500">
                         <Loader2 size={48} className="animate-spin mb-4" />

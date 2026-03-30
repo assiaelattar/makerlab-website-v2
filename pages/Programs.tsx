@@ -1,4 +1,5 @@
 import React from 'react';
+import { SEO } from '../components/SEO';
 import { ProgramCard } from '../components/ProgramCard';
 import { ScrollReveal } from '../components/ScrollReveal';
 import { usePrograms } from '../contexts/ProgramContext';
@@ -19,6 +20,11 @@ export const Programs: React.FC = () => {
 
   return (
     <div className="min-h-screen py-16 md:py-20 px-4">
+      <SEO 
+        title="Nos Programmes - Robotique & Codage"
+        description="Explorez nos missions de 3h et nos programmes annuels : stage robotique Maroc, cours de codage Scratch et Python, impression 3D et plus encore."
+        keywords="cours de robotique Maroc, stage programmation enfants, apprendre à coder Casablanca, cours Scratch Maroc, programmation Python enfants"
+      />
       <div className="container mx-auto">
         <ScrollReveal>
           {/* HEADER SECTION */}

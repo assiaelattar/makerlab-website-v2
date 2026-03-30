@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, FileText, Settings, Image as ImageIcon, LogOut, Package, CalendarDays, BookOpen, School, Ticket } from 'lucide-react';
+import { LayoutDashboard, FileText, Settings, Image as ImageIcon, LogOut, Package, CalendarDays, BookOpen, School, Ticket, Menu, X, PenTool } from 'lucide-react';
 
 export const AdminLayout: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     useEffect(() => {
         const isAdmin = localStorage.getItem('isAdmin');
@@ -12,6 +13,11 @@ export const AdminLayout: React.FC = () => {
             navigate('/admin');
         }
     }, [navigate]);
+
+    // Close sidebar on route change (mobile)
+    useEffect(() => {
+        setIsSidebarOpen(false);
+    }, [location]);
 
     const handleLogout = () => {
         localStorage.removeItem('isAdmin');
@@ -23,6 +29,7 @@ export const AdminLayout: React.FC = () => {
         { label: 'Contenu du Site', path: '/admin/content', icon: FileText },
         { label: 'Programmes', path: '/admin/programs', icon: Package },
         { label: 'Réservations', path: '/admin/bookings', icon: CalendarDays },
+        { label: 'Blog', path: '/admin/blogs', icon: PenTool },
         { label: 'Médias', path: '/admin/media', icon: ImageIcon },
         { label: 'Catalogue Ateliers', path: '/admin/workshop-catalog', icon: BookOpen },
         { label: 'Partenaires', path: '/admin/partners', icon: School },
@@ -32,9 +39,30 @@ export const AdminLayout: React.FC = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-gray-100 flex font-sans">
+        <div className="min-h-screen bg-gray-100 flex font-sans relative">
+            {/* Mobile Header Toggle */}
+            <div className="lg:hidden fixed top-4 left-4 z-[60] flex items-center gap-3">
+                <button 
+                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                    className="p-3 bg-brand-orange border-4 border-black shadow-neo-sm hover:shadow-none transition-all rounded-xl"
+                >
+                    {isSidebarOpen ? <X size={24} strokeWidth={3} /> : <Menu size={24} strokeWidth={3} />}
+                </button>
+            </div>
+
+            {/* Overlay for mobile sidebar */}
+            {isSidebarOpen && (
+                <div 
+                    className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity"
+                    onClick={() => setIsSidebarOpen(false)}
+                />
+            )}
+
             {/* Sidebar */}
-            <aside className="w-64 bg-white border-r-4 border-black flex flex-col justify-between sticky top-0 h-screen overflow-y-auto z-50">
+            <aside className={`
+                fixed lg:sticky top-0 left-0 h-screen w-64 bg-white border-r-4 border-black flex flex-col justify-between overflow-y-auto z-50 transition-transform duration-300
+                ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+            `}>
                 <div>
                     <div className="p-6 border-b-4 border-black">
                         <h1 className="font-display font-black text-2xl uppercase tracking-tighter">MakerLab<br /><span className="text-brand-orange">Admin.</span></h1>
@@ -71,9 +99,11 @@ export const AdminLayout: React.FC = () => {
             </aside>
 
             {/* Main Content Content */}
-            <main className="flex-1 p-8 overflow-x-hidden relative">
+            <main className="flex-1 p-4 md:p-8 overflow-x-hidden relative min-w-0">
+                <div className="lg:hidden h-16" /> {/* Spacer for floating button */}
                 <Outlet />
             </main>
         </div>
     );
 };
+

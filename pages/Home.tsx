@@ -7,6 +7,7 @@ import { ScrollReveal } from '../components/ScrollReveal';
 import { VideoSection } from '../components/VideoSection';
 import { ParallaxGallery } from '../components/ParallaxGallery';
 import { useSettings } from '../contexts/SettingsContext';
+import { SEO } from '../components/SEO';
 
 export const Home: React.FC = () => {
   // Hero Text Slider State
@@ -51,6 +52,11 @@ export const Home: React.FC = () => {
 
   return (
     <div className="min-h-screen overflow-x-hidden pt-8 md:pt-16">
+      <SEO 
+        title="Cours de Robotique & Codage Enfants Casablanca"
+        description="MakerLab Academy : Ateliers de robotique, codage Python, et impression 3D pour enfants et ados à Casablanca. Apprenez en construisant de vrais projets !"
+        keywords="robotique enfants Casablanca, cours de codage enfants Maroc, activités enfants Casablanca, atelier robotique enfants, club de codage pour ados"
+      />
 
       {/* HERO SECTION */}
       <section className="relative pb-20 md:pb-32 px-4 overflow-visible">
