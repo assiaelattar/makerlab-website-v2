@@ -7,7 +7,7 @@ import { Calendar, Users, Clock, Sparkles, ShoppingCart, CheckCircle, X, Send, A
 
 export const SchoolLanding: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
-  const { getOfferBySlug, addEnrollment } = useSchool();
+  const { getOfferBySlug, addEnrollment, isLoading: contextLoading } = useSchool();
   
   const [data, setData] = useState<{
     offer: Offer;
@@ -80,6 +80,7 @@ export const SchoolLanding: React.FC = () => {
   };
   useEffect(() => {
     const fetchOffer = async () => {
+      if (contextLoading) return;
       if (slug) {
         const result = await getOfferBySlug(slug);
         setData(result);
@@ -94,7 +95,7 @@ export const SchoolLanding: React.FC = () => {
     return () => {
       document.title = 'MakerLab Academy';
     };
-  }, [slug, getOfferBySlug]);
+  }, [slug, getOfferBySlug, contextLoading]);
 
 
   if (loading) {
