@@ -42,32 +42,36 @@ export const ProgramDetail: React.FC = () => {
 
         <ScrollReveal>
           <div className="bg-white rounded-[2.5rem] border-4 border-black shadow-neo-xl overflow-hidden mb-12">
-            {/* Header Image */}
-            <div className="h-72 md:h-[500px] w-full relative bg-brand-dark">
-              <img src={program.image} alt={program.title} className="w-full h-full object-cover opacity-90" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-90"></div>
-
-              <div className="absolute bottom-0 left-0 w-full p-8 md:p-16">
-                <div className="flex flex-wrap gap-4 mb-6">
-                  <span className="bg-brand-orange text-black px-6 py-2 rounded-xl border-2 border-black font-bold text-lg shadow-neo-sm transform -rotate-2">
-                    {program.category}
-                  </span>
-                  <span className="bg-white text-black px-6 py-2 rounded-xl border-2 border-black font-bold text-lg shadow-neo-sm transform rotate-1 flex items-center gap-2">
-                    <Clock size={20} strokeWidth={3} /> {program.duration}
-                  </span>
-                </div>
-                <h1 className="font-display font-bold text-5xl md:text-8xl text-white leading-none shadow-black drop-shadow-lg mb-4">
-                  {program.title}
-                </h1>
+            {/* Header Image Container */}
+            <div className="p-4 md:p-6 bg-gray-50 border-b-4 border-black">
+              <div className="h-64 md:h-[450px] w-full relative rounded-2xl border-4 border-black overflow-hidden group">
+                <img src={program.image} alt={program.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                {/* Subtle vignette only at the very top for better contrast with the white navbar if needed, but not covering center */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-60"></div>
               </div>
+            </div>
+
+            {/* Title Block - Moved below image for clarity */}
+            <div className="p-8 md:p-12 bg-white border-b-4 border-black">
+              <div className="flex flex-wrap gap-4 mb-6">
+                <div className="bg-brand-orange text-black px-6 py-2 rounded-xl border-4 border-black font-black text-lg shadow-neo-sm transform -rotate-1 uppercase tracking-wider">
+                  {program.category}
+                </div>
+                <div className="bg-white text-black px-6 py-2 rounded-xl border-4 border-black font-black text-lg shadow-neo-sm transform rotate-1 flex items-center gap-2 uppercase tracking-wider">
+                  <Clock size={20} strokeWidth={4} /> {program.duration}
+                </div>
+              </div>
+              <h1 className="font-display font-black text-4xl md:text-7xl lg:text-8xl text-black leading-[0.9] uppercase break-words">
+                {program.title}
+              </h1>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3">
               {/* Main Content */}
               <div className="lg:col-span-2 p-8 md:p-12 border-b-4 lg:border-b-0 lg:border-r-4 border-black bg-white">
-                <h2 className="font-display font-bold text-4xl mb-6 flex items-center gap-3">
-                  <span className="bg-brand-red text-white w-10 h-10 flex items-center justify-center rounded-lg border-2 border-black text-2xl">1</span>
-                  Ta mission
+                <h2 className="font-display font-black text-3xl md:text-4xl mb-8 flex items-center gap-4 uppercase tracking-tight">
+                  <span className="bg-brand-red text-white w-12 h-12 flex items-center justify-center rounded-xl border-4 border-black text-2xl shadow-neo-sm">1</span>
+                  À propos du programme
                 </h2>
                 <div className="bg-brand-blue/10 p-6 rounded-2xl border-l-8 border-brand-blue mb-10">
                   <p className="text-gray-900 text-xl leading-relaxed font-bold">{program.description}</p>
@@ -76,9 +80,9 @@ export const ProgramDetail: React.FC = () => {
                   </p>
                 </div>
 
-                <h3 className="font-display font-bold text-2xl mb-6 flex items-center gap-3">
-                  <span className="bg-brand-green text-white w-10 h-10 flex items-center justify-center rounded-lg border-2 border-black text-2xl">2</span>
-                  Ce que tu obtiens
+                <h3 className="font-display font-black text-3xl md:text-4xl mb-8 flex items-center gap-4 uppercase tracking-tight">
+                  <span className="bg-brand-green text-white w-12 h-12 flex items-center justify-center rounded-xl border-4 border-black text-2xl shadow-neo-sm">2</span>
+                  Ce que tu vas apprendre
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-12">
                   {['Mentors Experts', 'Matériel Inclus', 'Projet à emporter', 'Certificat Make & Go'].map((item, i) => (
@@ -94,7 +98,9 @@ export const ProgramDetail: React.FC = () => {
                 {/* Skills Chart */}
                 <div className="bg-brand-dark text-white p-8 rounded-3xl border-4 border-black shadow-neo relative overflow-hidden">
                   <div className="absolute top-0 right-0 p-32 bg-brand-red opacity-20 blur-3xl rounded-full"></div>
-                  <h3 className="font-display font-bold text-2xl mb-8 relative z-10 flex items-center gap-2">XP Gagnée 📈</h3>
+                  <h3 className="font-display font-black text-2xl mb-8 relative z-10 flex items-center gap-2 uppercase tracking-widest">
+                    Compétences Développées 📈
+                  </h3>
                   <div className="h-64 w-full relative z-10">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={program.stats}>
@@ -247,11 +253,13 @@ export const ProgramDetail: React.FC = () => {
           <section className="bg-brand-red border-4 border-black rounded-3xl p-10 text-center shadow-neo-xl mb-8">
             <h2 className="font-display font-black text-4xl md:text-6xl text-white mb-4 drop-shadow-md">Prêt à rejoindre l'aventure ?</h2>
             <p className="text-white/80 font-bold text-xl mb-8 max-w-xl mx-auto">Places limitées à 10 par session. Ne tardez pas !</p>
-            <Link to="/register">
-              <Button variant="primary" className="text-2xl py-5 px-12 bg-brand-red text-white border-4 border-black shadow-[6px_6px_0px_0px_black] hover:shadow-none hover:translate-x-1 hover:translate-y-1">
-                <Rocket size={24} strokeWidth={3} className="mr-2" /> Réserver ma place — {program.price}
-              </Button>
-            </Link>
+            <div className="flex justify-center">
+              <Link to="/register">
+                <Button variant="outline" className="text-2xl py-5 px-12 border-4 border-black shadow-[6px_6px_0px_0px_black] hover:shadow-none hover:translate-x-1 hover:translate-y-1">
+                  <Rocket size={24} strokeWidth={3} className="mr-2" /> Réserver ma place — {program.price}
+                </Button>
+              </Link>
+            </div>
           </section>
         </ScrollReveal>
       </div>

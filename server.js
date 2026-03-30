@@ -87,6 +87,36 @@ app.get('/s/:slug', async (req, res, next) => {
   }
 });
 
+// SEO BOT Interceptor for /programs/:id
+app.get('/programs/:id', async (req, res, next) => {
+  const indexPath = path.join(__dirname, 'dist', 'index.html');
+  try {
+    const id = req.params.id;
+    const pRes = await fetch(`https://firestore.googleapis.com/v1/projects/edufy-makerlab/databases/(default)/documents/programs/${id}`);
+    
+    if (!pRes.ok) {
+       if (fs.existsSync(indexPath)) return res.sendFile(indexPath);
+       return res.status(404).send('Not Found');
+    }
+    
+    const pData = await pRes.json();
+    const title = `${pData.fields.title?.stringValue || 'Programme'} | MakerLab Academy`;
+    const description = pData.fields.description?.stringValue || "Découvrez nos programmes innovants en robotique, codage et IA.";
+    const image = pData.fields.image?.stringValue || 'https://makerlab.ma/logo-full.png';
+
+    if (fs.existsSync(indexPath)) {
+      const html = fs.readFileSync(indexPath, 'utf8');
+      const finalHtml = modifyHtmlTags(html, { title, description, image });
+      return res.send(finalHtml);
+    }
+    next();
+  } catch (error) {
+    console.error('Program SEO Error:', error);
+    if (fs.existsSync(indexPath)) return res.sendFile(indexPath);
+    next();
+  }
+});
+
 // Serve static files from the dist directory
 app.use(express.static(path.join(__dirname, 'dist')));
 

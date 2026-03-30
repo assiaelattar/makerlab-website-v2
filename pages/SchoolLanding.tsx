@@ -3,7 +3,9 @@ import { useParams, Link } from 'react-router-dom';
 import { useSchool } from '../contexts/SchoolContext';
 import { Offer, SchoolPartner, Period, Workshop, Enrollment } from '../types';
 import { Button } from '../components/Button';
-import { Calendar, Users, Clock, Sparkles, ShoppingCart, CheckCircle, X, Send, ArrowRight } from 'lucide-react';
+import { Calendar, Users, Clock, Sparkles, ShoppingCart, CheckCircle, X, Send, ArrowRight, Download } from 'lucide-react';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 export const SchoolLanding: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -17,6 +19,7 @@ export const SchoolLanding: React.FC = () => {
   } | null>(null);
   
   const [loading, setLoading] = useState(true);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [cart, setCart] = useState<Workshop[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -78,6 +81,34 @@ export const SchoolLanding: React.FC = () => {
       setIsSubmitting(false);
     }
   };
+
+  const downloadPDF = async () => {
+    const element = document.getElementById('pdf-content');
+    if (!element) return;
+    
+    setIsDownloading(true);
+    try {
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        windowWidth: 1280 // Force desktop layout
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', [canvas.width * 0.264583, canvas.height * 0.264583]);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`${data?.school?.name || 'Programme'}-MakerLab.pdf`);
+    } catch (err) {
+      console.error('Erreur PDF:', err);
+      alert('Erreur lors de la génération du PDF.');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   useEffect(() => {
     const fetchOffer = async () => {
       if (contextLoading) return;
@@ -126,7 +157,7 @@ export const SchoolLanding: React.FC = () => {
   const { school, period, activeWorkshops, offer } = data;
 
   return (
-    <div className="min-h-screen bg-white">
+    <div id="pdf-content" className="min-h-screen bg-white pb-12">
       {/* Header / Branding */}
       <header className="bg-white border-b-4 border-black sticky top-0 z-40 px-6 py-4">
         <div className="container mx-auto flex justify-between items-center">
@@ -139,9 +170,20 @@ export const SchoolLanding: React.FC = () => {
               {school.name} <span className="text-brand-orange">× MakerLab</span>
             </h2>
           </div>
-          <div className="flex items-center gap-2 bg-brand-orange/10 px-4 py-2 rounded-full border-2 border-brand-orange/30">
-            <Sparkles size={16} className="text-brand-orange" />
-            <span className="text-[10px] md:text-xs font-black uppercase text-brand-orange whitespace-nowrap">Partenaire Officiel</span>
+          <div className="flex items-center gap-2">
+            <Button 
+               data-html2canvas-ignore="true"
+               onClick={downloadPDF} 
+               loading={isDownloading}
+               variant="outline" 
+               className="text-xs uppercase border-2 border-black font-black flex items-center gap-2"
+            >
+              <Download size={14} /> <span className="hidden sm:inline">Télécharger PDF</span>
+            </Button>
+            <div className="hidden sm:flex items-center gap-2 bg-brand-orange/10 px-4 py-2 rounded-full border-2 border-brand-orange/30">
+              <Sparkles size={16} className="text-brand-orange" />
+              <span className="text-[10px] md:text-xs font-black uppercase text-brand-orange whitespace-nowrap">Partenaire Officiel</span>
+            </div>
           </div>
         </div>
       </header>
@@ -238,6 +280,7 @@ export const SchoolLanding: React.FC = () => {
                     </div>
                     
                     <Button 
+                      data-html2canvas-ignore="true"
                       onClick={() => toggleCart(workshop)} 
                       variant={isInCart ? 'outline' : 'primary'} 
                       className={`w-full sm:w-auto py-4 text-lg flex-1 ${isInCart ? 'border-brand-orange text-brand-orange hover:bg-brand-orange hover:text-white' : ''}`}
@@ -285,7 +328,7 @@ export const SchoolLanding: React.FC = () => {
 
       {/* Floating Cart Toolbar */}
       {cart.length > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-2xl bg-white border-4 border-black rounded-full shadow-neo-lg p-2 flex items-center justify-between px-6 animate-in slide-in-from-bottom-10 fade-in duration-300">
+        <div data-html2canvas-ignore="true" className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-2xl bg-white border-4 border-black rounded-full shadow-neo-lg p-2 flex items-center justify-between px-6 animate-in slide-in-from-bottom-10 fade-in duration-300">
           <div className="flex items-center gap-4">
             <div className="relative">
                <ShoppingCart size={24} className="text-brand-blue" />
@@ -305,7 +348,7 @@ export const SchoolLanding: React.FC = () => {
 
       {/* Enrollment Modal */}
       {showModal && cart.length > 0 && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div data-html2canvas-ignore="true" className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
            <div className="bg-white border-4 border-black rounded-[3rem] w-full max-w-2xl overflow-hidden shadow-[20px_20px_0px_0px_rgba(0,0,0,1)] relative animate-in fade-in zoom-in duration-300">
               <button onClick={() => setShowModal(false)} className="absolute top-6 right-6 p-2 hover:bg-gray-100 rounded-full transition-colors z-10">
                 <X size={24} className="text-black" />

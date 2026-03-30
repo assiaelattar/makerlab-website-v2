@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { usePrograms } from '../../contexts/ProgramContext';
 import { Button } from '../../components/Button';
-import { Plus, Edit2, Trash2, Power, Eye } from 'lucide-react';
+import { Plus, Edit2, Trash2, Power, Eye, Copy } from 'lucide-react';
 
 import { initialPrograms } from '../../data/programs';
 import { DatabaseBackup } from 'lucide-react';
@@ -18,6 +18,17 @@ export const AdminDashboard: React.FC = () => {
         await addProgram(progData as any);
       }
       alert("Programmes chargés avec succès !");
+    }
+  };
+
+  const handleCopyLink = (id: string) => {
+    const url = `${window.location.origin}/programs/${id}`;
+    navigator.clipboard.writeText(url);
+    // Simple feedback
+    const btn = document.getElementById(`copy-btn-${id}`);
+    if (btn) {
+      btn.classList.add('bg-brand-orange');
+      setTimeout(() => btn.classList.remove('bg-brand-orange'), 1000);
     }
   };
 
@@ -83,6 +94,14 @@ export const AdminDashboard: React.FC = () => {
                       <Link to={`/programs/${program.id}`} target="_blank">
                         <button className="w-12 h-12 flex items-center justify-center bg-white border-4 border-black hover:bg-brand-blue hover:-translate-y-1 hover:shadow-neo-sm transition-all rounded-xl" title="Voir"><Eye size={20} className="text-black" /></button>
                       </Link>
+                      <button 
+                        id={`copy-btn-${program.id}`}
+                        onClick={() => handleCopyLink(program.id)}
+                        className="w-12 h-12 flex items-center justify-center bg-white border-4 border-black hover:bg-brand-orange hover:-translate-y-1 hover:shadow-neo-sm transition-all rounded-xl" 
+                        title="Copier le lien"
+                      >
+                        <Copy size={20} className="text-black" />
+                      </button>
                       <Link to={`/admin/program/${program.id}`}>
                         <button className="w-12 h-12 flex items-center justify-center bg-white border-4 border-black hover:bg-brand-green hover:-translate-y-1 hover:shadow-neo-sm transition-all rounded-xl" title="Editer"><Edit2 size={20} className="text-black" /></button>
                       </Link>

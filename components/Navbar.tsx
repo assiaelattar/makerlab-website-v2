@@ -50,15 +50,21 @@ export const Navbar: React.FC<NavbarProps> = ({ scrolled = false }) => {
             bg-white border-b-4 md:border-4 border-black md:rounded-xl flex justify-between items-center relative transition-all duration-300
             ${scrolled ? 'p-2 shadow-neo-sm border-brand-red' : 'p-3 md:p-4 shadow-neo border-black'}
           `}>
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 group" onClick={() => setIsOpen(false)}>
-            {/* Mobile Icon */}
-            <div className={`xl:hidden bg-white p-1 rounded-full border-2 border-black group-hover:rotate-12 transition-all duration-300 ${scrolled ? 'scale-90' : 'scale-100'}`}>
-              <img src="/logo-icon.png" alt="Makerlab Academy Icon" className="w-8 h-8 md:w-10 md:h-10 object-contain" />
+          {/* Logo Section */}
+          <Link to="/" className="flex items-center gap-3 group" onClick={() => setIsOpen(false)}>
+            {/* Logo Icon with Neo-brutalist border */}
+            <div className={`bg-white p-1 md:p-1.5 rounded-full border-4 border-black group-hover:rotate-12 transition-all duration-500 shadow-neo-sm ${scrolled ? 'scale-90' : 'scale-100'}`}>
+              <img src="/logo-icon.png" alt="Makerlab Academy Icon" className="w-8 h-8 md:w-12 md:h-12 object-contain" />
             </div>
-            {/* Desktop Full Logo */}
-            <div className={`hidden xl:block transition-all duration-300 origin-left ${scrolled ? 'scale-90' : 'scale-100'}`}>
-              <img src="/logo-full.png" alt="Makerlab Academy" className="h-10 md:h-14 object-contain" />
+            
+            {/* Logo Text - Strong and Massive */}
+            <div className={`flex flex-col leading-none transition-all duration-300 origin-left ${scrolled ? 'scale-90' : 'scale-100'}`}>
+              <span className="font-display font-black text-xl md:text-3xl uppercase tracking-tighter text-black select-none">
+                Makerlab
+              </span>
+              <span className="font-display font-black text-xs md:text-sm uppercase tracking-[0.2em] text-brand-red select-none">
+                Academy
+              </span>
             </div>
           </Link>
 

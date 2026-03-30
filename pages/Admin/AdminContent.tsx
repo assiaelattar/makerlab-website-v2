@@ -317,9 +317,9 @@ export const AdminContent: React.FC = () => {
                     <input value={galleryCaption} onChange={e => setGalleryCaption(e.target.value)}
                         placeholder="Légende (optionnelle, ex: Workshop Robotique Apr 2025)"
                         className="flex-1 border-2 border-black p-2.5 rounded-lg bg-white font-medium text-sm" />
-                    <label className="flex items-center gap-2 bg-brand-blue text-black border-2 border-black px-4 py-2.5 rounded-xl font-bold text-sm cursor-pointer hover:bg-cyan-300 transition-colors">
+                    <label htmlFor="gallery-upload" className="flex items-center gap-2 bg-brand-blue text-black border-2 border-black px-4 py-2.5 rounded-xl font-bold text-sm cursor-pointer hover:bg-cyan-300 transition-colors">
                         <Upload size={16} /> Uploader (multi)
-                        <input type="file" multiple accept="image/*" onChange={handleGalleryUpload} className="hidden" />
+                        <input id="gallery-upload" type="file" multiple accept="image/*" onChange={handleGalleryUpload} className="hidden" />
                     </label>
                 </div>
 
@@ -442,8 +442,8 @@ export const AdminContent: React.FC = () => {
                         <div key={field}>
                             <div className="font-bold mb-2 flex flex-col gap-2">Image Bento {idx + 1}
                                 <input name={field} value={(heroData as any)[field] || ''} onChange={handleHeroChange} className="w-full border-4 border-black p-2 rounded-lg bg-gray-50 text-sm font-medium" placeholder="URL" />
-                                <label className="text-xs bg-gray-200 px-3 py-2 rounded border-2 border-black cursor-pointer hover:bg-gray-300 flex items-center justify-center gap-2 font-bold uppercase transition-colors"><Upload size={14} /> Uploader</label>
-                                <input type="file" accept="image/*" onChange={(e) => handleHeroImageUpload(field, e)} className="hidden" />
+                                <label htmlFor={`hero-upload-${field}`} className="text-xs bg-gray-200 px-3 py-2 rounded border-2 border-black cursor-pointer hover:bg-gray-300 flex items-center justify-center gap-2 font-bold uppercase transition-colors"><Upload size={14} /> Uploader</label>
+                                <input id={`hero-upload-${field}`} type="file" accept="image/*" onChange={(e) => handleHeroImageUpload(field, e)} className="hidden" />
                                 {(heroData as any)[field] && <img src={(heroData as any)[field]} alt="" className="w-full h-24 object-cover mt-2 border-2 border-black rounded" />}
                             </div>
                         </div>
@@ -462,8 +462,8 @@ export const AdminContent: React.FC = () => {
                         <div key={item.key}>
                             <div className="font-bold mb-2 flex flex-col gap-2">{item.label}
                                 <input name={item.key} value={(heroData as any)[item.key] || ''} onChange={handleHeroChange} className="w-full border-4 border-black p-2 rounded-lg bg-gray-50 text-sm font-medium" placeholder="URL" />
-                                <label className="text-xs bg-gray-200 px-3 py-2 border-2 border-black rounded cursor-pointer hover:bg-gray-300 flex items-center justify-center gap-2 font-bold uppercase transition-colors"><Upload size={14} /> Uploader</label>
-                                <input type="file" accept="image/*" onChange={(e) => handleHeroImageUpload(item.key, e)} className="hidden" />
+                                <label htmlFor={`hero-upload-${item.key}`} className="text-xs bg-gray-200 px-3 py-2 border-2 border-black rounded cursor-pointer hover:bg-gray-300 flex items-center justify-center gap-2 font-bold uppercase transition-colors"><Upload size={14} /> Uploader</label>
+                                <input id={`hero-upload-${item.key}`} type="file" accept="image/*" onChange={(e) => handleHeroImageUpload(item.key, e)} className="hidden" />
                                 {(heroData as any)[item.key] && <img src={(heroData as any)[item.key]} alt="" className="w-full h-16 object-cover mt-2 border-2 border-black rounded" />}
                             </div>
                         </div>

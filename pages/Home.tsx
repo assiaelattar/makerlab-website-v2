@@ -5,7 +5,7 @@ import { Rocket, Award, MessageCircle, ArrowRight, Star, Heart, Terminal, Cpu, C
 import { Link } from 'react-router-dom';
 import { ScrollReveal } from '../components/ScrollReveal';
 import { VideoSection } from '../components/VideoSection';
-import { ParallaxGallery } from '../components/ParallaxGallery';
+import { PhotoGallery } from '../components/PhotoGallery';
 import { useSettings } from '../contexts/SettingsContext';
 import { SEO } from '../components/SEO';
 
@@ -30,7 +30,6 @@ export const Home: React.FC = () => {
     description: "Découvre l'ambiance Makerlab : du code, de la 3D, des robots et beaucoup de fun !",
     theme: "red"
   };
-  const projectsGallery = settings?.home_projects;
 
   const dynamicMessages = settings?.hero_dynamic_messages && settings.hero_dynamic_messages.length > 0
     ? settings.hero_dynamic_messages
@@ -365,10 +364,15 @@ export const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* PROJECTS SHOWCASE */}
-      <section className="bg-white border-t-4 border-black relative">
-        <ParallaxGallery projects={projectsGallery} />
-      </section>
+      {/* PHOTO GALLERY - Social Proof */}
+      {settings?.gallery_general && settings.gallery_general.length > 0 && (
+        <PhotoGallery 
+          images={settings.gallery_general} 
+          title="L'Expérience MakerLab"
+          subtitle="Découvrez les coulisses de nos ateliers à travers les yeux de nos participants."
+          large={true}
+        />
+      )}
 
       {/* CALL TO ACTION */}
       <section className="py-20 px-4 mb-10">
