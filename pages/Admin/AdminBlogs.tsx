@@ -23,6 +23,7 @@ export const AdminBlogs: React.FC = () => {
     seoKeywords: []
   });
   const [isUploading, setIsUploading] = useState(false);
+  const [isUploadingOg, setIsUploadingOg] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
@@ -69,6 +70,39 @@ export const AdminBlogs: React.FC = () => {
     }
   };
 
+  const handleOgImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingOg(true);
+    try {
+      const options = {
+        maxSizeMB: 0.28, // Keep under WhatsApp's ~300KB limit
+        maxWidthOrHeight: 1200,
+        useWebWorker: true,
+      };
+      const compressedFile = await imageCompression(file, options);
+      const storagePath = `website-project-images/blogs/og/${Date.now()}_${file.name}`;
+      const storageRef = ref(storage, storagePath);
+      const snapshot = await uploadBytes(storageRef, compressedFile);
+      const url = await getDownloadURL(snapshot.ref);
+      setCurrentBlog(prev => ({ ...prev, ogImage: url }));
+    } catch (error: any) {
+      console.error("❌ Firebase Upload Error (Blog OG Image):", {
+        code: error.code,
+        message: error.message,
+      });
+      let userMessage = "Erreur upload image sociale.";
+      if (error.code === 'storage/unauthorized') {
+        userMessage += "\nPermissions refusées. Vérifiez vos règles Firebase Storage pour 'website-project-images/blogs/og/'.";
+      } else {
+        userMessage += `\nDétail: ${error.message}`;
+      }
+      alert(userMessage);
+    } finally {
+      setIsUploadingOg(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!currentBlog.title || !currentBlog.slug) {
       alert('Le titre et le slug sont obligatoires.');
@@ -108,6 +142,7 @@ export const AdminBlogs: React.FC = () => {
       content: '',
       tags: [],
       image: '',
+      ogImage: '',
       seoKeywords: []
     });
   };
@@ -234,6 +269,40 @@ export const AdminBlogs: React.FC = () => {
                   className="w-full border-4 border-black p-3 font-bold"
                   placeholder="ateliers enfants casablanca, ai for kids..."
                 />
+              </div>
+
+              {/* OG / Social Preview Image */}
+              <div>
+                <label className="block font-black text-sm uppercase mb-1">Image Réseaux Sociaux (WhatsApp, etc.)</label>
+                <div className="border-4 border-dashed border-brand-blue rounded-xl p-3 flex flex-col items-center justify-center bg-blue-50 min-h-[120px] relative">
+                  {isUploadingOg ? (
+                    <div className="flex flex-col items-center">
+                      <Loader2 size={24} className="animate-spin mb-1 text-brand-blue" />
+                      <span className="font-bold text-xs text-brand-blue">Compression WhatsApp...</span>
+                    </div>
+                  ) : currentBlog.ogImage ? (
+                    <div className="relative w-full h-24 group">
+                      <img src={currentBlog.ogImage} alt="OG Preview" className="w-full h-full object-cover rounded-lg border-2 border-brand-blue" />
+                      <button
+                        onClick={() => setCurrentBlog(prev => ({ ...prev, ogImage: '' }))}
+                        className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full border-2 border-black opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="cursor-pointer bg-brand-blue text-white px-3 py-2 rounded-lg font-bold text-xs hover:opacity-80 transition-opacity flex items-center gap-1">
+                      <ImageIcon size={14} /> Choisir (1200×630px)
+                      <input type="file" accept="image/*" onChange={handleOgImageUpload} className="hidden" />
+                    </label>
+                  )}
+                  {currentBlog.ogImage && (
+                    <p className="text-[10px] text-brand-blue font-black mt-2">✅ Image sociale personnalisée active</p>
+                  )}
+                  {!currentBlog.ogImage && (
+                    <p className="text-[10px] text-gray-400 font-bold mt-2">ℹ️ Image de couverture utilisée par défaut</p>
+                  )}
+                </div>
               </div>
             </div>
           </div>

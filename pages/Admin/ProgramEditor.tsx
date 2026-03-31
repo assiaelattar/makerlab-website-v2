@@ -45,6 +45,7 @@ export const ProgramEditor: React.FC = () => {
   const [formData, setFormData] = useState<Program>(emptyProgram);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isUploadingOgImage, setIsUploadingOgImage] = useState(false);
   const [scheduleInput, setScheduleInput] = useState('');
   const [tagInput, setTagInput] = useState('');
 
@@ -100,6 +101,36 @@ export const ProgramEditor: React.FC = () => {
         setIsUploadingImage(false);
       }
     };
+
+  const handleOgImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingOgImage(true);
+    try {
+      const options = { maxSizeMB: 0.3, maxWidthOrHeight: 1200, useWebWorker: true };
+      const compressedFile = await imageCompression(file, options);
+      const storagePath = `website-og-images/${Date.now()}_${file.name}`;
+      const storageRef = ref(storage, storagePath);
+      const snapshot = await uploadBytes(storageRef, compressedFile);
+      const downloadURL = await getDownloadURL(snapshot.ref);
+      setFormData(prev => ({ ...prev, ogImage: downloadURL }));
+    } catch (error: any) {
+      console.error("❌ Firebase Upload Error (OG Image):", {
+        code: error.code,
+        message: error.message,
+        serverResponse: error.serverResponse,
+      });
+      let userMessage = "Erreur lors de l'upload de l'image sociale.";
+      if (error.code === 'storage/unauthorized') {
+        userMessage += "\nPermissions refusées. Veuillez vérifier vos règles Firebase Storage pour le dossier 'website-og-images'.";
+      } else {
+        userMessage += `\nDétail: ${error.message}`;
+      }
+      alert(userMessage);
+    } finally {
+      setIsUploadingOgImage(false);
+    }
+  };
 
   const handleGenerateImage = async () => {
     if (!formData.imagePrompt) return alert("Entrez un prompt d'abord !");
@@ -347,6 +378,67 @@ export const ProgramEditor: React.FC = () => {
                     <label className="block font-bold text-[10px] mb-1 uppercase opacity-50">URL de l'image (ou base64)</label>
                     <input name="image" value={formData.image} onChange={handleChange} className="w-full p-2 border-2 border-black rounded-lg text-[10px] font-mono" placeholder="URL de l'image" />
                   </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Social / OG Image Section */}
+            <div className="p-6 bg-brand-blue/5 border-2 border-dashed border-brand-blue rounded-2xl">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-2xl">📱</span>
+                <h3 className="font-display font-bold text-xl text-brand-blue">Image Aperçu Réseaux Sociaux</h3>
+              </div>
+              <p className="text-xs text-gray-500 mb-5 font-medium">
+                Utilisée quand ce programme est partagé sur <strong>WhatsApp, Instagram, Facebook</strong>, etc.
+                Si vide, l'image principale du workshop est utilisée à la place.
+                Format idéal : <strong>1200 × 630 px (paysage)</strong>.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                {/* Upload */}
+                <div className="space-y-3">
+                  <label className={`flex items-center justify-center gap-2 w-full p-4 border-2 border-brand-blue border-dotted rounded-xl bg-white hover:bg-brand-blue/5 cursor-pointer transition-colors ${isUploadingOgImage ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                    <Upload size={20} className="text-brand-blue" />
+                    <span className="font-bold text-sm text-brand-blue">
+                      {isUploadingOgImage ? 'Upload en cours...' : 'Choisir une image sociale (1200×630)'}
+                    </span>
+                    <input type="file" accept="image/*" onChange={handleOgImageUpload} disabled={isUploadingOgImage} className="hidden" />
+                  </label>
+                  {formData.ogImage && (
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, ogImage: '' }))}
+                      className="w-full text-xs font-bold text-red-500 hover:text-red-700 border border-red-200 rounded-lg py-2 transition-colors"
+                    >
+                      🗑️ Supprimer l'image sociale (utiliser l'image principale)
+                    </button>
+                  )}
+                </div>
+                {/* WhatsApp-style preview */}
+                <div>
+                  <p className="text-[10px] font-black uppercase text-gray-400 mb-2 tracking-wider">Aperçu WhatsApp ↓</p>
+                  <div className="border-2 border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm" style={{ maxWidth: 320 }}>
+                    <div className="aspect-video bg-gray-100 flex items-center justify-center overflow-hidden">
+                      {(formData.ogImage || formData.image) ? (
+                        <img src={formData.ogImage || formData.image} className="w-full h-full object-cover" alt="OG Preview" />
+                      ) : (
+                        <div className="flex flex-col items-center text-gray-300 gap-1">
+                          <ImageIcon size={36} />
+                          <span className="text-xs font-bold">Aucune image</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-3 border-t border-gray-100">
+                      <p className="text-[10px] text-gray-400 uppercase font-black tracking-wider">makerlab.ma</p>
+                      <p className="text-sm font-bold text-gray-800 leading-tight mt-0.5 line-clamp-2">{formData.title || 'Titre du programme'}</p>
+                      <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{formData.shortDescription || formData.description || 'Description...'}</p>
+                    </div>
+                  </div>
+                  {formData.ogImage && (
+                    <p className="text-[10px] text-brand-blue font-black mt-2">✅ Image sociale personnalisée active</p>
+                  )}
+                  {!formData.ogImage && formData.image && (
+                    <p className="text-[10px] text-gray-400 font-bold mt-2">ℹ️ Image principale utilisée comme aperçu</p>
+                  )}
                 </div>
               </div>
             </div>

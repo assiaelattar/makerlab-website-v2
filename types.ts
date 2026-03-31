@@ -10,6 +10,7 @@ export interface Program {
   isFeatured?: boolean;
   image: string;
   imagePrompt?: string;
+  ogImage?: string; // Dedicated social media preview image (WhatsApp, etc.)
   duration: string;
   price: string;
   stats: { name: string; value: number }[];
@@ -33,6 +34,7 @@ export interface BlogPost {
   tags: string[];
   image: string;
   imagePrompt?: string;
+  ogImage?: string; // Dedicated social media preview image
   seoKeywords?: string[];
   status?: 'draft' | 'published';
 }
@@ -92,6 +94,7 @@ export interface Offer {
   customPrices: Record<string, string>; // workshopId -> price string
   published: boolean;
   createdAt: string;
+  ogImage?: string; // Dedicated social media preview image for the school landing page
 }
 
 export interface Enrollment {

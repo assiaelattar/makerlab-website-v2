@@ -1,8 +1,10 @@
 {
+    "buildCommand": "npm run build",
+    "outputDirectory": "dist",
     "rewrites": [
-        {
-            "source": "/(.*)",
-            "destination": "/index.html"
-        }
+        { "source": "/s/:slug", "destination": "/api/school-seo" },
+        { "source": "/programs/:id", "destination": "/api/program-seo" },
+        { "source": "/blog/:id", "destination": "/api/blog-seo" },
+        { "source": "/(.*)", "destination": "/index.html" }
     ]
-}
+}
