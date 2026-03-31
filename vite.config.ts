@@ -1,6 +1,8 @@
 import path from 'path';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
+import tailwindcss from 'tailwindcss';
+import autoprefixer from 'autoprefixer';
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
@@ -10,6 +12,16 @@ export default defineConfig(({ mode }) => {
         host: '0.0.0.0',
       },
       plugins: [react()],
+      css: {
+        // Configure PostCSS inline so Vite handles it natively.
+        // This avoids ESM/CJS mismatch when postcss-load-config tries to require() the config file.
+        postcss: {
+          plugins: [
+            tailwindcss({ config: './tailwind.config.js' }),
+            autoprefixer(),
+          ],
+        },
+      },
       define: {
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
         'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
@@ -32,9 +44,7 @@ export default defineConfig(({ mode }) => {
             }
           }
         },
-        // Increase chunk size warning threshold (optional, for cleaner output)
         chunkSizeWarningLimit: 800,
       }
     };
 });
-

@@ -9,151 +9,138 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ─── Firestore project ID ────────────────────────────────────────────────────
+// ─── Paths ────────────────────────────────────────────────────────────────────
+// FIX: indexPath was missing — caused a ReferenceError crash on every page load!
+const indexPath = path.join(__dirname, 'dist', 'index.html');
+
+// ─── Firestore config ─────────────────────────────────────────────────────────
 const FIRESTORE_PROJECT = 'edufy-makerlab';
 const BASE_DOMAIN = process.env.BASE_DOMAIN || 'https://makerlab.ma';
-const DEFAULT_IMAGE = `${BASE_DOMAIN}/logo-full.png`;
+// FIX: was logo-full.png (3.3 MB!) — switched to optimised logo-social.jpg (257 KB)
+const DEFAULT_IMAGE = `${BASE_DOMAIN}/logo-social.jpg`;
 
+// ─── HTML singleton cache ────────────────────────────────────────────────────
 let cachedIndexHtml = null;
 const readIndexHtml = () => {
   if (cachedIndexHtml) return cachedIndexHtml;
   if (!fs.existsSync(indexPath)) {
-    console.error('[SEO] dist/index.html not found — did you run `npm run build`?');
+    console.error('[SEO] dist/index.html not found — run `npm run build` first.');
     return null;
   }
   cachedIndexHtml = fs.readFileSync(indexPath, 'utf8');
   return cachedIndexHtml;
 };
 
-// ─── Helper: Fetch with Timeout (prevents hanging requests) ─────────────────
+// ─── Firestore response cache (TTL: 5 minutes) ───────────────────────────────
+// FIX: Eliminates 3-9 s of repeated Firestore calls on every direct URL load.
+const _firestoreCache = new Map();
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+const cachedFetch = async (url) => {
+  const entry = _firestoreCache.get(url);
+  if (entry && Date.now() - entry.ts < CACHE_TTL_MS) {
+    return entry.data;
+  }
+  const res = await fetchWithTimeout(url);
+  if (!res.ok) throw new Error(`Firestore ${res.status}: ${url}`);
+  const data = await res.json();
+  _firestoreCache.set(url, { data, ts: Date.now() });
+  return data;
+};
+
+// ─── Fetch with hard timeout (prevents hanging) ───────────────────────────────
 const fetchWithTimeout = async (url, options = {}) => {
-  const timeout = 3000; // 3 seconds max allowed for SEO fetching
   const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), timeout);
+  const timer = setTimeout(() => controller.abort(), 5000);
   try {
-    const response = await fetch(url, { ...options, signal: controller.signal });
-    clearTimeout(id);
-    return response;
-  } catch (error) {
-    clearTimeout(id);
-    throw error;
+    const res = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(timer);
+    return res;
+  } catch (err) {
+    clearTimeout(timer);
+    throw err;
   }
 };
 
-// ─── Helper: inject OG meta tags ────────────────────────────────────────────
-// Uses regex that is robust against minification (attribute order, whitespace).
+// ─── OG / Twitter meta injection ─────────────────────────────────────────────
+const escHtml = (str = '') =>
+  String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
 const injectMeta = (html, { title, description, image, url }) => {
   let out = html;
 
   // <title>
   out = out.replace(/<title>[^<]*<\/title>/i, `<title>${escHtml(title)}</title>`);
 
-  // og:title  (handles both attribute orders)
-  out = out.replace(
-    /(<meta\s[^>]*property=["']og:title["'][^>]*content=["'])[^"']*["']/i,
-    `$1${escHtml(title)}'`
-  );
-  out = out.replace(
-    /(<meta\s[^>]*content=["'])[^"']*["']([^>]*property=["']og:title["'])/i,
-    `$1${escHtml(title)}'$2`
-  );
+  // og:title (both attribute orders)
+  out = out.replace(/(<meta\s[^>]*property=['"]og:title['"]\s[^>]*content=['"])[^'"]*['"]/i, `$1${escHtml(title)}'`);
+  out = out.replace(/(<meta\s[^>]*content=['"])[^'"]*(['"][^>]*property=['"]og:title['"])/i, `$1${escHtml(title)}'$2`);
 
   // description
-  out = out.replace(
-    /(<meta\s[^>]*name=["']description["'][^>]*content=["'])[^"']*["']/i,
-    `$1${escHtml(description)}'`
-  );
-  out = out.replace(
-    /(<meta\s[^>]*content=["'])[^"']*["']([^>]*name=["']description["'])/i,
-    `$1${escHtml(description)}'$2`
-  );
+  out = out.replace(/(<meta\s[^>]*name=['"]description['"]\s[^>]*content=['"])[^'"]*['"]/i, `$1${escHtml(description)}'`);
+  out = out.replace(/(<meta\s[^>]*content=['"])[^'"]*(['"][^>]*name=['"]description['"])/i, `$1${escHtml(description)}'$2`);
 
   // og:description
-  out = out.replace(
-    /(<meta\s[^>]*property=["']og:description["'][^>]*content=["'])[^"']*["']/i,
-    `$1${escHtml(description)}'`
-  );
-  out = out.replace(
-    /(<meta\s[^>]*content=["'])[^"']*["']([^>]*property=["']og:description["'])/i,
-    `$1${escHtml(description)}'$2`
-  );
+  out = out.replace(/(<meta\s[^>]*property=['"]og:description['"]\s[^>]*content=['"])[^'"]*['"]/i, `$1${escHtml(description)}'`);
+  out = out.replace(/(<meta\s[^>]*content=['"])[^'"]*(['"][^>]*property=['"]og:description['"])/i, `$1${escHtml(description)}'$2`);
 
   // og:image
-  out = out.replace(
-    /(<meta\s[^>]*property=["']og:image["'][^>]*content=["'])[^"']*["']/i,
-    `$1${image}'`
-  );
-  out = out.replace(
-    /(<meta\s[^>]*content=["'])[^"']*["']([^>]*property=["']og:image["'])/i,
-    `$1${image}'$2`
-  );
+  out = out.replace(/(<meta\s[^>]*property=['"]og:image['"]\s[^>]*content=['"])[^'"]*['"]/i, `$1${image}'`);
+  out = out.replace(/(<meta\s[^>]*content=['"])[^'"]*(['"][^>]*property=['"]og:image['"])/i, `$1${image}'$2`);
 
   // og:url
-  out = out.replace(
-    /(<meta\s[^>]*property=["']og:url["'][^>]*content=["'])[^"']*["']/i,
-    `$1${url}'`
-  );
-  out = out.replace(
-    /(<meta\s[^>]*content=["'])[^"']*["']([^>]*property=["']og:url["'])/i,
-    `$1${url}'$2`
-  );
+  out = out.replace(/(<meta\s[^>]*property=['"]og:url['"]\s[^>]*content=['"])[^'"]*['"]/i, `$1${url}'`);
+  out = out.replace(/(<meta\s[^>]*content=['"])[^'"]*(['"][^>]*property=['"]og:url['"])/i, `$1${url}'$2`);
 
-  // twitter:title (if present)
-  out = out.replace(
-    /(<meta\s[^>]*name=["']twitter:title["'][^>]*content=["'])[^"']*["']/i,
-    `$1${escHtml(title)}'`
-  );
+  // twitter:title
+  out = out.replace(/(<meta\s[^>]*name=['"]twitter:title['"]\s[^>]*content=['"])[^'"]*['"]/i, `$1${escHtml(title)}'`);
 
-  // twitter:description (if present)
-  out = out.replace(
-    /(<meta\s[^>]*name=["']twitter:description["'][^>]*content=["'])[^"']*["']/i,
-    `$1${escHtml(description)}'`
-  );
+  // twitter:description
+  out = out.replace(/(<meta\s[^>]*name=['"]twitter:description['"]\s[^>]*content=['"])[^'"]*['"]/i, `$1${escHtml(description)}'`);
 
-  // twitter:image (if present)
-  out = out.replace(
-    /(<meta\s[^>]*name=["']twitter:image["'][^>]*content=["'])[^"']*["']/i,
-    `$1${image}'`
-  );
+  // twitter:image
+  out = out.replace(/(<meta\s[^>]*name=['"]twitter:image['"]\s[^>]*content=['"])[^'"]*['"]/i, `$1${image}'`);
 
   return out;
 };
 
-const escHtml = (str) =>
-  str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
+// Send HTML with short browser / CDN cache to allow stale-while-revalidate
 const sendSEO = (res, html) => {
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
   res.send(html);
 };
 
-// ─── /seo-debug — test endpoint to verify injection without a real crawler ──
-// Usage: GET /seo-debug?path=/s/my-slug  or  /seo-debug?path=/programs/abc123
-app.get('/seo-debug', async (req, res) => {
+// ─── Debug endpoint ───────────────────────────────────────────────────────────
+app.get('/seo-debug', (req, res) => {
   const testPath = req.query.path || '/';
   res.redirect(307, `${testPath}?_seo_debug=1`);
 });
 
-// ─── SEO Interceptor: /s/:slug (School/Partner Landing Pages) ───────────────
+// ─── SEO: /s/:slug  (School / Partner landing pages) ──────────────────────────
 app.get('/s/:slug', async (req, res, next) => {
   const slug = req.params.slug;
   const pageUrl = `${BASE_DOMAIN}/s/${slug}`;
-  console.log(`[SEO /s/:slug] slug="${slug}" ua="${req.headers['user-agent']}"`);
+  console.log(`[SEO /s/:slug] slug="${slug}"`);
 
   try {
-    // 1. Find the school partner by slug
-    const spRes = await fetchWithTimeout(
-      `https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/(default)/documents/school-partners`
-    );
-    if (!spRes.ok) throw new Error(`Firestore school-partners fetch failed: ${spRes.status}`);
-    const spData = await spRes.json();
+    // FIX: fetch school-partners + offers IN PARALLEL (was 3 sequential calls before)
+    const [spData, offData] = await Promise.all([
+      cachedFetch(`https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/(default)/documents/school-partners`),
+      cachedFetch(`https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/(default)/documents/offers`),
+    ]);
 
     const schoolDoc = spData.documents?.find(
       (d) => d.fields?.slug?.stringValue === slug
     );
 
     if (!schoolDoc) {
-      console.warn(`[SEO /s/:slug] No school found for slug="${slug}"`);
+      console.warn(`[SEO /s/:slug] No school for slug="${slug}"`);
       const html = readIndexHtml();
       if (html) return sendSEO(res, html);
       return next();
@@ -161,14 +148,6 @@ app.get('/s/:slug', async (req, res, next) => {
 
     const schoolName = schoolDoc.fields?.name?.stringValue || 'École Partenaire';
     const schoolId = schoolDoc.name.split('/').pop();
-    console.log(`[SEO /s/:slug] Found school "${schoolName}" (id=${schoolId})`);
-
-    // 2. Find the published offer for this school
-    const offRes = await fetchWithTimeout(
-      `https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/(default)/documents/offers`
-    );
-    if (!offRes.ok) throw new Error(`Firestore offers fetch failed: ${offRes.status}`);
-    const offData = await offRes.json();
 
     const offerDoc = offData.documents?.find(
       (d) =>
@@ -176,23 +155,19 @@ app.get('/s/:slug', async (req, res, next) => {
         d.fields?.published?.booleanValue === true
     );
 
-    // 3. Get image from first workshop in offer
+    // Try to get image from first workshop (cached)
     let imageUrl = DEFAULT_IMAGE;
     if (offerDoc) {
       const workshopIds =
         offerDoc.fields?.workshopIds?.arrayValue?.values?.map((v) => v.stringValue) || [];
       if (workshopIds.length > 0) {
-        const wRes = await fetchWithTimeout(
-          `https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/(default)/documents/workshops/${workshopIds[0]}`
-        );
-        if (wRes.ok) {
-          const wData = await wRes.json();
-          if (wData.fields?.image?.stringValue) {
-            imageUrl = wData.fields.image.stringValue;
-          }
-        }
+        try {
+          const wData = await cachedFetch(
+            `https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/(default)/documents/workshops/${workshopIds[0]}`
+          );
+          if (wData.fields?.image?.stringValue) imageUrl = wData.fields.image.stringValue;
+        } catch (_) { /* keep default */ }
       }
-      // fallback: use offer's own coverImage if present
       if (imageUrl === DEFAULT_IMAGE && offerDoc.fields?.coverImage?.stringValue) {
         imageUrl = offerDoc.fields.coverImage.stringValue;
       }
@@ -204,36 +179,26 @@ app.get('/s/:slug', async (req, res, next) => {
     const html = readIndexHtml();
     if (!html) return next();
 
-    const finalHtml = injectMeta(html, { title, description, image: imageUrl, url: pageUrl });
-    console.log(`[SEO /s/:slug] Injected meta for "${title}", image="${imageUrl}"`);
-    return sendSEO(res, finalHtml);
-  } catch (error) {
-    console.error('[SEO /s/:slug] Error:', error.message);
+    return sendSEO(res, injectMeta(html, { title, description, image: imageUrl, url: pageUrl }));
+  } catch (err) {
+    console.error('[SEO /s/:slug] Error:', err.message);
     const html = readIndexHtml();
     if (html) return sendSEO(res, html);
     next();
   }
 });
 
-// ─── SEO Interceptor: /programs/:id ─────────────────────────────────────────
+// ─── SEO: /programs/:id ───────────────────────────────────────────────────────
 app.get('/programs/:id', async (req, res, next) => {
   const id = req.params.id;
   const pageUrl = `${BASE_DOMAIN}/programs/${id}`;
-  console.log(`[SEO /programs/:id] id="${id}" ua="${req.headers['user-agent']}"`);
+  console.log(`[SEO /programs/:id] id="${id}"`);
 
   try {
-    const pRes = await fetchWithTimeout(
+    const pData = await cachedFetch(
       `https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/(default)/documents/programs/${id}`
     );
 
-    if (!pRes.ok) {
-      console.warn(`[SEO /programs/:id] Program "${id}" not found (${pRes.status})`);
-      const html = readIndexHtml();
-      if (html) return sendSEO(res, html);
-      return res.status(404).send('Not Found');
-    }
-
-    const pData = await pRes.json();
     const title = `${pData.fields?.title?.stringValue || 'Programme'} | MakerLab Academy`;
     const description =
       pData.fields?.description?.stringValue ||
@@ -243,21 +208,25 @@ app.get('/programs/:id', async (req, res, next) => {
     const html = readIndexHtml();
     if (!html) return next();
 
-    const finalHtml = injectMeta(html, { title, description, image, url: pageUrl });
-    console.log(`[SEO /programs/:id] Injected meta for "${title}", image="${image}"`);
-    return sendSEO(res, finalHtml);
-  } catch (error) {
-    console.error('[SEO /programs/:id] Error:', error.message);
+    return sendSEO(res, injectMeta(html, { title, description, image, url: pageUrl }));
+  } catch (err) {
+    console.error('[SEO /programs/:id] Error:', err.message);
     const html = readIndexHtml();
     if (html) return sendSEO(res, html);
     next();
   }
 });
 
-// ─── Static files from dist ──────────────────────────────────────────────────
-app.use(express.static(path.join(__dirname, 'dist')));
+// ─── Static assets (7-day cache for JS/CSS/images) ────────────────────────────
+app.use(
+  express.static(path.join(__dirname, 'dist'), {
+    maxAge: '7d',
+    etag: true,
+    immutable: true,
+  })
+);
 
-// ─── SPA fallback ────────────────────────────────────────────────────────────
+// ─── SPA catch-all ────────────────────────────────────────────────────────────
 app.get('*', (req, res) => {
   const html = readIndexHtml();
   if (html) return sendSEO(res, html);
