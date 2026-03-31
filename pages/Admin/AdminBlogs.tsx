@@ -81,7 +81,7 @@ export const AdminBlogs: React.FC = () => {
         useWebWorker: true,
       };
       const compressedFile = await imageCompression(file, options);
-      const storagePath = `website-project-images/blogs/og/${Date.now()}_${file.name}`;
+      const storagePath = `website-project-images/blogs/og_${Date.now()}_${file.name}`;
       const storageRef = ref(storage, storagePath);
       const snapshot = await uploadBytes(storageRef, compressedFile);
       const url = await getDownloadURL(snapshot.ref);
@@ -93,7 +93,7 @@ export const AdminBlogs: React.FC = () => {
       });
       let userMessage = "Erreur upload image sociale.";
       if (error.code === 'storage/unauthorized') {
-        userMessage += "\nPermissions refusées. Vérifiez vos règles Firebase Storage pour 'website-project-images/blogs/og/'.";
+        userMessage += "\nPermissions refusées. Vos règles Firebase annulent l'envoi.";
       } else {
         userMessage += `\nDétail: ${error.message}`;
       }

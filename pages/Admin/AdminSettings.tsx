@@ -52,7 +52,7 @@ export const AdminSettings: React.FC = () => {
         try {
             const options = { maxSizeMB: 0.3, maxWidthOrHeight: 1200, useWebWorker: true };
             const compressedFile = await imageCompression(file, options);
-            const storagePath = `website-og-images/default-social_${Date.now()}_${file.name}`;
+            const storagePath = `website-programs-images/default-social_${Date.now()}_${file.name}`;
             const storageRef = ref(storage, storagePath);
             const snapshot = await uploadBytes(storageRef, compressedFile);
             const downloadURL = await getDownloadURL(snapshot.ref);
@@ -64,7 +64,7 @@ export const AdminSettings: React.FC = () => {
             });
             let userMessage = "Erreur lors de l'upload de l'image sociale par défaut.";
             if (error.code === 'storage/unauthorized') {
-                userMessage += "\nPermissions refusées. Vérifiez vos règles Firebase Storage pour 'website-og-images'.";
+                userMessage += "\nPermissions refusées. Vos règles de sécurité bloquent le dossier.";
             } else {
                 userMessage += `\nDétail: ${error.message}`;
             }
