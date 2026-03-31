@@ -15,7 +15,7 @@ const indexPath = path.join(__dirname, 'dist', 'index.html');
 
 // ─── Firestore config ─────────────────────────────────────────────────────────
 const FIRESTORE_PROJECT = 'edufy-makerlab';
-const BASE_DOMAIN = process.env.BASE_DOMAIN || 'https://makerlab.ma';
+const BASE_DOMAIN = process.env.BASE_DOMAIN || 'https://space.makerlab.academy';
 // FIX: was logo-full.png (3.3 MB!) — switched to optimised logo-social.jpg (257 KB)
 const DEFAULT_IMAGE = `${BASE_DOMAIN}/logo-social.jpg`;
 
