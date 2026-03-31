@@ -43,6 +43,12 @@ export const SchoolPartnerEditor: React.FC = () => {
         ...prev,
         contactInfo: { ...prev.contactInfo, [field]: value }
       }));
+    } else if (name === 'name') {
+      const slug = value.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
+      setFormData(prev => ({ ...prev, name: value, slug }));
+    } else if (name === 'slug') {
+      const slug = value.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
+      setFormData(prev => ({ ...prev, slug }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
