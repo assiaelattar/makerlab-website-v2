@@ -14,15 +14,30 @@ const FIRESTORE_PROJECT = 'edufy-makerlab';
 const BASE_DOMAIN = process.env.BASE_DOMAIN || 'https://makerlab.ma';
 const DEFAULT_IMAGE = `${BASE_DOMAIN}/logo-full.png`;
 
-// ─── Helper: read dist/index.html once and cache it ─────────────────────────
-const indexPath = path.join(__dirname, 'dist', 'index.html');
-
+let cachedIndexHtml = null;
 const readIndexHtml = () => {
+  if (cachedIndexHtml) return cachedIndexHtml;
   if (!fs.existsSync(indexPath)) {
     console.error('[SEO] dist/index.html not found — did you run `npm run build`?');
     return null;
   }
-  return fs.readFileSync(indexPath, 'utf8');
+  cachedIndexHtml = fs.readFileSync(indexPath, 'utf8');
+  return cachedIndexHtml;
+};
+
+// ─── Helper: Fetch with Timeout (prevents hanging requests) ─────────────────
+const fetchWithTimeout = async (url, options = {}) => {
+  const timeout = 3000; // 3 seconds max allowed for SEO fetching
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(id);
+    return response;
+  } catch (error) {
+    clearTimeout(id);
+    throw error;
+  }
 };
 
 // ─── Helper: inject OG meta tags ────────────────────────────────────────────
@@ -127,7 +142,7 @@ app.get('/s/:slug', async (req, res, next) => {
 
   try {
     // 1. Find the school partner by slug
-    const spRes = await fetch(
+    const spRes = await fetchWithTimeout(
       `https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/(default)/documents/school-partners`
     );
     if (!spRes.ok) throw new Error(`Firestore school-partners fetch failed: ${spRes.status}`);
@@ -149,7 +164,7 @@ app.get('/s/:slug', async (req, res, next) => {
     console.log(`[SEO /s/:slug] Found school "${schoolName}" (id=${schoolId})`);
 
     // 2. Find the published offer for this school
-    const offRes = await fetch(
+    const offRes = await fetchWithTimeout(
       `https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/(default)/documents/offers`
     );
     if (!offRes.ok) throw new Error(`Firestore offers fetch failed: ${offRes.status}`);
@@ -167,7 +182,7 @@ app.get('/s/:slug', async (req, res, next) => {
       const workshopIds =
         offerDoc.fields?.workshopIds?.arrayValue?.values?.map((v) => v.stringValue) || [];
       if (workshopIds.length > 0) {
-        const wRes = await fetch(
+        const wRes = await fetchWithTimeout(
           `https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/(default)/documents/workshops/${workshopIds[0]}`
         );
         if (wRes.ok) {
@@ -207,7 +222,7 @@ app.get('/programs/:id', async (req, res, next) => {
   console.log(`[SEO /programs/:id] id="${id}" ua="${req.headers['user-agent']}"`);
 
   try {
-    const pRes = await fetch(
+    const pRes = await fetchWithTimeout(
       `https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/(default)/documents/programs/${id}`
     );
 
