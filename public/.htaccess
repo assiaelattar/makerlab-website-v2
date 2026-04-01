@@ -1,20 +1,20 @@
-# Hostinger Node.js Proxy Configuration
-# Forwards all requests to the Node.js Express server
+# MakerLab Academy — Hostinger Node.js Proxy
+# Serves real files (JS/CSS/images) directly from disk for maximum speed.
+# Proxies everything else to Node.js (Express) on port 3000.
 
 DirectoryIndex disabled
 Options -Indexes
 
 RewriteEngine On
 
-# Serve real static asset files directly (CSS, JS, images, fonts)
+# ── 1. Let real files on disk be served directly (fast static path) ──────────
 RewriteCond %{REQUEST_FILENAME} -f
 RewriteRule ^ - [L]
 
-# Forward ALL other requests to the Node.js server
-# Hostinger sets PORT env var; default fallback is 3000
+# ── 2. Forward everything else to Node.js ────────────────────────────────────
 RewriteRule ^(.*)$ http://127.0.0.1:3000/$1 [P,L]
 
-# If ProxyPass fails, fall back to serving the SPA index.html
-# This ensures navigation works even without OG injection
+# ── 3. If Node.js is unreachable, serve index.html as fallback ───────────────
 ErrorDocument 502 /index.html
 ErrorDocument 503 /index.html
+ErrorDocument 504 /index.html
