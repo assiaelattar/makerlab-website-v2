@@ -1,10 +1,8 @@
-import express from 'express';
-import path from 'path';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
+const express = require('express');
+const path = require('path');
+const fs = require('fs');
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -224,6 +222,7 @@ app.get('/programs/:id', async (req, res, next) => {
 // ─── Static assets (7-day cache for JS/CSS/images) ────────────────────────────
 app.use(
   express.static(path.join(__dirname, 'dist'), {
+    index: false,
     maxAge: '7d',
     etag: true,
     immutable: true,
