@@ -26,7 +26,7 @@ export const Home: React.FC = () => {
 
   const { settings } = useSettings();
   const videoSettings = settings?.home_video || {
-    videoSrc: "https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+    videoSrc: "https://www.w3schools.com/html/mov_bbb.mp4",
     poster: "https://placehold.co/1920x1080/C0272D/ffffff.png?text=Classroom+Overview",
     title: "L'Académie en Action",
     description: "Découvre l'ambiance Makerlab : du code, de la 3D, des robots et beaucoup de fun !",

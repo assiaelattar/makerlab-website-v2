@@ -42,7 +42,11 @@ const cachedFetch = async (url) => {
     return entry.data;
   }
   const res = await fetchWithTimeout(url);
-  if (!res.ok) throw new Error(`Firestore ${res.status}: ${url}`);
+  if (!res.ok) {
+    // Cache the failure briefly (1 min) to prevent hammering Firestore on 404s/403s
+    _firestoreCache.set(url, { data: {}, ts: Date.now() - (CACHE_TTL_MS - 60000) });
+    throw new Error(`Firestore ${res.status}: ${url}`);
+  }
   const data = await res.json();
   _firestoreCache.set(url, { data, ts: Date.now() });
   return data;
@@ -90,12 +94,12 @@ const injectMeta = (html, { title, description, image, url }) => {
   out = out.replace(/(<meta\s[^>]*content=['"])[^'"]*(['"][^>]*property=['"]og:description['"])/i, `$1${escHtml(description)}'$2`);
 
   // og:image
-  out = out.replace(/(<meta\s[^>]*property=['"]og:image['"]\s[^>]*content=['"])[^'"]*['"]/i, `$1${image}'`);
-  out = out.replace(/(<meta\s[^>]*content=['"])[^'"]*(['"][^>]*property=['"]og:image['"])/i, `$1${image}'$2`);
+  out = out.replace(/(<meta\s[^>]*property=['"]og:image['"]\s[^>]*content=['"])[^'"]*(['"])/i, `$1${image}$2`);
+  out = out.replace(/(<meta\s[^>]*content=['"])[^'"]*(['"][^>]*property=['"]og:image['"])/i, `$1${image}$2`);
 
   // og:url
-  out = out.replace(/(<meta\s[^>]*property=['"]og:url['"]\s[^>]*content=['"])[^'"]*['"]/i, `$1${url}'`);
-  out = out.replace(/(<meta\s[^>]*content=['"])[^'"]*(['"][^>]*property=['"]og:url['"])/i, `$1${url}'$2`);
+  out = out.replace(/(<meta\s[^>]*property=['"]og:url['"]\s[^>]*content=['"])[^'"]*(['"])/i, `$1${url}$2`);
+  out = out.replace(/(<meta\s[^>]*content=['"])[^'"]*(['"][^>]*property=['"]og:url['"])/i, `$1${url}$2`);
 
   // twitter:title
   out = out.replace(/(<meta\s[^>]*name=['"]twitter:title['"]\s[^>]*content=['"])[^'"]*['"]/i, `$1${escHtml(title)}'`);
@@ -129,10 +133,10 @@ app.get('/s/:slug', async (req, res, next) => {
   console.log(`[SEO /s/:slug] slug="${slug}"`);
 
   try {
-    // FIX: fetch school-partners + offers IN PARALLEL (was 3 sequential calls before)
+    // FIX: fetch school-partners + offers IN PARALLEL from websitev2 database
     const [spData, offData] = await Promise.all([
-      cachedFetch(`https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/(default)/documents/school-partners`),
-      cachedFetch(`https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/(default)/documents/offers`),
+      cachedFetch(`https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/websitev2/documents/school-partners`),
+      cachedFetch(`https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/websitev2/documents/offers`),
     ]);
 
     const schoolDoc = spData.documents?.find(
@@ -163,7 +167,7 @@ app.get('/s/:slug', async (req, res, next) => {
       if (workshopIds.length > 0) {
         try {
           const wData = await cachedFetch(
-            `https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/(default)/documents/workshops/${workshopIds[0]}`
+            `https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/websitev2/documents/workshops/${workshopIds[0]}`
           );
           if (wData.fields?.image?.stringValue) imageUrl = wData.fields.image.stringValue;
         } catch (_) { /* keep default */ }
@@ -196,7 +200,7 @@ app.get('/programs/:id', async (req, res, next) => {
 
   try {
     const pData = await cachedFetch(
-      `https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/(default)/documents/programs/${id}`
+      `https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/websitev2/documents/website-programs/${id}`
     );
 
     const title = `${pData.fields?.title?.stringValue || 'Programme'} | MakerLab Academy`;
@@ -227,7 +231,7 @@ app.use(
 );
 
 // ─── SPA catch-all ────────────────────────────────────────────────────────────
-app.get('*', (req, res) => {
+app.get(/(.*)/, (req, res) => {
   const html = readIndexHtml();
   if (html) return sendSEO(res, html);
   res.status(500).send('App not built — run `npm run build` first.');
