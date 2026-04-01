@@ -2,10 +2,19 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 
-
+// ====== ERROR LOGGING ======
+const logError = (msg) => {
+  try { fs.appendFileSync(path.join(__dirname, 'hostinger-error.log'), `[${new Date().toISOString()}] ${msg}\n`); } catch(e){}
+};
+process.on('uncaughtException', (err) => logError('UNCAUGHT EXCEPTION: ' + err.stack));
+process.on('unhandledRejection', (reason) => logError('UNHANDLED REJECTION: ' + (reason ? reason.stack || reason : '')));
+logError('Server startup sequence initiated...');
+// ===========================
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+logError(`Starting express on PORT ${PORT}`);
 
 // ─── Paths ────────────────────────────────────────────────────────────────────
 // FIX: indexPath was missing — caused a ReferenceError crash on every page load!
@@ -236,7 +245,13 @@ app.get(/(.*)/, (req, res) => {
   res.status(500).send('App not built — run `npm run build` first.');
 });
 
-app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
-  console.log(`   dist/index.html exists: ${fs.existsSync(indexPath)}`);
-});
+try {
+  app.listen(PORT, () => {
+    logError(`✅ Server successfully bound to port ${PORT}`);
+    console.log(`✅ Server running on port ${PORT}`);
+    console.log(`   dist/index.html exists: ${fs.existsSync(indexPath)}`);
+  });
+} catch (err) {
+  logError(`❌ Server failed to start: ${err.message}`);
+  process.exit(1);
+}
