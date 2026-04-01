@@ -1,20 +1,13 @@
-# Hostinger Node.js Proxy Configuration
-# Forwards all requests to the Node.js Express server
+# MakerLab Academy — Static SPA routing
+# All routes fall back to index.html for React Router to handle
 
-DirectoryIndex disabled
 Options -Indexes
-
 RewriteEngine On
 
-# Serve real static asset files directly (CSS, JS, images, fonts)
-RewriteCond %{REQUEST_FILENAME} -f
+# Serve real files/directories directly
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
-# Forward ALL other requests to the Node.js server
-# Hostinger sets PORT env var; default fallback is 3000
-RewriteRule ^(.*)$ http://127.0.0.1:3000/$1 [P,L]
-
-# If ProxyPass fails, fall back to serving the SPA index.html
-# This ensures navigation works even without OG injection
-ErrorDocument 502 /index.html
-ErrorDocument 503 /index.html
+# Route everything else to index.html (React Router handles the URL)
+RewriteRule ^ /index.html [L]

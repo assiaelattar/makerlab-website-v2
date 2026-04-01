@@ -1,20 +1,13 @@
-# MakerLab Academy — Hostinger Node.js Proxy
-# Serves real files (JS/CSS/images) directly from disk for maximum speed.
-# Proxies everything else to Node.js (Express) on port 3000.
+# MakerLab Academy — Static SPA routing
+# All routes fall back to index.html for React Router to handle
 
-DirectoryIndex disabled
 Options -Indexes
-
 RewriteEngine On
 
-# ── 1. Let real files on disk be served directly (fast static path) ──────────
-RewriteCond %{REQUEST_FILENAME} -f
+# Serve real files/directories directly
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
-# ── 2. Forward everything else to Node.js ────────────────────────────────────
-RewriteRule ^(.*)$ http://127.0.0.1:3000/$1 [P,L]
-
-# ── 3. If Node.js is unreachable, serve index.html as fallback ───────────────
-ErrorDocument 502 /index.html
-ErrorDocument 503 /index.html
-ErrorDocument 504 /index.html
+# Route everything else to index.html (React Router handles the URL)
+RewriteRule ^ /index.html [L]
