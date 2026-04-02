@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const FIRESTORE_PROJECT = 'edufy-makerlab';
+const FIRESTORE_PROJECT = 'makerlab-space';
 const BASE_DOMAIN = process.env.BASE_DOMAIN || 'https://space.makerlab.academy';
 const DEFAULT_IMAGE = `${BASE_DOMAIN}/logo-social.jpg`;
 
@@ -99,41 +99,45 @@ const buildHtml = (meta) => {
 };
 
 export default async function handler(req, res) {
-  // Extract program ID from URL path (e.g. /programs/abc123 → abc123)
   const urlPath = req.url || '';
-  const idMatch = urlPath.match(/\/programs\/([^/?#]+)/);
-  const id = idMatch ? idMatch[1] : (req.query?.id || '');
+  // Match both /programs/:id and /lp/:id
+  const idMatch = urlPath.match(/\/(programs|lp)\/([^/?#]+)/);
+  const id = idMatch ? idMatch[2] : (req.query?.id || '');
 
-  console.log(`[program-seo] id="${id}"`);
+  const distHtml = path.join(__dirname, '..', 'dist', 'index.html');
+  const indexHtml = fs.existsSync(distHtml) ? fs.readFileSync(distHtml, 'utf8') : '';
 
-  const pageUrl = `${BASE_DOMAIN}/programs/${id}`;
-  let title = 'MakerLab Academy - Ateliers de Programmation et Robotique';
-  let description =
-    'Découvrez nos programmes innovants en robotique, codage et IA pour enfants.';
-  let image = DEFAULT_IMAGE;
+  if (!id) return res.status(200).send(indexHtml);
+
+  const COLLECTION = 'website-programs';
+  const DATABASE = 'websitev2';
+  const firestoreUrl = `https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/${DATABASE}/documents/${COLLECTION}/${id}`;
 
   try {
-    const pRes = await fetch(
-      `https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/(default)/documents/programs/${id}`
-    );
-    if (pRes.ok) {
-      const pData = await pRes.json();
-      const programTitle = pData.fields?.title?.stringValue;
-      if (programTitle) {
-        title = `${programTitle} | MakerLab Academy`;
-      }
-      description =
-        pData.fields?.description?.stringValue ||
-        pData.fields?.shortDescription?.stringValue ||
-        description;
-      image = pData.fields?.image?.stringValue || image;
+    const response = await fetch(firestoreUrl);
+    if (!response.ok) {
+        console.warn(`[program-seo] Program not found: ${id} (${response.status})`);
+        return res.status(200).send(indexHtml);
     }
+
+    const data = await response.json();
+    const program = data.fields;
+    if (!program) return res.status(200).send(indexHtml);
+
+    const title = program.title?.stringValue || 'MakerLab Academy';
+    const description = program.shortDescription?.stringValue || 
+                         program.description?.stringValue?.substring(0, 160) || 
+                         'Découvrez nos ateliers innovants en Coding, Robotique et IA.';
+    const image = program.ogImage?.stringValue || 
+                  program.image?.stringValue || 
+                  DEFAULT_IMAGE;
+
+    const html = buildHtml({ title, description, image, url: `${BASE_DOMAIN}${urlPath}` });
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+    return res.status(200).send(html);
   } catch (err) {
     console.error('[program-seo] Error:', err.message);
+    return res.status(200).send(indexHtml);
   }
-
-  const html = buildHtml({ title, description, image, url: pageUrl });
-  res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
-  res.status(200).send(html);
 }

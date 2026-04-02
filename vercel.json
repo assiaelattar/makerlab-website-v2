@@ -4,7 +4,8 @@
     "rewrites": [
         { "source": "/s/:slug", "destination": "/api/school-seo" },
         { "source": "/programs/:id", "destination": "/api/program-seo" },
+        { "source": "/lp/:id", "destination": "/api/program-seo" },
         { "source": "/blog/:id", "destination": "/api/blog-seo" },
         { "source": "/(.*)", "destination": "/index.html" }
     ]
-}
+}

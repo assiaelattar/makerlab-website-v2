@@ -211,9 +211,9 @@ const DrawerCheckout: React.FC<{ selection: Mission | Track | null; programId: s
   const [done, setDone] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<'Deposit' | 'Full Bundle' | 'Pending'>('Pending');
 
-  const isTrack = selection && 'benefits' in selection;
-  const targetName = isTrack ? (selection as Track).title : (selection as Mission).title;
-  const targetPrice = isTrack ? (selection as Track).price : (selection as Mission).price;
+  const isTrack = !!(selection && 'benefits' in selection);
+  const targetName = selection ? (isTrack ? (selection as Track).title : (selection as Mission).title) : '';
+  const targetPrice = selection ? (isTrack ? (selection as Track).price : (selection as Mission).price) : '';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -251,7 +251,7 @@ const DrawerCheckout: React.FC<{ selection: Mission | Track | null; programId: s
                 <div className="p-4 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50">
                   <p className="font-black text-lg">{targetName}</p>
                   <p className="text-orange-600 font-bold mt-1 text-sm">{targetPrice}</p>
-                  {!isTrack && <p className="text-xs text-gray-500 font-bold mt-1">{(selection as Mission).date}</p>}
+                  {selection && !isTrack && <p className="text-xs text-gray-500 font-bold mt-1">{(selection as Mission).date}</p>}
                 </div>
               </div>
 
@@ -367,7 +367,18 @@ export const ProgramLanding: React.FC = () => {
   }, []);
 
   if (isProgramLoading || isMissionsLoading) return <div className="min-h-screen bg-black flex items-center justify-center"><div className="text-white font-black text-2xl animate-pulse">CHARGEMENT...</div></div>;
-  if (!program) return <Navigate to="/" replace />;
+  
+  if (!program) {
+    return (
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white text-center px-6">
+        <div className="text-6xl mb-6">🔍</div>
+        <h1 className="font-black text-3xl mb-3">Oups ! Offre Introuvable</h1>
+        <p className="text-gray-400 font-medium max-w-sm">Cette offre n'existe plus ou le lien est expiré.</p>
+        <a href="/" className="mt-8 px-6 py-3 bg-orange-500 text-black font-black rounded-xl border-2 border-black hover:bg-orange-400 transition-colors">← Retour à l'accueil</a>
+      </div>
+    );
+  }
+
   if (program.landingPage && !program.landingPage.enabled) {
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white text-center px-6">
@@ -379,9 +390,13 @@ export const ProgramLanding: React.FC = () => {
     );
   }
 
-  const gallery = (lp?.galleryImages && lp.galleryImages.length > 0) ? lp.galleryImages : [];
+  const gallery = (lp?.galleryImages && Array.isArray(lp.galleryImages) && lp.galleryImages.length > 0) ? lp.galleryImages : [];
   const scrollToMissions = () => missionsRef.current?.scrollIntoView({ behavior: 'smooth' });
-  const t = (key: keyof typeof D) => (lp as any)?.[key] || D[key];
+  const t = (key: keyof typeof D): string => {
+    const val = (lp as any)?.[key];
+    if (typeof val === 'string' && val.trim() !== '') return val;
+    return (D as any)[key] || '';
+  };
 
   const visibleMissions = missions.filter(m => m.status !== 'full');
 
@@ -580,7 +595,7 @@ export const ProgramLanding: React.FC = () => {
             </Reveal>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-14">
-              {tracks.map((track, i) => (
+              {tracks?.map((track, i) => (
                 <Reveal key={track.id} delay={i * 100}>
                   <div className="relative rounded-3xl border-4 border-white/10 bg-black/50 overflow-hidden hover:-translate-y-2 hover:border-orange-500 transition-all duration-300 group shadow-2xl flex flex-col h-full">
                     <div className="h-48 bg-gray-900 border-b-4 border-white/10 relative overflow-hidden shrink-0">
@@ -599,7 +614,7 @@ export const ProgramLanding: React.FC = () => {
                       <p className="text-sm text-gray-400 font-medium leading-relaxed mb-6 flex-grow">{track.description}</p>
                       
                       <ul className="space-y-3 mb-8">
-                        {track.benefits.filter(Boolean).map((benefit, bi) => (
+                        {track.benefits?.filter(Boolean).map((benefit, bi) => (
                           <li key={bi} className="flex gap-3 text-sm font-bold items-start text-gray-300">
                              <CheckCircle2 size={18} className="text-green-400 shrink-0 mt-0.5" />
                              <span>{benefit}</span>
@@ -658,7 +673,9 @@ export const ProgramLanding: React.FC = () => {
               <div className="space-y-4">
                 {visibleMissions.map((mission, mi) => {
                   const isLimited = mission.status === 'limited';
-                  const pct = Math.min(100, ((mission.spotsTotal - mission.spotsLeft) / mission.spotsTotal) * 100);
+                  const total = mission.spotsTotal || 20;
+                  const left = Math.max(0, mission.spotsLeft || 0);
+                  const pct = Math.min(100, ((total - left) / total) * 100);
                   return (
                     <Reveal key={mission.id} delay={mi * 100}>
                       <div className={`p-6 rounded-3xl border-2 transition-all duration-300 flex flex-col md:flex-row items-center gap-6 ${isLimited ? 'border-red-500 bg-red-500/5 hover:-translate-x-2' : 'border-white/10 bg-black hover:-translate-x-2 hover:border-white/30'}`}>

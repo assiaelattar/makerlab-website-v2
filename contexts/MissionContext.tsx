@@ -32,21 +32,23 @@ export const MissionProvider: React.FC<{ children: React.ReactNode }> = ({ child
     try {
       unsubscribeMissions = onSnapshot(collection(db, 'website-missions'), (snapshot) => {
         setMissions(snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Mission)));
+        setLoading(false);
       });
 
       unsubscribeTracks = onSnapshot(collection(db, 'website-tracks'), (snapshot) => {
         setTracks(snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Track)));
+        setLoading(false);
       });
 
       unsubscribeLeads = onSnapshot(collection(db, 'website-landing-leads'), (snapshot) => {
         setLeads(snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as LandingLead)));
+        setLoading(false);
       });
 
     } catch (error) {
       console.error("Error subscribing to missions/tracks", error);
+      setLoading(false);
     }
-
-    setLoading(false);
 
     return () => {
       if (unsubscribeMissions) unsubscribeMissions();
