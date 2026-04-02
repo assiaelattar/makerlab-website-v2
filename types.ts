@@ -1,3 +1,85 @@
+export interface MissionBox {
+  id: string;
+  date: string;       // e.g. "Ce Samedi (14h30 - 17h30)"
+  theme: string;      // e.g. "MISSION : IRON MAKER"
+  price: string;      // e.g. "400 DHS"
+  spotsTotal: number; // e.g. 20
+  spotsLeft: number;  // e.g. 4
+  status: 'open' | 'limited' | 'full'; // controls badge color
+}
+
+export interface LandingPageData {
+  enabled: boolean;
+  // Block 1 Hero
+  heroPreHeadline?: string;
+  heroHeadline?: string;
+  heroSubHeadline?: string;
+  heroCtaText?: string;
+  heroScarcityText?: string;
+  // Block 2 Agitator
+  agitatorHeadline?: string;
+  agitatorBody?: string;
+  // Gallery
+  galleryImages?: string[];
+  // Block 3 Offer
+  offerHeadline?: string;
+  // Block 4 Missions
+  missionsHeadline?: string;
+  missionsSubHeadline?: string;
+  missionBoxes?: MissionBox[];
+  // Block 5 FAQ
+  faqEnabled?: boolean;
+  // Block 6 Final CTA
+  finalCtaHeadline?: string;
+  finalCtaBody?: string;
+}
+
+export interface LandingLead {
+  id?: string;
+  programId: string;
+  programTitle: string;
+  
+  // Single Mission Capture
+  missionId?: string;
+  missionDate?: string;
+  missionTheme?: string;
+  
+  // Track/Bundle Capture
+  trackId?: string;
+  trackTitle?: string;
+
+  parentName: string;
+  childName: string;
+  childAge: string;
+  whatsapp: string;
+  createdAt: string;
+
+  paymentStatus?: 'Deposit' | 'Full Bundle' | 'Pending';
+}
+
+export interface Mission {
+  id: string;
+  title: string;
+  description: string;
+  coverImage?: string;
+  category: string; // e.g. Hardware, Digital Art, Business
+  date: string; // e.g., "Ce Samedi (14h30 - 17h30)"
+  price: string; // e.g., "400 DHS"
+  spotsTotal: number;
+  spotsLeft: number;
+  status: 'open' | 'limited' | 'full';
+  trackId?: string; // Links this mission directly to a bundle
+}
+
+export interface Track {
+  id: string;
+  title: string;
+  description: string;
+  coverImage?: string;
+  price: string; // e.g., "1200 DHS"
+  benefits: string[]; // Key selling points for the UI cards
+}
+
 export interface Program {
   id: string;
   title: string;
@@ -21,6 +103,7 @@ export interface Program {
   externalBookingUrl?: string;
   spotsAvailable?: number;
   trialAvailable?: boolean;
+  landingPage?: LandingPageData;
 }
 
 export interface BlogPost {

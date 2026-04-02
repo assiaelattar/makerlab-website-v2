@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { usePrograms } from '../../contexts/ProgramContext';
 import { Button } from '../../components/Button';
-import { Plus, Edit2, Trash2, Power, Eye, Copy } from 'lucide-react';
+import { Plus, Edit2, Trash2, Power, Eye, Copy, Rocket } from 'lucide-react';
 
 import { initialPrograms } from '../../data/programs';
 import { DatabaseBackup } from 'lucide-react';
@@ -102,6 +102,11 @@ export const AdminDashboard: React.FC = () => {
                       >
                         <Copy size={20} className="text-black" />
                       </button>
+                      <Link to={`/admin/landing/${program.id}`}>
+                        <button className="w-12 h-12 flex items-center justify-center bg-orange-500 border-4 border-black hover:bg-orange-400 hover:-translate-y-1 hover:shadow-neo-sm transition-all rounded-xl" title="Landing Page">
+                          <Rocket size={20} className="text-black" strokeWidth={3} />
+                        </button>
+                      </Link>
                       <Link to={`/admin/program/${program.id}`}>
                         <button className="w-12 h-12 flex items-center justify-center bg-white border-4 border-black hover:bg-brand-green hover:-translate-y-1 hover:shadow-neo-sm transition-all rounded-xl" title="Editer"><Edit2 size={20} className="text-black" /></button>
                       </Link>

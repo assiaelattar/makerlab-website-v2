@@ -12,8 +12,9 @@ export const AdminMedia: React.FC = () => {
     const [activeTab, setActiveTab] = useState('website-hero-images');
 
     const folders = [
+        { id: 'website-programs-images', label: 'Landing Pages / Programmes' },
         { id: 'website-hero-images', label: 'Images Site Web' },
-        { id: 'programs', label: 'Programmes & Ateliers' },
+        { id: 'programs', label: 'Ateliers & Formations' },
         { id: 'website-project-images', label: 'Projets Galerie' }
     ];
 
