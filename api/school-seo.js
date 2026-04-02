@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const FIRESTORE_PROJECT = 'makerlab-space';
+const FIRESTORE_PROJECT = 'edufy-makerlab';
 const BASE_DOMAIN = process.env.BASE_DOMAIN || 'https://space.makerlab.academy';
 const DEFAULT_IMAGE = `${BASE_DOMAIN}/logo-social.jpg`;
 
