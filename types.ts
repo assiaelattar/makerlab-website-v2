@@ -8,31 +8,65 @@ export interface MissionBox {
   status: 'open' | 'limited' | 'full'; // controls badge color
 }
 
+export interface StationPole {
+  id: string;
+  title: string;
+  description: string;
+  icon?: string;
+}
+
+export interface PerkItem {
+  id: string;
+  text: string;
+}
+
 export interface LandingPageData {
   enabled: boolean;
+  themeColor?: 'orange' | 'blue' | 'green' | 'red';
+  ogImage?: string;
+  layoutVariant?: 'classic' | 'modular';
+  ctaMode?: 'booking' | 'lead';
+
+  // Mission Selection (Live vs Static)
+  missionIds?: string[]; 
+  missionBoxes?: MissionBox[]; // Keep for backward compatibility or static overrides
+
   // Block 1 Hero
   heroPreHeadline?: string;
   heroHeadline?: string;
   heroSubHeadline?: string;
   heroCtaText?: string;
   heroScarcityText?: string;
+
   // Block 2 Agitator
   agitatorHeadline?: string;
   agitatorBody?: string;
+
+  // Modular Blocks (Alternative to Missions)
+  stationsHeadline?: string;
+  stationsSubHeadline?: string;
+  stations?: StationPole[];
+
+  perksHeadline?: string;
+  perksSubHeadline?: string;
+  perks?: PerkItem[];
+
   // Gallery
   galleryImages?: string[];
+
   // Block 3 Offer
   offerHeadline?: string;
-  // Block 4 Missions
+
+  // Block 4 Missions (Classic)
   missionsHeadline?: string;
   missionsSubHeadline?: string;
-  missionBoxes?: MissionBox[];
+
   // Block 5 FAQ
   faqEnabled?: boolean;
+
   // Block 6 Final CTA
   finalCtaHeadline?: string;
   finalCtaBody?: string;
-  themeColor?: 'orange' | 'blue' | 'green' | 'red';
 }
 
 export interface LandingLead {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Zap, Home, BookOpen, PenTool, UserPlus, Presentation, Users, Info } from 'lucide-react';
+import { Menu, X, Zap, Home, BookOpen, PenTool, UserPlus, Presentation, Users, Info, Lock } from 'lucide-react';
 import { Button } from './Button';
 
 interface NavbarProps {
@@ -19,6 +19,7 @@ export const Navbar: React.FC<NavbarProps> = ({ scrolled = false }) => {
     { name: 'About', path: '/about', icon: Info },
     { name: 'Blog', path: '/blog', icon: BookOpen },
     { name: 'Contact', path: '/contact', icon: PenTool },
+    { name: 'Admin', path: '/admin', icon: Lock },
   ];
 
   const isActive = (path: string) => location.pathname === path;

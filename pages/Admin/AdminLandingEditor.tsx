@@ -6,7 +6,8 @@ import { useMissions } from '../../contexts/MissionContext';
 import { Button } from '../../components/Button';
 import {
   ArrowLeft, Save, Eye, Copy, Rocket, Plus, Trash2,
-  ToggleLeft, ToggleRight, Upload, Image as ImageIcon, GripVertical, FolderArchive, Palette
+  ToggleLeft, ToggleRight, Upload, Image as ImageIcon, GripVertical, FolderArchive, Palette,
+  FileDown, FileUp
 } from 'lucide-react';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../../firebase';
@@ -15,11 +16,13 @@ import { MediaPickerModal } from '../../components/MediaPickerModal';
 
 const DEFAULT_LP: LandingPageData = {
   enabled: false,
-  heroPreHeadline: 'ATTENTION PARENTS DE CASABLANCA (ENFANTS 8-14 ANS)',
-  heroHeadline: "Transformez Son Temps d'Écran en Compétences d'Ingénieur en Seulement 3 Heures.",
   heroSubHeadline: "Pas de jouets en plastique. Pas de Lego. Vos enfants utiliseront de vrais outils, du vrai code et ramèneront chez eux un projet technologique qu'ils ont construit de leurs propres mains.",
   heroCtaText: 'RÉSERVER UNE MISSION POUR CE WEEK-END',
   heroScarcityText: '⏳ Places limitées à 20 Makers par session.',
+  layoutVariant: 'classic',
+  ctaMode: 'booking',
+  missionIds: [],
+  stationsHeadline: 'Une Immersion en 5 Stations d\'Innovation',
   agitatorHeadline: "La plupart des enfants consomment la technologie. Les nôtres la construisent.",
   agitatorBody: "Le système classique donne à votre enfant une boîte de pièces préfabriquées et un manuel d'instructions. Ce n'est pas de l'ingénierie. C'est du simple assemblage.\n\nChez Makerlab, notre philosophie est stricte : BUILT NOT BOUGHT (Construit, pas acheté). Nous mettons de vrais logiciels de CAO, des imprimantes 3D et des fers à souder entre les mains de vos enfants. Nous ne les traitons pas comme des enfants, nous les traitons comme des innovateurs.",
   galleryImages: [],
@@ -33,6 +36,17 @@ const DEFAULT_LP: LandingPageData = {
   faqEnabled: true,
   finalCtaHeadline: "Le Moment Où Tout S'allume.",
   finalCtaBody: "Ne laissez pas passer un autre week-end devant les écrans. Donnez-leur les compétences de demain, aujourd'hui.",
+  perksHeadline: 'Vos Avantages Exclusifs',
+  stations: [
+    { id: '1', title: 'Station CAO & Design', description: 'Apprentissage de la modélisation 3D sur logiciels professionnels.', icon: '💻' },
+    { id: '2', title: 'Station Électronique', description: 'Soudure et montage de circuits réels par les enfants.', icon: '🔌' },
+    { id: '3', title: 'Station Fabrication', description: 'Découpe Laser et Impression 3D pour donner vie au projet.', icon: '⚙️' },
+  ],
+  perks: [
+    { id: '1', text: 'Matériel 100% fourni par le Lab' },
+    { id: '2', text: 'Encadrement par des ingénieurs mentors' },
+    { id: '3', text: 'Projet réel construit par l\'enfant' },
+  ]
 };
 
 /* ─── Section Card wrapper ─────────────────────────────────────────────────── */
@@ -361,6 +375,44 @@ const MissionBoxEditor: React.FC<{
   );
 };
 
+/* ─── Mission Selection (Catalog-based) ────────────────────────────────────── */
+const MissionCatalogPicker: React.FC<{
+  selectedIds: string[];
+  allMissions: any[];
+  onChange: (ids: string[]) => void;
+}> = ({ selectedIds, allMissions, onChange }) => {
+  const toggle = (id: string) => {
+    if (selectedIds.includes(id)) {
+      onChange(selectedIds.filter(x => x !== id));
+    } else {
+      onChange([...selectedIds, id]);
+    }
+  };
+
+  return (
+    <div className="space-y-2 max-h-60 overflow-y-auto p-4 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50">
+      {allMissions.length === 0 && <p className="text-gray-400 text-xs font-medium italic">Aucune mission disponible dans le catalogue.</p>}
+      {allMissions.map(m => (
+        <label key={m.id} className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all cursor-pointer ${selectedIds.includes(m.id) ? 'bg-orange-50 border-orange-500 shadow-sm' : 'bg-white border-transparent hover:border-gray-200'}`}>
+          <input type="checkbox" checked={selectedIds.includes(m.id)} onChange={() => toggle(m.id)} className="sr-only" />
+          <div className={`w-5 h-5 rounded flex items-center justify-center border-2 transition-colors ${selectedIds.includes(m.id) ? 'bg-orange-500 border-orange-500' : 'bg-white border-gray-300'}`}>
+            {selectedIds.includes(m.id) && <span className="text-white text-[10px] font-black">✓</span>}
+          </div>
+          <div className="flex-grow">
+            <p className="font-black text-sm uppercase tracking-tight">{m.title}</p>
+            <p className="text-[10px] text-gray-500 font-bold">{m.date} — {m.price} DHS</p>
+          </div>
+          <div className="text-right shrink-0">
+             <span className={`text-[9px] font-black px-1.5 py-0.5 rounded uppercase ${m.status === 'open' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+               {m.status === 'open' ? 'Ouvert' : 'Limité'}
+             </span>
+          </div>
+        </label>
+      ))}
+    </div>
+  );
+};
+
 /* ─── Main Component ───────────────────────────────────────────────────────── */
 export const AdminLandingEditor: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -491,6 +543,86 @@ export const AdminLandingEditor: React.FC = () => {
     navigator.clipboard.writeText(publicUrl);
   };
 
+  /* ═══ CSV IMPORT / EXPORT ═══════════════════════════════════════════════ */
+  const CSV_FIELDS: { key: keyof LandingPageData; label: string }[] = [
+    { key: 'themeColor', label: 'Theme (orange/blue/green/red)' },
+    { key: 'heroPreHeadline', label: 'Hero Pre-Headline' },
+    { key: 'heroHeadline', label: 'Hero Headline' },
+    { key: 'heroSubHeadline', label: 'Hero Sub-Headline' },
+    { key: 'heroCtaText', label: 'Hero CTA Text' },
+    { key: 'heroScarcityText', label: 'Hero Scarcity' },
+    { key: 'agitatorHeadline', label: 'Agitator Headline' },
+    { key: 'agitatorBody', label: 'Agitator Body' },
+    { key: 'missionsHeadline', label: 'Missions Headline' },
+    { key: 'missionsSubHeadline', label: 'Missions Sub-Headline' },
+    { key: 'finalCtaHeadline', label: 'Final CTA Headline' },
+    { key: 'finalCtaBody', label: 'Final CTA Body' },
+    { key: 'ogImage', label: 'Social Image URL' },
+    { key: 'layoutVariant', label: 'Layout Variant' },
+    { key: 'ctaMode', label: 'CTA Mode' },
+    { key: 'stationsHeadline', label: 'Stations Headline' },
+    { key: 'perksHeadline', label: 'Perks Headline' },
+  ];
+
+  const handleExportCSV = () => {
+    const headers = CSV_FIELDS.map(f => f.label).join(';');
+    const values = CSV_FIELDS.map(f => {
+      const val = lp[f.key] || '';
+      // Escape quotes and wrap in quotes
+      return `"${val.toString().replace(/"/g, '""')}"`;
+    }).join(';');
+
+    const csvContent = `${headers}\n${values}`;
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `LP_${program.title.replace(/\s+/g, '_')}_Template.csv`;
+    link.click();
+  };
+
+  const handleImportCSV = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      const lines = text.split('\n');
+      if (lines.length < 2) return;
+
+      // Simple CSV parser that handles quoted semicolons (rough)
+      const values: string[] = [];
+      let current = '';
+      let inQuotes = false;
+      const row = lines[1];
+
+      for (let i = 0; i < row.length; i++) {
+        const char = row[i];
+        if (char === '"') inQuotes = !inQuotes;
+        else if (char === ';' && !inQuotes) {
+          values.push(current.trim().replace(/^"|"$/g, '').replace(/""/g, '"'));
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      values.push(current.trim().replace(/^"|"$/g, '').replace(/""/g, '"'));
+
+      const newLp = { ...lp };
+      CSV_FIELDS.forEach((field, i) => {
+        if (values[i] !== undefined) {
+          (newLp as any)[field.key] = values[i];
+        }
+      });
+
+      // Special handling for boolean/number if needed (themeColor is validated by LP logic)
+      setLp(newLp);
+      alert('Contenu importé avec succès ! N\'oubliez pas de sauvegarder.');
+    };
+    reader.readAsText(file);
+    e.target.value = ''; // Reset
+  };
+
   return (
     <>
     <div className="max-w-4xl mx-auto">
@@ -525,6 +657,22 @@ export const AdminLandingEditor: React.FC = () => {
           >
             <Copy size={16} /> Lien
           </button>
+
+          <div className="h-8 w-px bg-gray-300 mx-1 hidden md:block" />
+
+          <button
+            onClick={handleExportCSV}
+            className="flex items-center gap-2 px-4 py-2 border-2 border-black rounded-xl font-black text-sm bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+            title="Exporter comme template CSV"
+          >
+            <FileDown size={16} /> Export
+          </button>
+
+          <label className="flex items-center gap-2 px-4 py-2 border-2 border-black rounded-xl font-black text-sm bg-yellow-50 text-yellow-700 hover:bg-yellow-100 transition-colors cursor-pointer" title="Importer depuis un CSV">
+            <FileUp size={16} /> Import
+            <input type="file" accept=".csv" onChange={handleImportCSV} className="hidden" />
+          </label>
+
           <Button
             variant="primary"
             onClick={handleSave}
@@ -579,6 +727,47 @@ export const AdminLandingEditor: React.FC = () => {
                 </button>
               ))}
             </div>
+          </div>
+        </Section>
+
+        {/* ── Structure & Funnel Strategy ───────────────────────────────────── */}
+        <Section title="Stratégie & Structure" badge="Conversion" accent="bg-blue-600">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Field label="Type de Structure" hint="Le design s'adapte au contenu du programme.">
+              <div className="flex gap-2">
+                {[
+                  { id: 'classic', label: 'Classic (Make & Go)', hint: 'Focus sur les missions' },
+                  { id: 'modular', label: 'Modular (StemQuest)', hint: 'Focus sur les pôles' },
+                ].map(v => (
+                  <button
+                    key={v.id}
+                    onClick={() => setField('layoutVariant', v.id as any)}
+                    className={`flex-1 p-3 border-4 rounded-xl text-left transition-all ${lp.layoutVariant === v.id ? 'border-black bg-blue-50 shadow-[4px_4px_0_0_black]' : 'border-transparent bg-white hover:bg-gray-50'}`}
+                  >
+                    <p className="font-black text-xs uppercase">{v.label}</p>
+                    <p className="text-[9px] text-gray-400 font-bold">{v.hint}</p>
+                  </button>
+                ))}
+              </div>
+            </Field>
+
+            <Field label="Mode d'Appel à l'Action (CTA)" hint="Vendez-vous une place ou un entretien ?">
+              <div className="flex gap-2">
+                {[
+                  { id: 'booking', label: 'Booking Direct', hint: 'Paiement / Réservation' },
+                  { id: 'lead', label: 'Lead Discovery', hint: 'Visite du Lab' },
+                ].map(v => (
+                  <button
+                    key={v.id}
+                    onClick={() => setField('ctaMode', v.id as any)}
+                    className={`flex-1 p-3 border-4 rounded-xl text-left transition-all ${lp.ctaMode === v.id ? 'border-black bg-green-50 shadow-[4px_4px_0_0_black]' : 'border-transparent bg-white hover:bg-gray-50'}`}
+                  >
+                    <p className="font-black text-xs uppercase">{v.label}</p>
+                    <p className="text-[9px] text-gray-400 font-bold">{v.hint}</p>
+                  </button>
+                ))}
+              </div>
+            </Field>
           </div>
         </Section>
 
@@ -722,55 +911,99 @@ export const AdminLandingEditor: React.FC = () => {
             Le découpage en 3 étapes (Heure 1, 2, 3) est fixe et reflète la structure du programme. Modifiez la durée et description dans l'éditeur du programme.
           </p>
         </Section>
-
-        {/* ── Block 4: Missions ═══════════════════════════════════════════════ */}
-        <Section title="Block 4 — Missions (Scarcité)" badge="Conversion" accent="bg-red-500">
-          <Field label="Titre de la section missions">
-            <input value={lp.missionsHeadline || ''} onChange={e => setField('missionsHeadline', e.target.value)} className={inputCls} />
-          </Field>
-          <Field label="Sous-titre">
-            <textarea value={lp.missionsSubHeadline || ''} onChange={e => setField('missionsSubHeadline', e.target.value)} className={textareaCls} rows={2} />
-          </Field>
-
-          {/* Mission Boxes */}
-          <div>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
-              <label className="font-black text-sm uppercase tracking-wider">Créneaux / Missions</label>
-              <div className="flex gap-2 w-full sm:w-auto">
-                <button
-                  type="button"
-                  onClick={syncMissions}
-                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-2 border-2 border-black bg-white text-black text-xs font-black rounded-xl hover:bg-gray-50 transition-colors"
-                >
-                  <Copy size={13} /> Synchroniser (Global)
-                </button>
-                <button
-                  type="button"
-                  onClick={handleAddMission}
-                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-black text-white text-xs font-black rounded-xl hover:bg-gray-800 transition-colors"
-                >
-                  <Plus size={14} /> Ajouter
-                </button>
-              </div>
-            </div>
-            <div className="space-y-3">
-              {(lp.missionBoxes || []).map((box, i) => (
-                <MissionBoxEditor
-                  key={box.id}
-                  box={box}
-                  index={i}
-                  onChange={(updated) => updateMission(i, updated)}
-                  onDelete={() => deleteMission(i)}
-                />
-              ))}
-              {(lp.missionBoxes || []).length === 0 && (
-                <p className="text-center text-sm text-gray-400 font-medium py-6 border-2 border-dashed border-gray-200 rounded-xl">
-                  Aucune mission. Cliquez sur "+ Ajouter une Mission".
-                </p>
-              )}
-            </div>
-          </div>
+        {/* ── Block 4: Missions (Manual & Live) ─────────────────────────────── */}
+        <Section title="Missions & Disponibilités" badge="Conversion" accent="bg-red-500">
+           {/* Manual overriding fallback (old) */}
+           <div className="border-t-2 border-dashed border-gray-100 pt-6 mt-6">
+             <p className="text-[10px] font-black uppercase text-gray-300 mb-4">Override Manuel (Legacy)</p>
+             <p className="text-xs text-gray-400 font-medium mb-4 italic">Note : Utilisez le catalogue live ci-dessous pour une synchronisation automatique.</p>
+           </div>
         </Section>
+
+        {/* ── Block 4b: Missions (Live Selection) ────────────────────────────── */}
+        <Section title="Missions (Catalogue Live)" badge="Auto-Sync" accent="bg-black text-white">
+          <Field label="Sélectionner les missions du catalogue" hint="Les changements dans le catalogue seront appliqués ici en temps réel.">
+            <MissionCatalogPicker
+              selectedIds={lp.missionIds || []}
+              allMissions={missions}
+              onChange={(ids) => setField('missionIds', ids)}
+            />
+          </Field>
+        </Section>
+
+        {/* ── Block 4c: Innovation Poles (Modular Only) ─────────────────────── */}
+        {lp.layoutVariant === 'modular' && (
+          <Section title="Pôles d'Innovation (Stations)" badge="Structure S.T.E.M" accent="bg-purple-600">
+             <Field label="Titre de la section">
+               <input value={lp.stationsHeadline || ''} onChange={e => setField('stationsHeadline', e.target.value)} className={inputCls} />
+             </Field>
+             <div className="space-y-4 mt-6">
+                {(lp.stations || []).map((s, i) => (
+                  <div key={s.id} className="p-4 border-2 border-black rounded-xl bg-gray-50 space-y-3 relative">
+                    <button onClick={() => setField('stations', (lp.stations || []).filter((_,idx) => idx !== i))} className="absolute top-2 right-2 w-7 h-7 bg-red-50 text-red-500 rounded-lg hover:bg-red-500 hover:text-white border border-red-100 flex items-center justify-center transition-all"><Trash2 size={12} /></button>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <Field label={`Station ${i+1} : Titre`}>
+                        <input value={s.title} onChange={e => {
+                          const next = [...(lp.stations || [])];
+                          next[i].title = e.target.value;
+                          setField('stations', next);
+                        }} className={inputCls} />
+                      </Field>
+                      <Field label="Icône (Emoji ou Symbole)">
+                         <input value={s.icon || ''} onChange={e => {
+                          const next = [...(lp.stations || [])];
+                          next[i].icon = e.target.value;
+                          setField('stations', next);
+                        }} className={inputCls} placeholder="🤖, 💻, ⚙️..." />
+                      </Field>
+                    </div>
+                    <Field label="Description">
+                      <textarea value={s.description} onChange={e => {
+                        const next = [...(lp.stations || [])];
+                        next[i].description = e.target.value;
+                        setField('stations', next);
+                      }} className={textareaCls} rows={2} />
+                    </Field>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setField('stations', [...(lp.stations || []), { id: Date.now().toString(), title: '', description: '', icon: '' }])}
+                  className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-400 font-bold text-xs uppercase hover:bg-gray-50 transition-colors"
+                >
+                  + Ajouter une station
+                </button>
+             </div>
+          </Section>
+        )}
+
+        {/* ── Block 4d: Registration Perks (Modular Only) ──────────────────── */}
+        {lp.layoutVariant === 'modular' && (
+          <Section title="Avantages & Logistique (Perks)" badge="Zéro Friction" accent="bg-blue-500">
+             <Field label="Titre de la section">
+               <input value={lp.perksHeadline || ''} onChange={e => setField('perksHeadline', e.target.value)} className={inputCls} />
+             </Field>
+             <div className="space-y-3 mt-6">
+                {(lp.perks || []).map((p, i) => (
+                  <div key={p.id} className="flex gap-2">
+                    <input value={p.text} onChange={e => {
+                      const next = [...(lp.perks || [])];
+                      next[i].text = e.target.value;
+                      setField('perks', next);
+                    }} className={inputCls} placeholder="Ex: Matériel 100% fourni..." />
+                    <button onClick={() => setField('perks', (lp.perks || []).filter((_,idx) => idx !== i))} className="w-12 h-12 bg-red-50 text-red-500 rounded-xl border border-red-100 flex items-center justify-center transition-all hover:bg-red-500 hover:text-white"><Trash2 size={16} /></button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setField('perks', [...(lp.perks || []), { id: Date.now().toString(), text: '' }])}
+                  className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-400 font-bold text-xs uppercase hover:bg-gray-50 transition-colors"
+                >
+                  + Ajouter un avantage
+                </button>
+             </div>
+          </Section>
+        )}
 
         {/* ── Block 5: FAQ Toggle ──────────────────────────────────────────── */}
         <Section title="Block 5 — FAQ & Garantie" accent="bg-green-400">
@@ -797,6 +1030,27 @@ export const AdminLandingEditor: React.FC = () => {
           <Field label="Corps du texte final">
             <textarea value={lp.finalCtaBody || ''} onChange={e => setField('finalCtaBody', e.target.value)} className={textareaCls} rows={2} />
           </Field>
+        </Section>
+        {/* ── Block 7: SEO & Social ────────────────────────────────────────── */}
+        <Section title="SEO & Partage Social" badge="Visibilité" accent="bg-blue-600">
+          <Field label="Image de partage (OG Image URL)" hint="L'image qui s'affiche sur WhatsApp, Facebook, etc. (1200x630 recommandé)">
+            <div className="flex gap-2">
+              <input value={lp.ogImage || ''} onChange={e => setField('ogImage', e.target.value)} className={inputCls} placeholder="https://..." />
+              <button
+                type="button"
+                onClick={() => setIsMediaPickerOpen(true)}
+                className="px-4 border-2 border-black rounded-xl bg-yellow-400 hover:bg-yellow-500 transition-colors"
+                title="Choisir dans la bibliothèque"
+              >
+                <FolderArchive size={18} />
+              </button>
+            </div>
+          </Field>
+          {lp.ogImage && (
+            <div className="mt-4 rounded-xl border-2 border-black overflow-hidden bg-gray-100 aspect-[1200/630] max-w-sm">
+              <img src={lp.ogImage} alt="Social Preview" className="w-full h-full object-cover" />
+            </div>
+          )}
         </Section>
 
         {/* Save button (bottom) */}

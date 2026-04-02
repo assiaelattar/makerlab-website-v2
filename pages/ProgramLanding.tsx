@@ -252,7 +252,7 @@ const TestimonialsSection: React.FC<{ theme: any }> = ({ theme }) => {
 };
 
 /* ─── Drawer Checkout -------------------------------------------------------- */
-const DrawerCheckout: React.FC<{ selection: Mission | Track | MissionBox | null; programId: string; programTitle: string; theme: any; onClose: () => void }> = ({ selection, programId, programTitle, theme, onClose }) => {
+const DrawerCheckout: React.FC<{ selection: Mission | Track | MissionBox | null; programId: string; programTitle: string; theme: any; onClose: () => void; ctaMode?: 'booking' | 'lead' }> = ({ selection, programId, programTitle, theme, onClose, ctaMode }) => {
   const [form, setForm] = useState({ parentName: '', childName: '', childAge: '', whatsapp: '' });
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
@@ -267,6 +267,8 @@ const DrawerCheckout: React.FC<{ selection: Mission | Track | MissionBox | null;
     : '';
   const targetPrice = selection ? (selection as any).price : '';
 
+  const isLeadMode = ctaMode === 'lead';
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (step === 1 && isTrack) { setStep(2); return; } // Tracks have a payment choice step
@@ -275,7 +277,7 @@ const DrawerCheckout: React.FC<{ selection: Mission | Track | MissionBox | null;
       const lead: LandingLead = {
         programId, programTitle, parentName: form.parentName, childName: form.childName,
         childAge: form.childAge, whatsapp: form.whatsapp, createdAt: new Date().toISOString(),
-        paymentStatus: paymentStatus
+        paymentStatus: isLeadMode ? 'Pending' : paymentStatus // Leads are always pending
       };
       if (isTrack) { 
         lead.trackId = selection.id; 
@@ -304,13 +306,16 @@ const DrawerCheckout: React.FC<{ selection: Mission | Track | MissionBox | null;
               <div className="mb-8 pr-12">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-3 border"
                   style={{ backgroundColor: `rgba(${theme.primaryRGB}, 0.1)`, color: `var(--theme-primary)`, borderColor: `rgba(${theme.primaryRGB}, 0.2)` }}>
-                  <Rocket size={12} /> {isTrack ? 'Inscription Parcours' : 'Réservation Session'}
+                  <Rocket size={12} /> {isLeadMode ? 'Rencontre Découverte' : (isTrack ? 'Inscription Parcours' : 'Réservation Session')}
                 </div>
-                <h2 className="font-black text-2xl leading-tight mb-2">Sécurisez votre place</h2>
+                <h2 className="font-black text-2xl leading-tight mb-2">
+                  {isLeadMode ? 'Réservez votre visite au Lab' : 'Sécurisez votre place'}
+                </h2>
                 <div className="p-4 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50">
                   <p className="font-black text-lg">{targetName}</p>
-                  <p className="font-bold mt-1 text-sm" style={{ color: `var(--theme-primary)` }}>{targetPrice}</p>
+                  {!isLeadMode && <p className="font-bold mt-1 text-sm" style={{ color: `var(--theme-primary)` }}>{targetPrice}</p>}
                   {selection && !isTrack && <p className="text-xs text-gray-500 font-bold mt-1">{(selection as Mission).date}</p>}
+                  {isLeadMode && <p className="text-xs text-green-600 font-black mt-1 uppercase">✨ Rencontre Gratuite</p>}
                 </div>
               </div>
 
@@ -332,7 +337,7 @@ const DrawerCheckout: React.FC<{ selection: Mission | Track | MissionBox | null;
                     ))}
                     <button type="submit" disabled={loading} className="w-full py-5 mt-4 text-black font-black text-lg uppercase tracking-widest border-4 border-black rounded-2xl hover:-translate-y-1 transition-all disabled:opacity-60 flex justify-center items-center gap-2"
                       style={{ backgroundColor: `var(--theme-primary)`, boxShadow: '6px 6px 0 0 #000' }}>
-                       {isTrack ? 'Suivant : Réservation →' : (loading ? '⏳ Envoi...' : ' CONFIRMER MA RÉSERVATION')}
+                       {isLeadMode ? (loading ? '⏳ Envoi...' : 'PRENDRE RENDEZ-VOUS') : (isTrack ? 'Suivant : Réservation →' : (loading ? '⏳ Envoi...' : ' CONFIRMER MA RÉSERVATION'))}
                     </button>
                   </div>
                 )}
@@ -370,14 +375,21 @@ const DrawerCheckout: React.FC<{ selection: Mission | Track | MissionBox | null;
                   </div>
                 )}
                 
-                <p className="text-center text-[10px] text-gray-400 font-black tracking-widest uppercase mt-6 pt-6 border-t border-gray-100"><Shield size={10} className="inline mr-1 -mt-0.5" />Paiement sur place le jour j. Données 100% privées.</p>
+                <p className="text-center text-[10px] text-gray-400 font-black tracking-widest uppercase mt-6 pt-6 border-t border-gray-100">
+                  <Shield size={10} className="inline mr-1 -mt-0.5" />
+                  {isLeadMode ? 'Rencontre libre sans engagement. Données privées.' : 'Paiement sur place le jour j. Données 100% privées.'}
+                </p>
               </form>
             </>
           ) : (
             <div className="h-full flex flex-col items-center justify-center text-center -mt-10">
               <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 border-4 border-black shadow-[4px_4px_0_0_black]"><CheckCircle2 size={48} className="text-green-600" strokeWidth={3} /></div>
-              <h2 className="font-black text-3xl mb-3">Place Réservée ! 🎉</h2>
-              <p className="text-gray-600 font-medium mb-8 text-lg">Notre équipe vous contactera sur WhatsApp sous peu pour finaliser.</p>
+              <h2 className="font-black text-3xl mb-3">{isLeadMode ? 'Demande Envoyée ! 🚀' : 'Place Réservée ! 🎉'}</h2>
+              <p className="text-gray-600 font-medium mb-8 text-lg">
+                {isLeadMode 
+                  ? "Notre équipe vous contactera sur WhatsApp sous peu pour fixer l'heure de votre visite." 
+                  : "Notre équipe vous contactera sur WhatsApp sous peu pour finaliser."}
+              </p>
               <button onClick={onClose} className="px-10 py-4 bg-black text-white font-black text-xs uppercase tracking-widest rounded-xl border-4 border-black hover:bg-gray-800 transition-colors w-full">Retour au site</button>
             </div>
           )}
@@ -397,6 +409,50 @@ const FaqItem: React.FC<{ question: string; answer: string; theme: any }> = ({ q
         <ChevronDown size={20} className={`shrink-0 transition-transform duration-300 ${open ? 'rotate-180' : ''}`} style={{ color: theme.primary }} />
       </button>
       {open && <div className="px-6 pb-6 text-gray-400 font-medium leading-relaxed border-t border-white/5 pt-4">{answer}</div>}
+    </div>
+  );
+};
+
+/* ─── Modular: Stations Grid ─────────────────────────────────────────────── */
+const StationsGrid: React.FC<{ stations: any[]; theme: any }> = ({ stations, theme }) => {
+  if (!stations || stations.length === 0) return null;
+  return (
+    <section className="py-24 px-6 relative overflow-hidden" style={{ background: '#0a0a0a' }}>
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+      <div className="max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {stations.map((s: any, i: number) => (
+            <Reveal key={s.id} delay={i * 100}>
+              <div className="p-8 rounded-3xl border-2 border-white/5 bg-white/2 hover:border-white/20 transition-all group">
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl mb-6 bg-white/5 border border-white/10 group-hover:scale-110 transition-transform">
+                  {s.icon || '🚀'}
+                </div>
+                <h3 className="font-black text-xl mb-4 uppercase tracking-tight text-white">{s.title}</h3>
+                <p className="text-gray-400 font-medium leading-relaxed text-sm">{s.description}</p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+/* ─── Modular: Perks List ────────────────────────────────────────────────── */
+const PerksList: React.FC<{ perks: any[]; theme: any }> = ({ perks, theme }) => {
+  if (!perks || perks.length === 0) return null;
+  return (
+    <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
+      {perks.map((p: any, i: number) => (
+        <Reveal key={p.id} delay={i * 50}>
+          <div className="flex items-center gap-3 p-4 rounded-2xl bg-white/5 border border-white/10">
+            <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0" style={{ background: theme.glow, color: theme.primary }}>
+              <CheckCircle2 size={14} strokeWidth={3} />
+            </div>
+            <span className="font-bold text-sm text-gray-200">{p.text}</span>
+          </div>
+        </Reveal>
+      ))}
     </div>
   );
 };
@@ -465,9 +521,14 @@ export const ProgramLanding: React.FC = () => {
     return (D as any)[key] || '';
   };
 
-  const visibleMissions = (lp?.missionBoxes && lp.missionBoxes.length > 0)
-    ? lp.missionBoxes 
-    : missions.filter(m => m.status !== 'full');
+  let visibleMissions: (Mission | MissionBox)[] = [];
+  if (lp?.missionIds && lp.missionIds.length > 0) {
+    visibleMissions = missions.filter(m => lp.missionIds!.includes(m.id));
+  } else if (lp?.missionBoxes && lp.missionBoxes.length > 0) {
+    visibleMissions = lp.missionBoxes;
+  } else {
+    visibleMissions = missions.filter(m => m.status !== 'full');
+  }
 
   return (
     <>
@@ -578,6 +639,16 @@ export const ProgramLanding: React.FC = () => {
             <StatCounter value={20} label="Makers Max / Session" inView={statsInView} theme={theme} delay={450} />
           </div>
         </div>
+
+        {/* ═══ MODULAR: INNOVATION POLES (STATIONS) ══════════════════════════ */}
+        {lp?.layoutVariant === 'modular' && lp.stations && lp.stations.length > 0 && (
+          <div className="bg-[#0a0a0a] pt-24 -mb-24 relative z-10">
+            <div className="max-w-4xl mx-auto px-6 text-center mb-12">
+               <h2 className="font-black text-4xl md:text-5xl uppercase mb-4 text-white">{lp.stationsHeadline || 'Les Pôles d\'Innovation'}</h2>
+            </div>
+            <StationsGrid stations={lp.stations} theme={theme} />
+          </div>
+        )}
 
         {/* ═══ BLOCK 2 — AGITATOR ══════════════════════════════════════════ */}
         <section className="relative py-24 px-6" style={{ background: '#111' }}>
@@ -753,25 +824,46 @@ export const ProgramLanding: React.FC = () => {
                   <p className="text-gray-400 font-medium mx-auto leading-relaxed text-lg">
                     Laissez votre enfant essayer une seule <span className={`font-bold ${theme.text}`}>Mission d'Essai (3 heures)</span>. S'il adore, on déduira le prix si vous passez au Pack.
                   </p>
+                  
+                  {lp?.layoutVariant === 'modular' && lp.perks && lp.perks.length > 0 && (
+                    <div className="mt-12 text-left">
+                       <p className="text-center text-xs font-black uppercase tracking-widest text-gray-500 mb-6">{lp.perksHeadline || 'Logistique & Avantages'}</p>
+                       <PerksList perks={lp.perks} theme={theme} />
+                    </div>
+                  )}
                 </div>
               </Reveal>
 
               <div className="space-y-4">
                 {visibleMissions.map((mission, mi) => {
-                  const isLimited = mission.status === 'limited';
-                  const total = mission.spotsTotal || 20;
-                  const left = Math.max(0, mission.spotsLeft || 0);
+                  const isMissionBox = 'theme' in mission;
+                  const m = {
+                    id: mission.id,
+                    title: isMissionBox ? (mission as MissionBox).theme : (mission as Mission).title,
+                    description: isMissionBox ? '' : (mission as Mission).description,
+                    coverImage: isMissionBox ? undefined : (mission as Mission).coverImage,
+                    date: mission.date,
+                    price: mission.price,
+                    spotsTotal: mission.spotsTotal,
+                    spotsLeft: mission.spotsLeft,
+                    status: mission.status
+                  };
+                  
+                  const isLimited = m.status === 'limited';
+                  const total = m.spotsTotal || 20;
+                  const left = Math.max(0, m.spotsLeft || 0);
                   const pct = Math.min(100, ((total - left) / total) * 100);
+                  
                   return (
-                    <Reveal key={mission.id} delay={mi * 100}>
+                    <Reveal key={m.id} delay={mi * 100}>
                       <div className={`p-6 rounded-3xl border-2 transition-all duration-300 flex flex-col md:flex-row items-center gap-6 ${isLimited ? 'border-red-500 bg-red-500/5 hover:-translate-x-2' : 'border-white/10 bg-black hover:-translate-x-2'}`}
                         onMouseEnter={(e) => !isLimited && (e.currentTarget.style.borderColor = 'var(--theme-primary)')}
                         onMouseLeave={(e) => !isLimited && (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
                       >
                         {/* Img Thumbnail */}
                         <div className="w-full md:w-48 h-32 shrink-0 bg-gray-900 rounded-2xl border-2 border-white/10 overflow-hidden relative">
-                           {mission.coverImage ? (
-                              <img src={mission.coverImage} className="w-full h-full object-cover" alt="" />
+                           {m.coverImage ? (
+                              <img src={m.coverImage} className="w-full h-full object-cover" alt="" />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center"><Target size={32} className="text-gray-700" /></div>
                             )}
@@ -783,35 +875,35 @@ export const ProgramLanding: React.FC = () => {
                         <div className="flex-grow text-white w-full">
                           <div className="flex items-center gap-3 mb-2 flex-wrap">
                             <span className={`text-xs font-black uppercase px-2 py-1 bg-white/5 border border-white/10 rounded-md`} style={{ color: `var(--theme-primary)` }}>
-                              {mission.date}
+                              {m.date}
                             </span>
                             {isLimited && (
                               <span className="text-xs text-red-100 font-black uppercase px-2 py-1 bg-red-600 border border-red-700 rounded-md animate-pulse">
-                                🔥 {mission.spotsLeft} places !
+                                🔥 {m.spotsLeft} places !
                               </span>
                             )}
                           </div>
-                          <h3 className="font-black text-2xl mb-1">{mission.title}</h3>
-                          <p className="text-sm text-gray-400 font-medium line-clamp-2 md:line-clamp-1 mb-4">{mission.description}</p>
+                          <h3 className="font-black text-2xl mb-1">{m.title}</h3>
+                          <p className="text-sm text-gray-400 font-medium line-clamp-2 md:line-clamp-1 mb-4">{m.description}</p>
                           
                           <div className="flex items-center gap-4">
                             <div className="h-2 w-48 bg-white/10 rounded-full overflow-hidden shrink-0">
                                 <div className={`h-full rounded-full transition-all duration-1000 ${isLimited ? 'bg-red-500' : 'bg-green-500'}`} style={{ width: `${pct}%` }} />
                             </div>
-                            <span className="text-[10px] text-gray-500 font-black uppercase">{mission.spotsTotal - mission.spotsLeft}/{mission.spotsTotal} réservées</span>
+                            <span className="text-[10px] text-gray-500 font-black uppercase">{m.spotsTotal - m.spotsLeft}/{m.spotsTotal} réservées</span>
                           </div>
                         </div>
 
                         <div className="shrink-0 text-center md:text-right w-full md:w-auto">
                           <div className="mb-3 text-white">
-                            <span className="font-black text-2xl">{mission.price}</span>
+                            <span className="font-black text-2xl">{m.price}</span>
                           </div>
                           <button
-                            onClick={() => setSelectedTarget(mission)}
+                            onClick={() => setSelectedTarget(mission as any)}
                             className="w-full md:w-auto px-6 py-4 font-black uppercase tracking-widest text-xs border-4 rounded-xl transition-all whitespace-nowrap border-black text-black hover-theme shadow-[3px_3px_0_0_black]"
                             style={{ backgroundColor: theme.primary, boxShadow: `5px 5px 0 0 ${theme.glow.replace('.22', '.3')}` }}
                           >
-                            RÉSERVER UNE PLACE →
+                            {lp?.ctaMode === 'lead' ? 'EN SAVOIR PLUS →' : 'RÉSERVER UNE PLACE →'}
                           </button>
                         </div>
                       </div>
@@ -919,6 +1011,7 @@ export const ProgramLanding: React.FC = () => {
         programId={program.id} 
         programTitle={program.title} 
         theme={theme}
+        ctaMode={lp?.ctaMode}
         onClose={() => setSelectedTarget(null)} 
       />
     </>
