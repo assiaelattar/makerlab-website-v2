@@ -32,6 +32,7 @@ export interface LandingPageData {
   // Block 6 Final CTA
   finalCtaHeadline?: string;
   finalCtaBody?: string;
+  themeColor?: 'orange' | 'blue' | 'green' | 'red';
 }
 
 export interface LandingLead {
@@ -104,6 +105,7 @@ export interface Program {
   spotsAvailable?: number;
   trialAvailable?: boolean;
   landingPage?: LandingPageData;
+  themeColor?: 'orange' | 'blue' | 'green' | 'red';
 }
 
 export interface BlogPost {

@@ -16,91 +16,42 @@ const esc = (s = '') =>
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 
+const injectMeta = (html, property, content, isName = false) => {
+  const attr = isName ? 'name' : 'property';
+  const regex = new RegExp(`(<meta\\s[^>]*${attr}=['"]${property}['"]\\s[^>]*content=)(['"])[^'"]*\\2`, 'i');
+  
+  if (regex.test(html)) {
+    return html.replace(regex, `$1$2${content}$2`);
+  } else {
+    const newTag = `  <meta ${attr}="${property}" content="${content}" />\n`;
+    return html.replace('</head>', `${newTag}</head>`);
+  }
+};
+
 const buildHtml = (meta) => {
   const { title, description, image, url } = meta;
 
   const distHtml = path.join(__dirname, '..', 'dist', 'index.html');
-  if (fs.existsSync(distHtml)) {
-    let html = fs.readFileSync(distHtml, 'utf8');
-    html = html.replace(/<title>[^<]*<\/title>/i, `<title>${esc(title)}</title>`);
-    html = html.replace(
-      /(<meta\s[^>]*property=['"]og:title['"]\s[^>]*content=['"])[^'"]*['"]/i,
-      `$1${esc(title)}"`
-    );
-    html = html.replace(
-      /(<meta\s[^>]*content=['"])[^'"]*(['"][^>]*property=['"]og:title['"])/i,
-      `$1${esc(title)}"$2`
-    );
-    html = html.replace(
-      /(<meta\s[^>]*property=['"]og:description['"]\s[^>]*content=['"])[^'"]*['"]/i,
-      `$1${esc(description)}"`
-    );
-    html = html.replace(
-      /(<meta\s[^>]*content=['"])[^'"]*(['"][^>]*property=['"]og:description['"])/i,
-      `$1${esc(description)}"$2`
-    );
-    html = html.replace(
-      /(<meta\s[^>]*name=['"]description['"]\s[^>]*content=['"])[^'"]*['"]/i,
-      `$1${esc(description)}"`
-    );
-    html = html.replace(
-      /(<meta\s[^>]*property=['"]og:image['"]\s[^>]*content=['"])[^'"]*['"]/i,
-      `$1${image}"`
-    );
-    html = html.replace(
-      /(<meta\s[^>]*content=['"])[^'"]*(['"][^>]*property=['"]og:image['"])/i,
-      `$1${image}"$2`
-    );
-    html = html.replace(
-      /(<meta\s[^>]*property=['"]og:url['"]\s[^>]*content=['"])[^'"]*['"]/i,
-      `$1${url}"`
-    );
-    html = html.replace(
-      /(<meta\s[^>]*name=['"]twitter:title['"]\s[^>]*content=['"])[^'"]*['"]/i,
-      `$1${esc(title)}"`
-    );
-    html = html.replace(
-      /(<meta\s[^>]*name=['"]twitter:description['"]\s[^>]*content=['"])[^'"]*['"]/i,
-      `$1${esc(description)}"`
-    );
-    html = html.replace(
-      /(<meta\s[^>]*name=['"]twitter:image['"]\s[^>]*content=['"])[^'"]*['"]/i,
-      `$1${image}"`
-    );
-    // Force Large Preview
-    html = html.replace(
-      /(<meta\s[^>]*name=['"]twitter:card['"]\s[^>]*content=['"])[^'"]*['"]/i,
-      `$1summary_large_image"`
-    );
-    return html;
-  }
+  let html = fs.existsSync(distHtml) 
+    ? fs.readFileSync(distHtml, 'utf8') 
+    : `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8" /><title>MakerLab Academy</title></head><body><script>window.location.href="${url}"</script></body></html>`;
 
-  return `<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>${esc(title)}</title>
-  <meta name="description" content="${esc(description)}" />
-  <meta property="og:title" content="${esc(title)}" />
-  <meta property="og:description" content="${esc(description)}" />
-  <meta property="og:type" content="website" />
-  <meta property="og:image" content="${image}" />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="630" />
-  <meta property="og:url" content="${url}" />
-  <meta property="og:site_name" content="MakerLab Academy" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="${esc(title)}" />
-  <meta name="twitter:description" content="${esc(description)}" />
-  <meta name="twitter:image" content="${image}" />
-  <link rel="canonical" href="${url}" />
-</head>
-<body>
-  <p>Chargement...</p>
-  <script>window.location.href = "${url}";</script>
-</body>
-</html>`;
+  html = html.replace(/<title>[^<]*<\/title>/i, `<title>${esc(title)}</title>`);
+
+  html = injectMeta(html, 'og:title', esc(title));
+  html = injectMeta(html, 'og:description', esc(description));
+  html = injectMeta(html, 'og:image', image);
+  html = injectMeta(html, 'og:url', url);
+  html = injectMeta(html, 'og:type', 'website');
+
+  html = injectMeta(html, 'twitter:card', 'summary_large_image', true);
+  html = injectMeta(html, 'twitter:title', esc(title), true);
+  html = injectMeta(html, 'twitter:description', esc(description), true);
+  html = injectMeta(html, 'twitter:image', image, true);
+
+  html = injectMeta(html, 'description', esc(description), true);
+
+  return html;
 };
 
 export default async function handler(req, res) {
@@ -116,7 +67,6 @@ export default async function handler(req, res) {
   const DATABASE = 'websitev2';
 
   try {
-    // 1. Fetch Global Default Settings (for socialImage fallback)
     let globalDefaultImage = DEFAULT_IMAGE;
     try {
         const settingsRes = await fetch(`https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/${DATABASE}/documents/website-settings/socialImage`);
@@ -130,7 +80,6 @@ export default async function handler(req, res) {
         console.warn('[school-seo] Global settings fetch failed');
     }
 
-    // 2. Fetch School Partner data
     let title = 'MakerLab Academy - Ateliers de Programmation et Robotique';
     let description = 'Découvrez nos ateliers innovants en Coding, Robotique et IA.';
     let image = globalDefaultImage;
@@ -146,7 +95,6 @@ export default async function handler(req, res) {
         title = `${schoolName} × MakerLab Academy`;
         description = `Découvrez nos ateliers innovants en Coding, Robotique et IA chez ${schoolName}. Préparez vos enfants au futur du numérique !`;
 
-        // 3. Find published Offer
         const offRes = await fetch(`https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/${DATABASE}/documents/website-offers`);
         if (offRes.ok) {
           const offData = await offRes.json();

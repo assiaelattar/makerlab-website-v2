@@ -2,10 +2,11 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { usePrograms } from '../../contexts/ProgramContext';
 import { LandingPageData, MissionBox } from '../../types';
+import { useMissions } from '../../contexts/MissionContext';
 import { Button } from '../../components/Button';
 import {
   ArrowLeft, Save, Eye, Copy, Rocket, Plus, Trash2,
-  ToggleLeft, ToggleRight, Upload, Image as ImageIcon, GripVertical, FolderArchive
+  ToggleLeft, ToggleRight, Upload, Image as ImageIcon, GripVertical, FolderArchive, Palette
 } from 'lucide-react';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../../firebase';
@@ -399,6 +400,23 @@ export const AdminLandingEditor: React.FC = () => {
     setLp(prev => ({ ...prev, [key]: value }));
   };
 
+  const { missions } = useMissions();
+  const syncMissions = () => {
+    const formatted: MissionBox[] = missions
+      .filter(m => m.status !== 'full')
+      .slice(0, 3)
+      .map(m => ({
+        id: m.id,
+        date: m.date,
+        theme: m.title,
+        price: m.price,
+        spotsTotal: m.spotsTotal,
+        spotsLeft: m.spotsLeft,
+        status: m.status as any
+      }));
+    setField('missionBoxes', formatted);
+  };
+
   const handleAddMission = () => {
     const newBox: MissionBox = {
       id: Date.now().toString(),
@@ -527,6 +545,42 @@ export const AdminLandingEditor: React.FC = () => {
       </div>
 
       <div className="space-y-6">
+
+        {/* ── Design & Colors ────────────────────────────────────────────────── */}
+        <Section title="Design & Couleurs" badge="Identité Visuelle" accent="bg-white">
+          <div className="space-y-4">
+            <p className="text-sm font-medium text-gray-500">
+              Choisissez l'ambiance visuelle de votre landing page. Les couleurs (nuances, ombres, lueurs) s'adapteront automatiquement.
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {[
+                { id: 'orange', label: 'Classic Orange', color: '#f97316', hint: 'Original Makerlab' },
+                { id: 'blue', label: 'Tech Blue', color: '#3b82f6', hint: 'Coding & Robotique' },
+                { id: 'green', label: 'Eco Green', color: '#16a34a', hint: 'Nature & Science' },
+                { id: 'red', label: 'Action Red', color: '#dc2626', hint: 'Intensif & Fun' },
+              ].map(color => (
+                <button
+                  key={color.id}
+                  onClick={() => setField('themeColor', color.id as any)}
+                  className={`relative p-4 border-4 rounded-2xl text-left transition-all hover:-translate-y-1 ${
+                    lp.themeColor === color.id 
+                      ? 'border-black bg-gray-50 shadow-[4px_4px_0_0_black]' 
+                      : 'border-transparent bg-white hover:border-gray-200'
+                  }`}
+                >
+                  <div className={`w-10 h-10 rounded-lg border-2 border-black mb-2 shadow-[2px_2px_0_0_black]`} style={{ backgroundColor: color.color }} />
+                  <p className="font-black text-sm text-black uppercase">{color.label}</p>
+                  <p className="text-[10px] text-gray-400 font-bold uppercase">{color.hint}</p>
+                  {lp.themeColor === color.id && (
+                    <div className="absolute top-2 right-2 w-6 h-6 bg-black text-white rounded-full flex items-center justify-center">
+                      <span className="text-xs font-black">✓</span>
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        </Section>
 
         {/* ── Enable / Disable Toggle ───────────────────────────────────────── */}
         <Section title="Activation" badge={lp.enabled ? '🟢 ACTIVE' : '⚫ DÉSACTIVÉE'} accent={lp.enabled ? 'bg-green-400' : 'bg-gray-200'}>
@@ -680,15 +734,24 @@ export const AdminLandingEditor: React.FC = () => {
 
           {/* Mission Boxes */}
           <div>
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
               <label className="font-black text-sm uppercase tracking-wider">Créneaux / Missions</label>
-              <button
-                type="button"
-                onClick={handleAddMission}
-                className="flex items-center gap-2 px-3 py-2 bg-black text-white text-xs font-black rounded-xl hover:bg-gray-800 transition-colors"
-              >
-                <Plus size={14} /> Ajouter une Mission
-              </button>
+              <div className="flex gap-2 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={syncMissions}
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-2 border-2 border-black bg-white text-black text-xs font-black rounded-xl hover:bg-gray-50 transition-colors"
+                >
+                  <Copy size={13} /> Synchroniser (Global)
+                </button>
+                <button
+                  type="button"
+                  onClick={handleAddMission}
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-black text-white text-xs font-black rounded-xl hover:bg-gray-800 transition-colors"
+                >
+                  <Plus size={14} /> Ajouter
+                </button>
+              </div>
             </div>
             <div className="space-y-3">
               {(lp.missionBoxes || []).map((box, i) => (

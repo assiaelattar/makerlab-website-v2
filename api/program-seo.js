@@ -16,91 +16,52 @@ const esc = (s = '') =>
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 
+/**
+ * Robustly injects or replaces meta tags in the HTML shell.
+ * It handles both single and double quotes gracefully.
+ */
+const injectMeta = (html, property, content, isName = false) => {
+  const attr = isName ? 'name' : 'property';
+  const regex = new RegExp(`(<meta\\s[^>]*${attr}=['"]${property}['"]\\s[^>]*content=)(['"])[^'"]*\\2`, 'i');
+  
+  if (regex.test(html)) {
+    // Replace existing tag content, preserving the original quote type
+    return html.replace(regex, `$1$2${content}$2`);
+  } else {
+    // Inject new tag if not found (before </head>)
+    const newTag = `  <meta ${attr}="${property}" content="${content}" />\n`;
+    return html.replace('</head>', `${newTag}</head>`);
+  }
+};
+
 const buildHtml = (meta) => {
   const { title, description, image, url } = meta;
 
   const distHtml = path.join(__dirname, '..', 'dist', 'index.html');
-  if (fs.existsSync(distHtml)) {
-    let html = fs.readFileSync(distHtml, 'utf8');
-    html = html.replace(/<title>[^<]*<\/title>/i, `<title>${esc(title)}</title>`);
-    html = html.replace(
-      /(<meta\s[^>]*property=['"]og:title['"]\s[^>]*content=['"])[^'"]*['"]/i,
-      `$1${esc(title)}"`
-    );
-    html = html.replace(
-      /(<meta\s[^>]*content=['"])[^'"]*(['"][^>]*property=['"]og:title['"])/i,
-      `$1${esc(title)}"$2`
-    );
-    html = html.replace(
-      /(<meta\s[^>]*property=['"]og:description['"]\s[^>]*content=['"])[^'"]*['"]/i,
-      `$1${esc(description)}"`
-    );
-    html = html.replace(
-      /(<meta\s[^>]*content=['"])[^'"]*(['"][^>]*property=['"]og:description['"])/i,
-      `$1${esc(description)}"$2`
-    );
-    html = html.replace(
-      /(<meta\s[^>]*name=['"]description['"]\s[^>]*content=['"])[^'"]*['"]/i,
-      `$1${esc(description)}"`
-    );
-    html = html.replace(
-      /(<meta\s[^>]*property=['"]og:image['"]\s[^>]*content=['"])[^'"]*['"]/i,
-      `$1${image}"`
-    );
-    html = html.replace(
-      /(<meta\s[^>]*content=['"])[^'"]*(['"][^>]*property=['"]og:image['"])/i,
-      `$1${image}"$2`
-    );
-    html = html.replace(
-      /(<meta\s[^>]*property=['"]og:url['"]\s[^>]*content=['"])[^'"]*['"]/i,
-      `$1${url}"`
-    );
-    html = html.replace(
-      /(<meta\s[^>]*name=['"]twitter:title['"]\s[^>]*content=['"])[^'"]*['"]/i,
-      `$1${esc(title)}"`
-    );
-    html = html.replace(
-      /(<meta\s[^>]*name=['"]twitter:description['"]\s[^>]*content=['"])[^'"]*['"]/i,
-      `$1${esc(description)}"`
-    );
-    html = html.replace(
-      /(<meta\s[^>]*name=['"]twitter:image['"]\s[^>]*content=['"])[^'"]*['"]/i,
-      `$1${image}"`
-    );
-    // Force Large Preview
-    html = html.replace(
-      /(<meta\s[^>]*name=['"]twitter:card['"]\s[^>]*content=['"])[^'"]*['"]/i,
-      `$1summary_large_image"`
-    );
-    return html;
-  }
+  let html = fs.existsSync(distHtml) 
+    ? fs.readFileSync(distHtml, 'utf8') 
+    : `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8" /><title>MakerLab Academy</title></head><body><script>window.location.href="${url}"</script></body></html>`;
 
-  return `<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>${esc(title)}</title>
-  <meta name="description" content="${esc(description)}" />
-  <meta property="og:title" content="${esc(title)}" />
-  <meta property="og:description" content="${esc(description)}" />
-  <meta property="og:type" content="website" />
-  <meta property="og:image" content="${image}" />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="630" />
-  <meta property="og:url" content="${url}" />
-  <meta property="og:site_name" content="MakerLab Academy" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="${esc(title)}" />
-  <meta name="twitter:description" content="${esc(description)}" />
-  <meta name="twitter:image" content="${image}" />
-  <link rel="canonical" href="${url}" />
-</head>
-<body>
-  <p>Chargement...</p>
-  <script>window.location.href = "${url}";</script>
-</body>
-</html>`;
+  // Standard Title
+  html = html.replace(/<title>[^<]*<\/title>/i, `<title>${esc(title)}</title>`);
+
+  // Open Graph
+  html = injectMeta(html, 'og:title', esc(title));
+  html = injectMeta(html, 'og:description', esc(description));
+  html = injectMeta(html, 'og:image', image);
+  html = injectMeta(html, 'og:url', url);
+  html = injectMeta(html, 'og:type', 'website');
+
+  // Twitter
+  html = injectMeta(html, 'twitter:card', 'summary_large_image', true);
+  html = injectMeta(html, 'twitter:title', esc(title), true);
+  html = injectMeta(html, 'twitter:description', esc(description), true);
+  html = injectMeta(html, 'twitter:image', image, true);
+
+  // Standard Description
+  html = injectMeta(html, 'description', esc(description), true);
+
+  return html;
 };
 
 export default async function handler(req, res) {

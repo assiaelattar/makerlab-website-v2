@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { usePrograms } from '../contexts/ProgramContext';
 import { useMissions } from '../contexts/MissionContext';
-import { LandingLead, Mission, Track } from '../types';
+import { LandingLead, Mission, Track, MissionBox } from '../types';
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import {
@@ -18,8 +18,8 @@ const STYLES = `
     to   { opacity:1; transform:translateY(0)   scale(1); }
   }
   @keyframes pulse-cta {
-    0%,100%{ box-shadow:0 0 0 0 rgba(249,115,22,.7),5px 5px 0 0 #000; }
-    50%    { box-shadow:0 0 0 18px rgba(249,115,22,0),5px 5px 0 0 #000; }
+    0%,100%{ box-shadow:0 0 0 0 var(--theme-pulse),5px 5px 0 0 #000; }
+    50%    { box-shadow:0 0 0 18px rgba(0,0,0,0),5px 5px 0 0 #000; }
   }
   .cta-pulse{ animation:pulse-cta 2s infinite; }
   @keyframes float-y{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
@@ -31,13 +31,12 @@ const STYLES = `
   .revealed{ animation:reveal-up .6s cubic-bezier(.22,1,.36,1) forwards; }
   @keyframes shimmer{0%{background-position:-200% 0;}100%{background-position:200% 0;}}
   .shimmer-text{
-    background:linear-gradient(90deg,#f97316 0%,#fff 40%,#f97316 60%,#fff 100%);
+    background: var(--theme-shimmer);
     background-size:200% auto;
     -webkit-background-clip:text; background-clip:text;
     -webkit-text-fill-color:transparent;
     animation:shimmer 4s linear infinite;
   }
-  @keyframes wa-bounce{0%,100%{transform:scale(1);}50%{transform:scale(1.1);}}
   .wa-btn{ animation:wa-bounce 2.5s ease-in-out infinite; }
   .noise-bg::before{
     content:''; position:absolute; inset:0; pointer-events:none; z-index:0;
@@ -46,9 +45,58 @@ const STYLES = `
   }
   @keyframes ticker{from{transform:translateX(0);}to{transform:translateX(-50%);}}
   .ticker-inner{ display:flex; animation:ticker 20s linear infinite; white-space:nowrap; }
+  .hover-theme:hover { background-color: var(--theme-primary-hover) !important; transform: translateY(-2px); }
+  .card-theme:hover { border-color: var(--theme-primary) !important; transform: translateY(-8px); }
 `;
 
 /* ─── Defaults --------------------------------------------------------------- */
+const THEMES = {
+  orange: {
+    primary: '#f97316',
+    primaryRGB: '249,115,22',
+    primaryHover: '#fb923c',
+    text: 'text-orange-400',
+    bg: 'bg-orange-500',
+    glow: 'rgba(249,115,22,.22)',
+    gradient: 'linear-gradient(135deg,#060606 0%,#1a0800 45%,#060606 100%)',
+    shimmer: 'linear-gradient(90deg,#f97316 0%,#fff 40%,#f97316 60%,#fff 100%)',
+    accent: '#ffedd5', 
+  },
+  blue: {
+    primary: '#3b82f6',
+    primaryRGB: '59,130,246',
+    primaryHover: '#60a5fa',
+    text: 'text-blue-400',
+    bg: 'bg-blue-500',
+    glow: 'rgba(37,99,168,.22)',
+    gradient: 'linear-gradient(135deg,#060606 0%,#000a1a 45%,#060606 100%)',
+    shimmer: 'linear-gradient(90deg,#3b82f6 0%,#fff 40%,#3b82f6 60%,#fff 100%)',
+    accent: '#dbeafe',
+  },
+  green: {
+    primary: '#16a34a',
+    primaryRGB: '22,163,74',
+    primaryHover: '#22c55e',
+    text: 'text-green-400',
+    bg: 'bg-green-600',
+    glow: 'rgba(39,160,96,.22)',
+    gradient: 'linear-gradient(135deg,#060606 0%,#001a0a 45%,#060606 100%)',
+    shimmer: 'linear-gradient(90deg,#22c55e 0%,#fff 40%,#22c55e 60%,#fff 100%)',
+    accent: '#dcfce7',
+  },
+  red: {
+    primary: '#dc2626',
+    primaryRGB: '220,38,38',
+    primaryHover: '#ef4444',
+    text: 'text-red-400',
+    bg: 'bg-red-600',
+    glow: 'rgba(192,39,45,.22)',
+    gradient: 'linear-gradient(135deg,#060606 0%,#1a0000 45%,#060606 100%)',
+    shimmer: 'linear-gradient(90deg,#ef4444 0%,#fff 40%,#ef4444 60%,#fff 100%)',
+    accent: '#fee2e2',
+  }
+};
+
 const D = {
   heroPreHeadline: 'ATTENTION PARENTS DE CASABLANCA (ENFANTS 8-14 ANS)',
   heroHeadline: "Transformez Son Temps d'Écran en Compétences d'Ingénieur en Seulement 3 Heures.",
@@ -117,7 +165,7 @@ const StatCounter: React.FC<{ value: number; suffix?: string; label: string; inV
   const count = useCountUp(value, inView);
   return (
     <div className="text-center" style={{ animationDelay: `${delay}ms` }}>
-      <div className="font-black text-5xl md:text-6xl text-orange-400 tabular-nums leading-none">
+      <div className={`font-black text-5xl md:text-6xl tabular-nums leading-none`} style={{ color: `var(--theme-primary)` }}>
         {count}{suffix}
       </div>
       <div className="text-gray-400 font-bold text-sm mt-2 uppercase tracking-wider">{label}</div>
@@ -145,12 +193,12 @@ const Countdown: React.FC = () => {
   const { h, m, s } = useCountdown();
   const pad = (n: number) => String(n).padStart(2, '0');
   return (
-    <div className="inline-flex items-center gap-1 bg-red-950 border border-red-500/50 rounded-xl px-3 py-2">
-      <span className="text-red-400 font-black text-xs uppercase tracking-wider mr-1">Ferme dans</span>
+    <div className="inline-flex items-center gap-1 border rounded-xl px-3 py-2" style={{ backgroundColor: `rgba(${THEMES.orange.primaryRGB}, 0.1)`, borderColor: `rgba(var(--theme-primary-rgb), 0.5)` }}>
+      <span className="font-black text-xs uppercase tracking-widest mr-1" style={{ color: `var(--theme-primary)` }}>Ferme dans</span>
       {[pad(h), pad(m), pad(s)].map((v, i) => (
         <React.Fragment key={i}>
-          <span className="font-black text-white text-lg tabular-nums bg-red-900/60 px-2 py-0.5 rounded-lg">{v}</span>
-          {i < 2 && <span className="text-red-400 font-black">:</span>}
+          <span className="font-black text-white text-lg tabular-nums px-2 py-0.5 rounded-lg" style={{ backgroundColor: `rgba(var(--theme-primary-rgb), 0.6)` }}>{v}</span>
+          {i < 2 && <span className="font-black" style={{ color: `var(--theme-primary)` }}>:</span>}
         </React.Fragment>
       ))}
     </div>
@@ -158,31 +206,31 @@ const Countdown: React.FC = () => {
 };
 
 /* ─── Testimonials carousel -------------------------------------------------- */
-const TestimonialsSection: React.FC = () => {
+const TestimonialsSection: React.FC<{ theme: any }> = ({ theme }) => {
   const [idx, setIdx] = useState(0);
   const prev = () => setIdx(i => (i - 1 + TESTIMONIALS.length) % TESTIMONIALS.length);
   const next = useCallback(() => setIdx(i => (i + 1) % TESTIMONIALS.length), []);
   useEffect(() => { const t = setInterval(next, 5000); return () => clearInterval(t); }, [next]);
   const t = TESTIMONIALS[idx];
   return (
-    <section className="py-20 px-6 relative overflow-hidden" style={{ background: 'linear-gradient(180deg,#0d0d0d 0%,#130800 50%,#0d0d0d 100%)' }}>
-      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 60% 40% at 50% 50%,rgba(249,115,22,.08) 0%,transparent 70%)' }} />
+    <section className="py-20 px-6 relative overflow-hidden" style={{ background: 'linear-gradient(180deg,#0d0d0d 0%,#0d0d0d 100%)' }}>
+      <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse 60% 40% at 50% 50%,${theme.glow} 0%,transparent 70%)` }} />
       <div className="max-w-2xl mx-auto relative z-10">
         <Reveal>
           <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-500/10 border border-yellow-500/30 rounded-full mb-3">
-              <Star size={14} className="text-yellow-400" fill="currentColor" />
-              <span className="text-yellow-400 text-xs font-black uppercase tracking-widest">Ils témoignent</span>
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full mb-3" style={{ borderColor: `var(--theme-border)` }}>
+              <Star size={14} fill="currentColor" style={{ color: `var(--theme-primary)` }} />
+              <span className="text-xs font-black uppercase tracking-widest" style={{ color: `var(--theme-primary)` }}>Ils témoignent</span>
             </div>
             <h2 className="font-black text-3xl md:text-4xl">Ce que disent les parents</h2>
           </div>
         </Reveal>
         <div className="relative">
-          <div className="p-8 md:p-10 rounded-3xl border-2 border-orange-500/30 bg-white/3 backdrop-blur-sm" style={{ minHeight: 220 }}>
-            <Quote size={32} className="text-orange-500/30 mb-4" />
+          <div className={`p-8 md:p-10 rounded-3xl border-2 bg-white/3 backdrop-blur-sm`} style={{ borderColor: `var(--theme-border)`, minHeight: 220 }}>
+            <Quote size={32} className="mb-4 opacity-30" style={{ color: `var(--theme-primary)` }} />
             <p className="text-lg md:text-xl text-gray-200 font-medium leading-relaxed italic mb-6">"{t.text}"</p>
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-orange-500 border-2 border-black flex items-center justify-center font-black text-black text-xl">{t.initial}</div>
+              <div className={`w-12 h-12 rounded-full border-2 border-black flex items-center justify-center font-black text-black text-xl`} style={{ background: `var(--theme-primary)` }}>{t.initial}</div>
               <div>
                 <p className="font-black text-white">{t.name}</p>
                 <p className="text-sm text-gray-400 font-medium">{t.role}</p>
@@ -191,11 +239,11 @@ const TestimonialsSection: React.FC = () => {
             </div>
           </div>
           <div className="flex items-center justify-center gap-4 mt-6">
-            <button onClick={prev} className="w-10 h-10 flex items-center justify-center rounded-full border-2 border-white/20 hover:border-orange-500 hover:bg-orange-500/10 transition-all"><ChevronLeft size={18} /></button>
+            <button onClick={prev} className={`w-10 h-10 flex items-center justify-center rounded-full border-2 border-white/20 transition-all hover:bg-white/5 active:scale-95`} style={{ borderColor: `var(--theme-border)` }}><ChevronLeft size={18} /></button>
             <div className="flex gap-2">
-              {TESTIMONIALS.map((_,i) => <div key={i} onClick={() => setIdx(i)} className={`w-2 h-2 rounded-full cursor-pointer transition-all ${i===idx ? 'bg-orange-500 w-6' : 'bg-white/20'}`} />)}
+              {TESTIMONIALS.map((_,i) => <div key={i} onClick={() => setIdx(i)} className={`w-2 h-2 rounded-full cursor-pointer transition-all ${i===idx ? `w-6` : 'bg-white/20'}`} style={{ backgroundColor: i===idx ? `var(--theme-primary)` : undefined }} />)}
             </div>
-            <button onClick={next} className="w-10 h-10 flex items-center justify-center rounded-full border-2 border-white/20 hover:border-orange-500 hover:bg-orange-500/10 transition-all"><ChevronRight size={18} /></button>
+            <button onClick={next} className={`w-10 h-10 flex items-center justify-center rounded-full border-2 border-white/20 transition-all hover:bg-white/5 active:scale-95`} style={{ borderColor: `var(--theme-border)` }}><ChevronRight size={18} /></button>
           </div>
         </div>
       </div>
@@ -204,7 +252,7 @@ const TestimonialsSection: React.FC = () => {
 };
 
 /* ─── Drawer Checkout -------------------------------------------------------- */
-const DrawerCheckout: React.FC<{ selection: Mission | Track | null; programId: string; programTitle: string; onClose: () => void }> = ({ selection, programId, programTitle, onClose }) => {
+const DrawerCheckout: React.FC<{ selection: Mission | Track | MissionBox | null; programId: string; programTitle: string; theme: any; onClose: () => void }> = ({ selection, programId, programTitle, theme, onClose }) => {
   const [form, setForm] = useState({ parentName: '', childName: '', childAge: '', whatsapp: '' });
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
@@ -212,8 +260,12 @@ const DrawerCheckout: React.FC<{ selection: Mission | Track | null; programId: s
   const [paymentStatus, setPaymentStatus] = useState<'Deposit' | 'Full Bundle' | 'Pending'>('Pending');
 
   const isTrack = !!(selection && 'benefits' in selection);
-  const targetName = selection ? (isTrack ? (selection as Track).title : (selection as Mission).title) : '';
-  const targetPrice = selection ? (isTrack ? (selection as Track).price : (selection as Mission).price) : '';
+  const isMissionBox = !!(selection && 'theme' in selection && !('title' in selection));
+  
+  const targetName = selection 
+    ? (isTrack ? (selection as Track).title : (isMissionBox ? (selection as MissionBox).theme : (selection as Mission).title)) 
+    : '';
+  const targetPrice = selection ? (selection as any).price : '';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -225,8 +277,14 @@ const DrawerCheckout: React.FC<{ selection: Mission | Track | null; programId: s
         childAge: form.childAge, whatsapp: form.whatsapp, createdAt: new Date().toISOString(),
         paymentStatus: paymentStatus
       };
-      if (isTrack) { lead.trackId = selection.id; lead.trackTitle = targetName; }
-      else { lead.missionId = selection.id; lead.missionTheme = targetName; lead.missionDate = (selection as Mission).date; }
+      if (isTrack) { 
+        lead.trackId = selection.id; 
+        lead.trackTitle = targetName; 
+      } else { 
+        lead.missionId = selection.id; 
+        lead.missionTheme = targetName; 
+        lead.missionDate = (selection as any).date; 
+      }
       
       await addDoc(collection(db, 'website-landing-leads'), lead);
     } catch (_) {}
@@ -237,20 +295,21 @@ const DrawerCheckout: React.FC<{ selection: Mission | Track | null; programId: s
     <>
       <div className={`fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] transition-opacity duration-300 ${selection ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={onClose} />
       <div className={`fixed top-0 right-0 bottom-0 w-full md:w-[500px] bg-white border-l-8 border-black shadow-[-20px_0_50px_rgba(0,0,0,0.5)] z-[210] transition-transform duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] flex flex-col ${selection ? 'translate-x-0' : 'translate-x-full'}`}>
-        <div className="h-2 bg-gradient-to-r from-orange-600 via-red-500 to-orange-400 shrink-0" />
+        <div className="h-2 shrink-0" style={{ background: `linear-gradient(90deg, var(--theme-primary), var(--theme-accent), var(--theme-primary))` }} />
         <div className="flex-1 overflow-y-auto p-8 relative">
           <button onClick={onClose} className="absolute top-6 right-6 w-10 h-10 flex items-center justify-center rounded-full border-2 border-black hover:bg-red-500 hover:text-white transition-colors bg-gray-50"><X size={20} strokeWidth={3} /></button>
           
           {!done ? (
             <>
               <div className="mb-8 pr-12">
-                <div className="inline-flex items-center gap-2 bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-3 border border-orange-200">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-3 border"
+                  style={{ backgroundColor: `rgba(${theme.primaryRGB}, 0.1)`, color: `var(--theme-primary)`, borderColor: `rgba(${theme.primaryRGB}, 0.2)` }}>
                   <Rocket size={12} /> {isTrack ? 'Inscription Parcours' : 'Réservation Session'}
                 </div>
                 <h2 className="font-black text-2xl leading-tight mb-2">Sécurisez votre place</h2>
                 <div className="p-4 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50">
                   <p className="font-black text-lg">{targetName}</p>
-                  <p className="text-orange-600 font-bold mt-1 text-sm">{targetPrice}</p>
+                  <p className="font-bold mt-1 text-sm" style={{ color: `var(--theme-primary)` }}>{targetPrice}</p>
                   {selection && !isTrack && <p className="text-xs text-gray-500 font-bold mt-1">{(selection as Mission).date}</p>}
                 </div>
               </div>
@@ -266,10 +325,13 @@ const DrawerCheckout: React.FC<{ selection: Mission | Track | null; programId: s
                     ].map(f => (
                       <div key={f.key}>
                         <label className="block text-xs font-black uppercase tracking-widest mb-1.5 text-gray-600">{f.label}</label>
-                        <input required type={f.type} min={f.key==='childAge'?5:undefined} max={f.key==='childAge'?18:undefined} value={(form as any)[f.key]} onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))} className="w-full p-4 border-4 border-black rounded-xl font-bold focus:border-orange-500 focus:bg-orange-50 outline-none transition-colors" placeholder={f.placeholder} />
+                        <input required type={f.type} min={f.key==='childAge'?5:undefined} max={f.key==='childAge'?18:undefined} value={(form as any)[f.key]} onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))} className="w-full p-4 border-4 border-black rounded-xl font-bold focus:bg-white outline-none transition-colors shadow-[2px_2px_0_0_black]" 
+                          style={{ borderColor: `var(--theme-primary)` }}
+                          placeholder={f.placeholder} />
                       </div>
                     ))}
-                    <button type="submit" disabled={loading} className="w-full py-5 mt-4 bg-black text-white font-black text-lg uppercase tracking-widest border-4 border-black rounded-2xl hover:-translate-y-1 hover:shadow-[6px_6px_0_0_#f97316] transition-all disabled:opacity-60 flex justify-center items-center gap-2">
+                    <button type="submit" disabled={loading} className="w-full py-5 mt-4 text-black font-black text-lg uppercase tracking-widest border-4 border-black rounded-2xl hover:-translate-y-1 transition-all disabled:opacity-60 flex justify-center items-center gap-2"
+                      style={{ backgroundColor: `var(--theme-primary)`, boxShadow: '6px 6px 0 0 #000' }}>
                        {isTrack ? 'Suivant : Réservation →' : (loading ? '⏳ Envoi...' : ' CONFIRMER MA RÉSERVATION')}
                     </button>
                   </div>
@@ -279,9 +341,10 @@ const DrawerCheckout: React.FC<{ selection: Mission | Track | null; programId: s
                   <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
                     <h3 className="font-black text-lg">Choisissez votre formule :</h3>
                     
-                    <label className={`block cursor-pointer p-5 border-4 rounded-2xl transition-all ${paymentStatus === 'Deposit' ? 'border-orange-500 bg-orange-50 shadow-neo' : 'border-gray-200 hover:border-black'}`}>
+                    <label className={`block cursor-pointer p-5 border-4 rounded-2xl transition-all ${paymentStatus === 'Deposit' ? 'shadow-neo' : 'border-gray-200 hover:border-black'}`}
+                       style={{ borderColor: paymentStatus === 'Deposit' ? `var(--theme-primary)` : undefined, backgroundColor: paymentStatus === 'Deposit' ? `rgba(${theme.primaryRGB}, 0.1)` : undefined }}>
                       <div className="flex items-center gap-3">
-                        <input type="radio" checked={paymentStatus === 'Deposit'} onChange={() => setPaymentStatus('Deposit')} className="w-5 h-5 accent-orange-500" />
+                        <input type="radio" checked={paymentStatus === 'Deposit'} onChange={() => setPaymentStatus('Deposit')} className="w-5 h-5" style={{ accentColor: `var(--theme-primary)` }} />
                         <div>
                           <p className="font-black">Essai 1 Jour (400 DHS)</p>
                           <p className="text-xs text-gray-500 font-bold mt-1 max-w-[250px]">Laissez votre enfant tester la 1ère session. Si ça lui plaît, on déduira ce montant du pack complet.</p>
@@ -299,7 +362,8 @@ const DrawerCheckout: React.FC<{ selection: Mission | Track | null; programId: s
                       </div>
                     </label>
 
-                    <button type="submit" disabled={loading} className="w-full py-5 mt-4 bg-orange-500 text-black font-black text-lg uppercase tracking-widest border-4 border-black rounded-2xl hover:-translate-y-1 hover:shadow-[6px_6px_0_0_black] transition-all disabled:opacity-60 cta-pulse mt-8">
+                    <button type="submit" disabled={loading} className="w-full py-5 mt-4 text-black font-black text-lg uppercase tracking-widest border-4 border-black rounded-2xl hover:-translate-y-1 hover:shadow-[6px_6px_0_0_black] transition-all disabled:opacity-60 cta-pulse mt-8"
+                      style={{ backgroundColor: `var(--theme-primary)` }}>
                        {loading ? '⏳ Sauvegarde...' : '🚀 SÉCURISER MA PLACE'}
                     </button>
                     <button type="button" onClick={() => setStep(1)} className="w-full py-3 text-xs font-bold text-gray-500 uppercase tracking-widest hover:text-black">← Retour aux infos</button>
@@ -327,10 +391,10 @@ const DrawerCheckout: React.FC<{ selection: Mission | Track | null; programId: s
 const FaqItem: React.FC<{ question: string; answer: string }> = ({ question, answer }) => {
   const [open, setOpen] = useState(false);
   return (
-    <div className={`border-2 rounded-2xl overflow-hidden transition-all duration-300 ${open ? 'border-orange-500 bg-orange-500/5' : 'border-white/10 bg-white/2'}`}>
+    <div className={`border-2 rounded-2xl overflow-hidden transition-all duration-300 ${open ? 'bg-white/5' : 'border-white/10 bg-white/2'}`} style={{ borderColor: open ? `var(--theme-primary)` : undefined }}>
       <button onClick={() => setOpen(!open)} className="w-full flex items-center justify-between gap-4 p-6 text-left hover:bg-white/5 transition-colors">
         <span className="font-black text-base md:text-lg">{question}</span>
-        <ChevronDown size={20} className={`shrink-0 text-orange-400 transition-transform duration-300 ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown size={20} className={`shrink-0 transition-transform duration-300 ${open ? 'rotate-180' : ''}`} style={{ color: `var(--theme-primary)` }} />
       </button>
       {open && <div className="px-6 pb-6 text-gray-400 font-medium leading-relaxed border-t border-white/5 pt-4">{answer}</div>}
     </div>
@@ -350,6 +414,9 @@ export const ProgramLanding: React.FC = () => {
 
   const program = id ? getProgram(id) : undefined;
   const lp = program?.landingPage;
+
+  const themeKey = lp?.themeColor || program?.themeColor || 'orange';
+  const theme = THEMES[themeKey as keyof typeof THEMES] || THEMES.orange;
 
   useEffect(() => {
     document.title = program ? `${program.title} — Makerlab Academy` : 'Makerlab Academy';
@@ -374,7 +441,7 @@ export const ProgramLanding: React.FC = () => {
         <div className="text-6xl mb-6">🔍</div>
         <h1 className="font-black text-3xl mb-3">Oups ! Offre Introuvable</h1>
         <p className="text-gray-400 font-medium max-w-sm">Cette offre n'existe plus ou le lien est expiré.</p>
-        <a href="/" className="mt-8 px-6 py-3 bg-orange-500 text-black font-black rounded-xl border-2 border-black hover:bg-orange-400 transition-colors">← Retour à l'accueil</a>
+        <a href="/" className="mt-8 px-6 py-3 text-black font-black rounded-xl border-2 border-black transition-colors" style={{ backgroundColor: theme.primary }}>← Retour à l'accueil</a>
       </div>
     );
   }
@@ -385,7 +452,7 @@ export const ProgramLanding: React.FC = () => {
         <div className="text-6xl mb-6">🚀</div>
         <h1 className="font-black text-3xl mb-3">Landing Page Désactivée</h1>
         <p className="text-gray-400 font-medium max-w-sm">Activez-la depuis le panneau d'administration.</p>
-        <a href="/" className="mt-8 px-6 py-3 bg-orange-500 text-black font-black rounded-xl border-2 border-black hover:bg-orange-400 transition-colors">← Retour au site</a>
+        <a href="/" className="mt-8 px-6 py-3 text-black font-black rounded-xl border-2 border-black transition-colors" style={{ backgroundColor: theme.primary }}>← Retour au site</a>
       </div>
     );
   }
@@ -398,16 +465,28 @@ export const ProgramLanding: React.FC = () => {
     return (D as any)[key] || '';
   };
 
-  const visibleMissions = missions.filter(m => m.status !== 'full');
+  const visibleMissions = (lp?.missionBoxes && lp.missionBoxes.length > 0)
+    ? lp.missionBoxes 
+    : missions.filter(m => m.status !== 'full');
 
   return (
     <>
       <style>{STYLES}</style>
 
-      <div className="font-sans text-white bg-black overflow-x-hidden">
+      <div className="font-sans text-white bg-black overflow-x-hidden" style={{ 
+        '--theme-text': theme.primary,
+        '--theme-primary': theme.primary,
+        '--theme-primary-rgb': theme.primaryRGB,
+        '--theme-pulse': `rgba(${theme.primaryRGB}, 0.7)`,
+        '--theme-shimmer': theme.shimmer,
+        '--theme-primary-hover': theme.primaryHover,
+        '--theme-border': theme.glow.replace('.22', '.3'),
+        '--theme-glow': theme.glow,
+        '--theme-accent': theme.accent,
+      } as React.CSSProperties}>
 
         {/* ═══ ANNOUNCEMENT TICKER ══════════════════════════════════════════ */}
-        <div className="bg-orange-500 text-black py-2 overflow-hidden relative">
+        <div className={`${theme.bg} text-black py-2 overflow-hidden relative`}>
           <div className="ticker-inner">
             {[...Array(2)].map((_, i) => (
               <span key={i} className="flex items-center gap-8 px-8">
@@ -420,31 +499,32 @@ export const ProgramLanding: React.FC = () => {
         </div>
 
         {/* ═══ BLOCK 1 — HERO ══════════════════════════════════════════════ */}
-        <section ref={heroRef} className="relative min-h-screen flex flex-col justify-center noise-bg overflow-hidden" style={{ background: 'linear-gradient(135deg,#060606 0%,#1a0800 45%,#060606 100%)' }}>
+        <section ref={heroRef} className="relative min-h-screen flex flex-col justify-center noise-bg overflow-hidden" style={{ background: theme.gradient }}>
           {/* Glow orbs */}
-          <div className="absolute top-[-15%] right-[-5%] w-[700px] h-[700px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle,rgba(249,115,22,.22) 0%,transparent 70%)' }} />
-          <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle,rgba(249,115,22,.10) 0%,transparent 70%)' }} />
+          <div className="absolute top-[-15%] right-[-5%] w-[700px] h-[700px] rounded-full pointer-events-none" style={{ background: `radial-gradient(circle,${theme.glow} 0%,transparent 70%)` }} />
+          <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full pointer-events-none" style={{ background: `radial-gradient(circle,${theme.glow} 0%,transparent 70%)` }} />
           {/* Floating grid dots */}
-          <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: 'radial-gradient(rgba(249,115,22,.15) 1px,transparent 1px)', backgroundSize: '40px 40px' }} />
+          <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: `radial-gradient(${theme.glow} 1px,transparent 1px)`, backgroundSize: '40px 40px' }} />
 
           <div className="relative z-10 max-w-5xl mx-auto px-6 py-24 text-center">
             {/* Brand pill */}
             <div className="inline-flex items-center gap-2 mb-8 px-4 py-2 bg-white/5 border border-white/10 rounded-full backdrop-blur-sm">
-              <Zap size={14} className="text-orange-400" fill="currentColor" />
-              <span className="text-xs font-black uppercase tracking-widest text-orange-300">Makerlab Academy — Casablanca</span>
+              <Zap size={14} className={theme.text} fill="currentColor" />
+              <span className={`text-xs font-black uppercase tracking-widest ${theme.text}`}>Makerlab Academy — Casablanca</span>
             </div>
 
             {/* Pre-headline */}
             <p className="text-red-400 font-black text-sm md:text-base uppercase tracking-widest mb-5">{t('heroPreHeadline')}</p>
 
             {/* Headline with shimmer effect */}
-            <h1 className="font-black text-4xl md:text-6xl lg:text-7xl leading-[1.05] mb-6 shimmer-text">{t('heroHeadline')}</h1>
+            <h1 className="font-black text-4xl md:text-6xl lg:text-7xl leading-[1.05] mb-6 shimmer-text" style={{ background: theme.shimmer, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{t('heroHeadline')}</h1>
 
             {/* Sub-headline */}
             <p className="text-lg md:text-xl text-gray-300 font-medium max-w-3xl mx-auto mb-10 leading-relaxed">{t('heroSubHeadline')}</p>
 
             {/* CTA */}
-            <button onClick={scrollToMissions} className="cta-pulse inline-flex items-center gap-3 px-8 py-5 bg-orange-500 text-black font-black text-lg md:text-xl uppercase tracking-widest border-4 border-black rounded-2xl hover:bg-orange-400 transition-colors relative z-10">
+            <button onClick={scrollToMissions} className={`cta-pulse hover-theme inline-flex items-center gap-3 px-8 py-5 text-black font-black text-lg md:text-xl uppercase tracking-widest border-4 border-black rounded-2xl transition-all relative z-10`}
+              style={{ backgroundColor: `var(--theme-primary)` }}>
               <Rocket size={24} strokeWidth={3} />{t('heroCtaText')}<ArrowRight size={24} strokeWidth={3} />
             </button>
             <p className="mt-4 text-sm text-gray-400 font-medium">{t('heroScarcityText')}</p>
@@ -458,7 +538,7 @@ export const ProgramLanding: React.FC = () => {
                 { icon: <CheckCircle2 size={14} />, label: '100% Sans Lego' },
               ].map((s, i) => (
                 <div key={i} className="float-y flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full text-sm font-bold text-gray-300" style={{ animationDelay: `${i * 0.3}s` }}>
-                  <span className="text-orange-400">{s.icon}</span>{s.label}
+                  <span style={{ color: `var(--theme-primary)` }}>{s.icon}</span>{s.label}
                 </div>
               ))}
             </div>
@@ -469,7 +549,8 @@ export const ProgramLanding: React.FC = () => {
                 <div className="absolute inset-0 rounded-3xl" style={{ background: 'linear-gradient(180deg,transparent 50%,#060606 100%)' }} />
                 <img src={program.image} alt={program.title} className="w-full rounded-3xl border-2 border-white/10 object-cover max-h-72" />
                 <div className="absolute bottom-4 left-4 right-4 flex justify-center">
-                  <div className="px-4 py-2 bg-black/70 backdrop-blur-sm border border-white/10 rounded-full text-xs font-black text-orange-400 uppercase tracking-widest">
+                  <div className="px-4 py-2 bg-black/70 backdrop-blur-sm border border-white/10 rounded-full text-xs font-black uppercase tracking-widest"
+                    style={{ color: `var(--theme-primary)` }}>
                     {program.title}
                   </div>
                 </div>
@@ -477,7 +558,7 @@ export const ProgramLanding: React.FC = () => {
             )}
 
             <div className="mt-12 flex justify-center">
-              <div className="flex flex-col items-center gap-1 text-gray-600 cursor-pointer hover:text-orange-400 transition-colors" onClick={scrollToMissions}>
+              <div className={`flex flex-col items-center gap-1 text-gray-600 cursor-pointer hover:${theme.text} transition-colors`} onClick={scrollToMissions}>
                 <span className="text-xs font-bold uppercase tracking-widest">Découvrir</span>
                 <ChevronDown size={20} className="animate-bounce" />
               </div>
@@ -486,7 +567,7 @@ export const ProgramLanding: React.FC = () => {
         </section>
 
         {/* ═══ ANIMATED STATS BAND ══════════════════════════════════════════ */}
-        <div ref={statsRef} className="py-14 px-6 border-y-2 border-orange-500/20" style={{ background: '#0d0d0d' }}>
+        <div ref={statsRef} className="py-14 px-6 border-y-2" style={{ background: '#0d0d0d', borderColor: `var(--theme-border)` }}>
           <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
             <StatCounter value={500} suffix="+" label="Makers Formés" inView={statsInView} delay={0} />
             <StatCounter value={98} suffix="%" label="Parents Satisfaits" inView={statsInView} delay={150} />
@@ -500,7 +581,7 @@ export const ProgramLanding: React.FC = () => {
           <div className="max-w-5xl mx-auto">
             <Reveal>
               <div className="flex items-center gap-4 mb-14">
-                <div className="flex-grow h-px bg-white/10" /><div className="w-3 h-3 bg-orange-500 rotate-45" /><div className="flex-grow h-px bg-white/10" />
+                <div className="flex-grow h-px bg-white/10" /><div className="w-3 h-3 rotate-45" style={{ backgroundColor: `var(--theme-primary)` }} /><div className="flex-grow h-px bg-white/10" />
               </div>
             </Reveal>
 
@@ -523,16 +604,16 @@ export const ProgramLanding: React.FC = () => {
                 </div>
               </Reveal>
               <Reveal delay={120}>
-                <div className="h-full p-7 border-2 border-orange-500 rounded-3xl relative group overflow-hidden" style={{ background: 'rgba(249,115,22,0.06)' }}>
-                  <div className="absolute inset-0 bg-gradient-to-br from-orange-900/20 to-transparent" />
-                  <div className="absolute top-0 right-0 w-32 h-32 rounded-full opacity-20" style={{ background: 'radial-gradient(circle,#f97316 0%,transparent 70%)' }} />
+                <div className={`h-full p-7 border-2 rounded-3xl relative group overflow-hidden`} style={{ borderColor: `var(--theme-border)`, background: `${theme.glow.replace('.22','.06')}` }}>
+                  <div className="absolute inset-0 bg-gradient-to-br from-black/20 to-transparent" />
+                  <div className="absolute top-0 right-0 w-32 h-32 rounded-full opacity-20" style={{ background: `radial-gradient(circle,${theme.glow} 0%,transparent 70%)` }} />
                   <div className="relative z-10">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-orange-900/40 border border-orange-800/50 rounded-full text-xs font-black text-orange-400 uppercase mb-4">✅ Makerlab</div>
-                    <h3 className="font-black text-2xl text-orange-400 mb-4">CRÉATION</h3>
+                    <div className={`inline-flex items-center gap-2 px-3 py-1 border rounded-full text-xs font-black uppercase mb-4`} style={{ background: `${theme.glow.replace('.22','.3')}`, color: `var(--theme-text)`, borderColor: `${theme.glow.replace('.22','.4')}` }}>✅ Makerlab</div>
+                    <h3 className={`font-black text-2xl mb-4`} style={{ color: `var(--theme-text)` }}>CRÉATION</h3>
                     <ul className="space-y-3">
                       {["Vrais logiciels de CAO & modélisation 3D", "Fers à souder & composants Arduino réels", "Découpe laser & impression 3D", "Projet 100% unique signé à leur nom", "Compétences réelles d'ingénieur"].map((item, i) => (
                         <li key={i} className="flex items-center gap-3 text-gray-200 font-medium text-sm">
-                          <span className="w-5 h-5 rounded-full bg-orange-900/50 flex items-center justify-center text-orange-400 text-xs font-black shrink-0">✓</span>{item}
+                          <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-black shrink-0`} style={{ background: `var(--theme-glow)`, color: `var(--theme-primary)` }}>✓</span>{item}
                         </li>
                       ))}
                     </ul>
@@ -544,13 +625,13 @@ export const ProgramLanding: React.FC = () => {
             <Reveal>
               <h2 className="font-black text-3xl md:text-5xl text-center leading-tight mb-8">
                 {t('agitatorHeadline').split('. ').map((part: string, i: number, arr: string[]) => (
-                  <span key={i}>{i === 1 ? <em className="not-italic text-orange-400">{part}</em> : part}{i < arr.length - 1 ? '. ' : ''}</span>
+                  <span key={i}>{i === 1 ? <em className="not-italic" style={{ color: `var(--theme-primary)` }}>{part}</em> : part}{i < arr.length - 1 ? '. ' : ''}</span>
                 ))}
               </h2>
               {t('agitatorBody').split('\n\n').map((para: string, i: number) => (
                 <p key={i} className={`text-gray-300 font-medium leading-relaxed mb-4 max-w-3xl mx-auto text-center ${i === 0 ? 'text-lg' : ''}`}>
                   {para.split('BUILT NOT BOUGHT').map((part: string, j: number, arr: string[]) => (
-                    <React.Fragment key={j}>{part}{j < arr.length - 1 && <strong className="text-orange-400 font-black"> BUILT NOT BOUGHT </strong>}</React.Fragment>
+                    <React.Fragment key={j}>{part}{j < arr.length - 1 && <strong className="font-black" style={{ color: `var(--theme-primary)` }}> BUILT NOT BOUGHT </strong>}</React.Fragment>
                   ))}
                 </p>
               ))}
@@ -582,12 +663,12 @@ export const ProgramLanding: React.FC = () => {
 
         {/* ═══ BLOCK 3 — THE TRACKS (BINARY CHOICE) ══════════════════════════ */}
         <section className="py-24 px-6 relative overflow-hidden" style={{ background: 'linear-gradient(180deg,#0a0a0a 0%,#130800 50%,#0a0a0a 100%)' }}>
-          <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: 'radial-gradient(rgba(249,115,22,.07) 1px,transparent 1px)', backgroundSize: '32px 32px' }} />
+          <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: `radial-gradient(rgba(${theme.primaryRGB},.07) 1px,transparent 1px)`, backgroundSize: '32px 32px' }} />
           <div className="max-w-6xl mx-auto relative z-10">
             <Reveal>
               <div className="text-center mb-16">
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-orange-500/10 border border-orange-500/30 rounded-full mb-4">
-                  <Zap size={14} className="text-orange-400" /><span className="text-orange-400 text-xs font-black uppercase tracking-widest">Le Parcours</span>
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full mb-4" style={{ borderColor: `var(--theme-border)` }}>
+                  <Zap size={14} style={{ color: `var(--theme-primary)` }} /><span className="text-xs font-black uppercase tracking-widest" style={{ color: `var(--theme-primary)` }}>Le Parcours</span>
                 </div>
                 <h2 className="font-black text-4xl md:text-5xl lg:text-6xl mb-4 text-white">Choisissez Son Super-Pouvoir</h2>
                 <p className="text-xl text-gray-400 font-medium">Sélectionnez le parcours complet (3 semaines) qui correspond à sa passion.</p>
@@ -597,7 +678,8 @@ export const ProgramLanding: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-14">
               {tracks?.map((track, i) => (
                 <Reveal key={track.id} delay={i * 100}>
-                  <div className="relative rounded-3xl border-4 border-white/10 bg-black/50 overflow-hidden hover:-translate-y-2 hover:border-orange-500 transition-all duration-300 group shadow-2xl flex flex-col h-full">
+                  <div className="relative rounded-3xl border-4 border-white/10 bg-black/50 overflow-hidden card-theme transition-all duration-300 group shadow-2xl flex flex-col h-full"
+                    style={{ borderColor: `rgba(${theme.primaryRGB}, 0.1)` }}>
                     <div className="h-48 bg-gray-900 border-b-4 border-white/10 relative overflow-hidden shrink-0">
                       {track.coverImage ? (
                         <img src={track.coverImage} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="" />
@@ -605,7 +687,7 @@ export const ProgramLanding: React.FC = () => {
                          <div className="w-full h-full flex items-center justify-center bg-gray-900"><Cpu size={48} className="text-gray-800" /></div>
                       )}
                       <div className="absolute bottom-4 left-4 right-4 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-                         <div className="bg-orange-500 text-black text-[10px] font-black uppercase px-2 py-1 inline-block rounded border-2 border-black">3 SESSIONS INTENSIVES</div>
+                         <div className="text-black text-[10px] font-black uppercase px-2 py-1 inline-block rounded border-2 border-black" style={{ backgroundColor: `var(--theme-primary)` }}>3 SESSIONS INTENSIVES</div>
                       </div>
                     </div>
                     
@@ -629,7 +711,8 @@ export const ProgramLanding: React.FC = () => {
                         </div>
                         <button
                           onClick={() => setSelectedTarget(track)}
-                          className="w-full py-4 text-black bg-orange-500 hover:bg-orange-400 font-black text-sm uppercase tracking-widest border-4 border-black rounded-xl shadow-[5px_5px_0_0_#fff] hover:-translate-y-1 hover:shadow-[7px_7px_0_0_#fff] transition-all"
+                          className="w-full py-4 text-black font-black text-sm uppercase tracking-widest border-4 border-black rounded-xl shadow-[5px_5px_0_0_#fff] hover:-translate-y-1 hover:shadow-[7px_7px_0_0_#fff] transition-all"
+                          style={{ backgroundColor: `var(--theme-primary)` }}
                         >
                           SÉLECTIONNER CE PARCOURS
                         </button>
@@ -641,20 +724,20 @@ export const ProgramLanding: React.FC = () => {
             </div>
             
             <Reveal>
-              <div className="text-center p-10 border-2 border-orange-500 rounded-3xl bg-orange-500/5 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-48 h-48 rounded-full opacity-10" style={{ background: 'radial-gradient(circle,#f97316 0%,transparent 70%)' }} />
-                <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full opacity-10" style={{ background: 'radial-gradient(circle,#f97316 0%,transparent 70%)' }} />
+              <div className={`text-center p-10 border-2 rounded-3xl relative overflow-hidden`} style={{ borderColor: `var(--theme-border)`, background: `${theme.glow.replace('.22','.05')}` }}>
+                <div className="absolute top-0 right-0 w-48 h-48 rounded-full opacity-10" style={{ background: `radial-gradient(circle,${theme.glow} 0%,transparent 70%)` }} />
+                <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full opacity-10" style={{ background: `radial-gradient(circle,${theme.glow} 0%,transparent 70%)` }} />
                 <p className="font-black text-2xl md:text-3xl mb-3 relative z-10 text-white leading-tight">
-                  À la fin des 3 semaines, ils ramènent à la maison <span className="text-orange-400">tous leurs projets</span>, étiquetés à leur nom.
+                  À la fin des 3 semaines, ils ramènent à la maison <span style={{ color: `var(--theme-primary)` }}>tous leurs projets</span>, étiquetés à leur nom.
                 </p>
-                <p className="font-black text-4xl md:text-5xl text-orange-400 mt-6 shimmer-text underline decoration-4 underline-offset-8">STOP PLAYING, START MAKING.</p>
+                <p className="font-black text-4xl md:text-5xl mt-6 shimmer-text underline decoration-4 underline-offset-8" style={{ color: `var(--theme-primary)` }}>STOP PLAYING, START MAKING.</p>
               </div>
             </Reveal>
           </div>
         </section>
 
         {/* ═══ TESTIMONIALS ════════════════════════════════════════════════ */}
-        <TestimonialsSection />
+        <TestimonialsSection theme={theme} />
 
         {/* ═══ BLOCK 4 — SINGLE MISSIONS (Make & Go) ═══════════════════════ */}
         {visibleMissions.length > 0 && (
@@ -665,7 +748,7 @@ export const ProgramLanding: React.FC = () => {
                   <p className="text-gray-500 text-xs font-black uppercase tracking-widest mb-3">⬇ SESSIONS À LA CARTE</p>
                   <h2 className="font-black text-4xl md:text-5xl mb-4 text-white">Pas prêt pour le parcours<br/>complet ?</h2>
                   <p className="text-gray-400 font-medium mx-auto leading-relaxed text-lg">
-                    Laissez votre enfant essayer une seule <span className="text-orange-400 font-bold">Mission d'Essai (3 heures)</span>. S'il adore, on déduira le prix si vous passez au Pack.
+                    Laissez votre enfant essayer une seule <span className={`font-bold ${theme.text}`}>Mission d'Essai (3 heures)</span>. S'il adore, on déduira le prix si vous passez au Pack.
                   </p>
                 </div>
               </Reveal>
@@ -678,7 +761,10 @@ export const ProgramLanding: React.FC = () => {
                   const pct = Math.min(100, ((total - left) / total) * 100);
                   return (
                     <Reveal key={mission.id} delay={mi * 100}>
-                      <div className={`p-6 rounded-3xl border-2 transition-all duration-300 flex flex-col md:flex-row items-center gap-6 ${isLimited ? 'border-red-500 bg-red-500/5 hover:-translate-x-2' : 'border-white/10 bg-black hover:-translate-x-2 hover:border-white/30'}`}>
+                      <div className={`p-6 rounded-3xl border-2 transition-all duration-300 flex flex-col md:flex-row items-center gap-6 ${isLimited ? 'border-red-500 bg-red-500/5 hover:-translate-x-2' : 'border-white/10 bg-black hover:-translate-x-2'}`}
+                        onMouseEnter={(e) => !isLimited && (e.currentTarget.style.borderColor = 'var(--theme-primary)')}
+                        onMouseLeave={(e) => !isLimited && (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+                      >
                         {/* Img Thumbnail */}
                         <div className="w-full md:w-48 h-32 shrink-0 bg-gray-900 rounded-2xl border-2 border-white/10 overflow-hidden relative">
                            {mission.coverImage ? (
@@ -693,7 +779,7 @@ export const ProgramLanding: React.FC = () => {
 
                         <div className="flex-grow text-white w-full">
                           <div className="flex items-center gap-3 mb-2 flex-wrap">
-                            <span className="text-xs text-orange-400 font-black uppercase px-2 py-1 bg-orange-500/10 border border-orange-500/20 rounded-md">
+                            <span className={`text-xs font-black uppercase px-2 py-1 bg-white/5 border border-white/10 rounded-md`} style={{ color: `var(--theme-primary)` }}>
                               {mission.date}
                             </span>
                             {isLimited && (
@@ -719,7 +805,8 @@ export const ProgramLanding: React.FC = () => {
                           </div>
                           <button
                             onClick={() => setSelectedTarget(mission)}
-                            className="w-full md:w-auto px-6 py-4 font-black uppercase tracking-widest text-xs border-4 rounded-xl transition-all whitespace-nowrap border-black bg-white text-black hover:bg-gray-200 shadow-[3px_3px_0_0_#f97316] hover:-translate-y-1 hover:shadow-[5px_5px_0_0_#f97316]"
+                            className="w-full md:w-auto px-6 py-4 font-black uppercase tracking-widest text-xs border-4 rounded-xl transition-all whitespace-nowrap border-black bg-white text-black hover-theme shadow-[3px_3px_0_0_black]"
+                            style={{ boxShadow: `5px 5px 0 0 var(--theme-border)` }}
                           >
                             RÉSERVER UNE PLACE →
                           </button>
@@ -770,15 +857,19 @@ export const ProgramLanding: React.FC = () => {
         )}
 
         {/* ═══ BLOCK 6 — FINAL CTA ═════════════════════════════════════════ */}
-        <section className="relative py-28 px-6 text-center overflow-hidden" style={{ background: 'linear-gradient(135deg,#1a0800 0%,#060606 50%,#1a0800 100%)' }}>
-          <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 80% 50% at 50% 100%,rgba(249,115,22,.2) 0%,transparent 70%)' }} />
+        <section className="relative py-28 px-6 text-center overflow-hidden" style={{ background: theme.gradient }}>
+          <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse 80% 50% at 50% 100%,${theme.glow} 0%,transparent 70%)` }} />
           <div className="max-w-2xl mx-auto relative z-10">
             <Reveal>
               <h2 className="font-black text-4xl md:text-6xl mb-6 leading-tight">
-                {t('finalCtaHeadline')} <span className="text-orange-400">💡</span>
+                {t('finalCtaHeadline')} <span className={theme.text}>💡</span>
               </h2>
               <p className="text-gray-300 text-lg font-medium mb-10 leading-relaxed">{t('finalCtaBody')}</p>
-              <button onClick={scrollToMissions} className="cta-pulse inline-flex items-center gap-3 px-10 py-5 bg-orange-500 text-black font-black text-xl uppercase tracking-widest border-4 border-black rounded-2xl hover:bg-orange-400 transition-colors">
+              <button 
+                onClick={scrollToMissions} 
+                className="cta-pulse hover-theme inline-flex items-center gap-3 px-10 py-5 text-black font-black text-xl uppercase tracking-widest border-4 border-black rounded-2xl transition-all"
+                style={{ backgroundColor: `var(--theme-primary)` }}
+              >
                 <Rocket size={24} strokeWidth={3} />VOIR LES MISSIONS DISPONIBLES
               </button>
             </Reveal>
@@ -791,15 +882,16 @@ export const ProgramLanding: React.FC = () => {
 
       {/* ═══ STICKY BOTTOM CTA BAR ═══════════════════════════════════════════ */}
       <div className={`fixed bottom-0 left-0 right-0 z-[150] transition-transform duration-500 ${showStickyBar ? 'translate-y-0' : 'translate-y-full'}`}>
-        <div className="bg-black border-t-4 border-orange-500 px-4 py-3 flex items-center justify-between gap-4 max-w-6xl mx-auto">
+        <div className={`bg-black border-t-4 px-4 py-3 flex items-center justify-between gap-4 max-w-6xl mx-auto`} style={{ borderColor: `var(--theme-primary)` }}>
           <div className="hidden sm:block">
             <p className="font-black text-white text-sm">Inscriptions Ouvertes Make & Go</p>
-            <p className="text-orange-400 font-black text-xs">Packs de 3 semaines ou Sessions Uniques.</p>
+            <p className={`${theme.text} font-black text-xs`}>Packs de 3 semaines ou Sessions Uniques.</p>
           </div>
           <button className="sm:hidden text-white font-bold text-sm">🚀 Places Limitées !</button>
           <button
             onClick={scrollToMissions}
-            className="shrink-0 px-6 py-3 bg-orange-500 text-black font-black text-sm uppercase tracking-widest border-2 border-black rounded-xl hover:bg-orange-400 transition-colors shadow-[3px_3px_0_0_rgba(255,255,255,.3)]"
+            className="shrink-0 px-6 py-3 text-black font-black text-sm uppercase tracking-widest border-2 border-black rounded-xl transition-all shadow-[3px_3px_0_0_rgba(255,255,255,.3)] hover-theme"
+            style={{ backgroundColor: `var(--theme-primary)` }}
           >
             SÉCURISER MA PLACE →
           </button>
@@ -823,6 +915,7 @@ export const ProgramLanding: React.FC = () => {
         selection={selectedTarget} 
         programId={program.id} 
         programTitle={program.title} 
+        theme={theme}
         onClose={() => setSelectedTarget(null)} 
       />
     </>
