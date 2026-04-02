@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const FIRESTORE_PROJECT = 'edufy-makerlab';
+const FIRESTORE_PROJECT = 'makerlab-space';
 const BASE_DOMAIN = process.env.BASE_DOMAIN || 'https://space.makerlab.academy';
 const DEFAULT_IMAGE = `${BASE_DOMAIN}/logo-social.jpg`;
 
@@ -16,14 +16,9 @@ const esc = (s = '') =>
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 
-/**
- * Reads dist/index.html and injects page-specific OG meta tags.
- * Falls back to a minimal HTML document if the file can't be read.
- */
 const buildHtml = (meta) => {
   const { title, description, image, url } = meta;
 
-  // Try to read the actual dist/index.html for the full SPA shell
   const distHtml = path.join(__dirname, '..', 'dist', 'index.html');
   if (fs.existsSync(distHtml)) {
     let html = fs.readFileSync(distHtml, 'utf8');
@@ -72,10 +67,14 @@ const buildHtml = (meta) => {
       /(<meta\s[^>]*name=['"]twitter:image['"]\s[^>]*content=['"])[^'"]*['"]/i,
       `$1${image}"`
     );
+    // Force Large Preview
+    html = html.replace(
+      /(<meta\s[^>]*name=['"]twitter:card['"]\s[^>]*content=['"])[^'"]*['"]/i,
+      `$1summary_large_image"`
+    );
     return html;
   }
 
-  // Fallback: minimal valid HTML with full OG tags + canonical redirect
   return `<!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -105,29 +104,41 @@ const buildHtml = (meta) => {
 };
 
 export default async function handler(req, res) {
-  // Extract slug from the URL path (e.g. /s/mon-ecole → mon-ecole)
   const urlPath = req.url || '';
   const slugMatch = urlPath.match(/\/s\/([^/?#]+)/);
   const slug = slugMatch ? slugMatch[1] : (req.query?.slug || '');
 
-  console.log(`[school-seo] slug="${slug}"`);
+  const distHtml = path.join(__dirname, '..', 'dist', 'index.html');
+  const indexHtml = fs.existsSync(distHtml) ? fs.readFileSync(distHtml, 'utf8') : '';
 
-  const pageUrl = `${BASE_DOMAIN}/s/${slug}`;
-  let title = 'MakerLab Academy - Ateliers de Programmation et Robotique';
-  let description =
-    'Découvrez nos ateliers innovants en Coding, Robotique et IA, organisés directement au sein de votre établissement scolaire pour préparer vos enfants au futur du numérique.';
-  let image = DEFAULT_IMAGE;
+  if (!slug) return res.status(200).send(indexHtml);
+
+  const DATABASE = 'websitev2';
 
   try {
-    // 1. Find school partner by slug
-    const spRes = await fetch(
-      `https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/(default)/documents/school-partners`
-    );
+    // 1. Fetch Global Default Settings (for socialImage fallback)
+    let globalDefaultImage = DEFAULT_IMAGE;
+    try {
+        const settingsRes = await fetch(`https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/${DATABASE}/documents/website-settings/socialImage`);
+        if (settingsRes.ok) {
+            const settingsData = await settingsRes.json();
+            if (settingsData.fields?.value?.stringValue) {
+                globalDefaultImage = settingsData.fields.value.stringValue;
+            }
+        }
+    } catch (e) {
+        console.warn('[school-seo] Global settings fetch failed');
+    }
+
+    // 2. Fetch School Partner data
+    let title = 'MakerLab Academy - Ateliers de Programmation et Robotique';
+    let description = 'Découvrez nos ateliers innovants en Coding, Robotique et IA.';
+    let image = globalDefaultImage;
+
+    const spRes = await fetch(`https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/${DATABASE}/documents/website-school-partners`);
     if (spRes.ok) {
       const spData = await spRes.json();
-      const schoolDoc = spData.documents?.find(
-        (d) => d.fields?.slug?.stringValue === slug
-      );
+      const schoolDoc = spData.documents?.find(d => d.fields?.slug?.stringValue === slug);
 
       if (schoolDoc) {
         const schoolName = schoolDoc.fields?.name?.stringValue || 'École Partenaire';
@@ -135,47 +146,33 @@ export default async function handler(req, res) {
         title = `${schoolName} × MakerLab Academy`;
         description = `Découvrez nos ateliers innovants en Coding, Robotique et IA chez ${schoolName}. Préparez vos enfants au futur du numérique !`;
 
-        // 2. Find the published offer for this school
-        const offRes = await fetch(
-          `https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/(default)/documents/offers`
-        );
+        // 3. Find published Offer
+        const offRes = await fetch(`https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/${DATABASE}/documents/website-offers`);
         if (offRes.ok) {
           const offData = await offRes.json();
-          const offerDoc = offData.documents?.find(
-            (d) =>
-              d.fields?.schoolId?.stringValue === schoolId &&
-              d.fields?.published?.booleanValue === true
+          const offerDoc = offData.documents?.find(d => 
+            d.fields?.schoolId?.stringValue === schoolId && 
+            d.fields?.published?.booleanValue === true
           );
 
           if (offerDoc) {
-            // 3. Try to get image from first workshop
-            const workshopIds =
-              offerDoc.fields?.workshopIds?.arrayValue?.values?.map((v) => v.stringValue) || [];
-            if (workshopIds.length > 0) {
-              const wRes = await fetch(
-                `https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/(default)/documents/workshops/${workshopIds[0]}`
-              );
-              if (wRes.ok) {
-                const wData = await wRes.json();
-                if (wData.fields?.image?.stringValue) {
-                  image = wData.fields.image.stringValue;
-                }
-              }
-            }
-            // Fallback: use offer's own coverImage
-            if (image === DEFAULT_IMAGE && offerDoc.fields?.coverImage?.stringValue) {
-              image = offerDoc.fields.coverImage.stringValue;
-            }
+            image = offerDoc.fields?.ogImage?.stringValue || offerDoc.fields?.coverImage?.stringValue || image;
           }
         }
       }
     }
+
+    if (description.length > 155) {
+        description = description.substring(0, 152) + '...';
+    }
+
+    const html = buildHtml({ title, description, image, url: `${BASE_DOMAIN}${urlPath}` });
+    
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+    return res.status(200).send(html);
   } catch (err) {
     console.error('[school-seo] Error:', err.message);
+    return res.status(200).send(indexHtml);
   }
-
-  const html = buildHtml({ title, description, image, url: pageUrl });
-  res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
-  res.status(200).send(html);
 }

@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const FIRESTORE_PROJECT = 'edufy-makerlab';
+const FIRESTORE_PROJECT = 'makerlab-space';
 const BASE_DOMAIN = process.env.BASE_DOMAIN || 'https://space.makerlab.academy';
 const DEFAULT_IMAGE = `${BASE_DOMAIN}/logo-social.jpg`;
 
@@ -67,6 +67,11 @@ const buildHtml = (meta) => {
       /(<meta\s[^>]*name=['"]twitter:image['"]\s[^>]*content=['"])[^'"]*['"]/i,
       `$1${image}"`
     );
+    // Force Large Preview
+    html = html.replace(
+      /(<meta\s[^>]*name=['"]twitter:card['"]\s[^>]*content=['"])[^'"]*['"]/i,
+      `$1summary_large_image"`
+    );
     return html;
   }
 
@@ -99,58 +104,66 @@ const buildHtml = (meta) => {
 };
 
 export default async function handler(req, res) {
-  // Extract blog ID from URL path (e.g. /blog/mon-article → mon-article)
   const urlPath = req.url || '';
   const idMatch = urlPath.match(/\/blog\/([^/?#]+)/);
   const id = idMatch ? idMatch[1] : (req.query?.id || '');
 
-  console.log(`[blog-seo] id="${id}"`);
+  const distHtml = path.join(__dirname, '..', 'dist', 'index.html');
+  const indexHtml = fs.existsSync(distHtml) ? fs.readFileSync(distHtml, 'utf8') : '';
 
-  const pageUrl = `${BASE_DOMAIN}/blog/${id}`;
-  let title = 'Blog MakerLab Academy - Coding, Robotique et IA pour enfants';
-  let description =
-    'Conseils, actualités et inspirations pour aider vos enfants à maîtriser les technologies du futur.';
-  let image = DEFAULT_IMAGE;
+  if (!id) return res.status(200).send(indexHtml);
+
+  const DATABASE = 'websitev2';
 
   try {
-    // Blogs are stored in Firestore under 'settings' > 'blogs' array, or directly in 'blogs' collection
-    // Try direct blog document first
-    const bRes = await fetch(
-      `https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/(default)/documents/blogs/${id}`
-    );
-    if (bRes.ok) {
-      const bData = await bRes.json();
-      if (bData.fields?.title?.stringValue) {
-        title = `${bData.fields.title.stringValue} | MakerLab Academy Blog`;
-        description = bData.fields?.preview?.stringValue || description;
-        image = bData.fields?.ogImage?.stringValue || bData.fields?.image?.stringValue || image;
-      }
-    } else {
-      // Fallback: look in the settings document's blogs array
-      const sRes = await fetch(
-        `https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/(default)/documents/settings/main`
-      );
-      if (sRes.ok) {
-        const sData = await sRes.json();
-        const blogsArr = sData.fields?.blogs?.arrayValue?.values || [];
-        const blogMap = blogsArr.find((v) => {
-          const mapFields = v.mapValue?.fields;
-          return mapFields?.id?.stringValue === id || mapFields?.slug?.stringValue === id;
-        });
-        if (blogMap) {
-          const f = blogMap.mapValue.fields;
-          title = `${f?.title?.stringValue || title} | MakerLab Academy Blog`;
-          description = f?.preview?.stringValue || description;
-          image = f?.ogImage?.stringValue || f?.image?.stringValue || image;
+    // 1. Fetch Global Default Settings (for socialImage fallback)
+    let globalDefaultImage = DEFAULT_IMAGE;
+    try {
+        const settingsRes = await fetch(`https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/${DATABASE}/documents/website-settings/socialImage`);
+        if (settingsRes.ok) {
+            const settingsData = await settingsRes.json();
+            if (settingsData.fields?.value?.stringValue) {
+                globalDefaultImage = settingsData.fields.value.stringValue;
+            }
         }
-      }
+    } catch (e) {
+        console.warn('[blog-seo] Global settings fetch failed');
     }
+
+    // 2. Fetch specific Blog data
+    const firestoreUrl = `https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/${DATABASE}/documents/website-blogs/${id}`;
+    const response = await fetch(firestoreUrl);
+    
+    if (!response.ok) {
+        console.warn(`[blog-seo] Blog document not found for: ${id}. Using fallback.`);
+        return res.status(200).send(indexHtml);
+    }
+
+    const data = await response.json();
+    const blog = data.fields;
+    if (!blog) return res.status(200).send(indexHtml);
+
+    // Extract fields
+    const title = blog.title?.stringValue || 'Blog MakerLab Academy';
+    let description = blog.preview?.stringValue || 
+                         blog.content?.stringValue?.substring(0, 160) || 
+                         'Conseils et actualités sur le coding, robotique et IA.';
+    
+    if (description.length > 155) {
+        description = description.substring(0, 152) + '...';
+    }
+
+    const image = blog.ogImage?.stringValue || 
+                  blog.image?.stringValue || 
+                  globalDefaultImage;
+
+    const html = buildHtml({ title, description, image, url: `${BASE_DOMAIN}${urlPath}` });
+    
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+    return res.status(200).send(html);
   } catch (err) {
     console.error('[blog-seo] Error:', err.message);
+    return res.status(200).send(indexHtml);
   }
-
-  const html = buildHtml({ title, description, image, url: pageUrl });
-  res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
-  res.status(200).send(html);
 }

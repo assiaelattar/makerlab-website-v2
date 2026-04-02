@@ -67,6 +67,11 @@ const buildHtml = (meta) => {
       /(<meta\s[^>]*name=['"]twitter:image['"]\s[^>]*content=['"])[^'"]*['"]/i,
       `$1${image}"`
     );
+    // Force Large Preview
+    html = html.replace(
+      /(<meta\s[^>]*name=['"]twitter:card['"]\s[^>]*content=['"])[^'"]*['"]/i,
+      `$1summary_large_image"`
+    );
     return html;
   }
 
@@ -100,7 +105,6 @@ const buildHtml = (meta) => {
 
 export default async function handler(req, res) {
   const urlPath = req.url || '';
-  // Match both /programs/:id and /lp/:id
   const idMatch = urlPath.match(/\/(programs|lp)\/([^/?#]+)/);
   const id = idMatch ? idMatch[2] : (req.query?.id || '');
 
@@ -111,12 +115,28 @@ export default async function handler(req, res) {
 
   const COLLECTION = 'website-programs';
   const DATABASE = 'websitev2';
-  const firestoreUrl = `https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/${DATABASE}/documents/${COLLECTION}/${id}`;
 
   try {
+    // 1. Fetch Global Default Settings (for socialImage fallback)
+    let globalDefaultImage = DEFAULT_IMAGE;
+    try {
+        const settingsRes = await fetch(`https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/${DATABASE}/documents/website-settings/socialImage`);
+        if (settingsRes.ok) {
+            const settingsData = await settingsRes.json();
+            if (settingsData.fields?.value?.stringValue) {
+                globalDefaultImage = settingsData.fields.value.stringValue;
+            }
+        }
+    } catch (e) {
+        console.warn('[program-seo] Global settings fetch failed');
+    }
+
+    // 2. Fetch specific Program data
+    const firestoreUrl = `https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/${DATABASE}/documents/${COLLECTION}/${id}`;
     const response = await fetch(firestoreUrl);
+    
     if (!response.ok) {
-        console.warn(`[program-seo] Program not found: ${id} (${response.status})`);
+        console.warn(`[program-seo] Program not found: ${id}`);
         return res.status(200).send(indexHtml);
     }
 
@@ -124,15 +144,22 @@ export default async function handler(req, res) {
     const program = data.fields;
     if (!program) return res.status(200).send(indexHtml);
 
+    // Extract fields with proper truncation (155 chars optimal for SEO)
     const title = program.title?.stringValue || 'MakerLab Academy';
-    const description = program.shortDescription?.stringValue || 
-                         program.description?.stringValue?.substring(0, 160) || 
+    let description = program.shortDescription?.stringValue || 
+                         program.description?.stringValue || 
                          'Découvrez nos ateliers innovants en Coding, Robotique et IA.';
+    
+    if (description.length > 155) {
+        description = description.substring(0, 152) + '...';
+    }
+
     const image = program.ogImage?.stringValue || 
                   program.image?.stringValue || 
-                  DEFAULT_IMAGE;
+                  globalDefaultImage;
 
     const html = buildHtml({ title, description, image, url: `${BASE_DOMAIN}${urlPath}` });
+    
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
     return res.status(200).send(html);
