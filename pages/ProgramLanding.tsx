@@ -161,11 +161,11 @@ const Reveal: React.FC<{ children: React.ReactNode; delay?: number }> = ({ child
 };
 
 /* ─── Animated stat counter -------------------------------------------------- */
-const StatCounter: React.FC<{ value: number; suffix?: string; label: string; inView: boolean; delay?: number }> = ({ value, suffix = '', label, inView, delay = 0 }) => {
+const StatCounter: React.FC<{ value: number; suffix?: string; label: string; inView: boolean; theme: any; delay?: number }> = ({ value, suffix = '', label, inView, theme, delay = 0 }) => {
   const count = useCountUp(value, inView);
   return (
     <div className="text-center" style={{ animationDelay: `${delay}ms` }}>
-      <div className={`font-black text-5xl md:text-6xl tabular-nums leading-none`} style={{ color: `var(--theme-primary)` }}>
+      <div className={`font-black text-5xl md:text-6xl tabular-nums leading-none`} style={{ color: theme.primary }}>
         {count}{suffix}
       </div>
       <div className="text-gray-400 font-bold text-sm mt-2 uppercase tracking-wider">{label}</div>
@@ -189,16 +189,16 @@ const useCountdown = () => {
   return time;
 };
 
-const Countdown: React.FC = () => {
+const Countdown: React.FC<{ theme: any }> = ({ theme }) => {
   const { h, m, s } = useCountdown();
   const pad = (n: number) => String(n).padStart(2, '0');
   return (
-    <div className="inline-flex items-center gap-1 border rounded-xl px-3 py-2" style={{ backgroundColor: `rgba(${THEMES.orange.primaryRGB}, 0.1)`, borderColor: `rgba(var(--theme-primary-rgb), 0.5)` }}>
-      <span className="font-black text-xs uppercase tracking-widest mr-1" style={{ color: `var(--theme-primary)` }}>Ferme dans</span>
+    <div className="inline-flex items-center gap-1 border rounded-xl px-3 py-2" style={{ backgroundColor: `rgba(${theme.primaryRGB}, 0.1)`, borderColor: `rgba(${theme.primaryRGB}, 0.5)` }}>
+      <span className="font-black text-xs uppercase tracking-widest mr-1" style={{ color: theme.primary }}>Ferme dans</span>
       {[pad(h), pad(m), pad(s)].map((v, i) => (
         <React.Fragment key={i}>
-          <span className="font-black text-white text-lg tabular-nums px-2 py-0.5 rounded-lg" style={{ backgroundColor: `rgba(var(--theme-primary-rgb), 0.6)` }}>{v}</span>
-          {i < 2 && <span className="font-black" style={{ color: `var(--theme-primary)` }}>:</span>}
+          <span className="font-black text-white text-lg tabular-nums px-2 py-0.5 rounded-lg" style={{ backgroundColor: `rgba(${theme.primaryRGB}, 0.6)` }}>{v}</span>
+          {i < 2 && <span className="font-black" style={{ color: theme.primary }}>:</span>}
         </React.Fragment>
       ))}
     </div>
@@ -218,19 +218,19 @@ const TestimonialsSection: React.FC<{ theme: any }> = ({ theme }) => {
       <div className="max-w-2xl mx-auto relative z-10">
         <Reveal>
           <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full mb-3" style={{ borderColor: `var(--theme-border)` }}>
-              <Star size={14} fill="currentColor" style={{ color: `var(--theme-primary)` }} />
-              <span className="text-xs font-black uppercase tracking-widest" style={{ color: `var(--theme-primary)` }}>Ils témoignent</span>
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full mb-3" style={{ borderColor: theme.glow.replace('.22', '.3') }}>
+              <Star size={14} fill="currentColor" style={{ color: theme.primary }} />
+              <span className="text-xs font-black uppercase tracking-widest" style={{ color: theme.primary }}>Ils témoignent</span>
             </div>
             <h2 className="font-black text-3xl md:text-4xl">Ce que disent les parents</h2>
           </div>
         </Reveal>
         <div className="relative">
-          <div className={`p-8 md:p-10 rounded-3xl border-2 bg-white/3 backdrop-blur-sm`} style={{ borderColor: `var(--theme-border)`, minHeight: 220 }}>
-            <Quote size={32} className="mb-4 opacity-30" style={{ color: `var(--theme-primary)` }} />
+          <div className={`p-8 md:p-10 rounded-3xl border-2 bg-white/3 backdrop-blur-sm`} style={{ borderColor: theme.glow.replace('.22', '.3'), minHeight: 220 }}>
+            <Quote size={32} className="mb-4 opacity-30" style={{ color: theme.primary }} />
             <p className="text-lg md:text-xl text-gray-200 font-medium leading-relaxed italic mb-6">"{t.text}"</p>
             <div className="flex items-center gap-4">
-              <div className={`w-12 h-12 rounded-full border-2 border-black flex items-center justify-center font-black text-black text-xl`} style={{ background: `var(--theme-primary)` }}>{t.initial}</div>
+              <div className={`w-12 h-12 rounded-full border-2 border-black flex items-center justify-center font-black text-black text-xl`} style={{ background: theme.primary }}>{t.initial}</div>
               <div>
                 <p className="font-black text-white">{t.name}</p>
                 <p className="text-sm text-gray-400 font-medium">{t.role}</p>
@@ -239,11 +239,11 @@ const TestimonialsSection: React.FC<{ theme: any }> = ({ theme }) => {
             </div>
           </div>
           <div className="flex items-center justify-center gap-4 mt-6">
-            <button onClick={prev} className={`w-10 h-10 flex items-center justify-center rounded-full border-2 border-white/20 transition-all hover:bg-white/5 active:scale-95`} style={{ borderColor: `var(--theme-border)` }}><ChevronLeft size={18} /></button>
+            <button onClick={prev} className={`w-10 h-10 flex items-center justify-center rounded-full border-2 border-white/20 transition-all hover:bg-white/5 active:scale-95`} style={{ borderColor: theme.glow.replace('.22', '.3') }}><ChevronLeft size={18} /></button>
             <div className="flex gap-2">
-              {TESTIMONIALS.map((_,i) => <div key={i} onClick={() => setIdx(i)} className={`w-2 h-2 rounded-full cursor-pointer transition-all ${i===idx ? `w-6` : 'bg-white/20'}`} style={{ backgroundColor: i===idx ? `var(--theme-primary)` : undefined }} />)}
+              {TESTIMONIALS.map((_,i) => <div key={i} onClick={() => setIdx(i)} className={`w-2 h-2 rounded-full cursor-pointer transition-all ${i===idx ? `w-6` : 'bg-white/20'}`} style={{ backgroundColor: i===idx ? theme.primary : undefined }} />)}
             </div>
-            <button onClick={next} className={`w-10 h-10 flex items-center justify-center rounded-full border-2 border-white/20 transition-all hover:bg-white/5 active:scale-95`} style={{ borderColor: `var(--theme-border)` }}><ChevronRight size={18} /></button>
+            <button onClick={next} className={`w-10 h-10 flex items-center justify-center rounded-full border-2 border-white/20 transition-all hover:bg-white/5 active:scale-95`} style={{ borderColor: theme.glow.replace('.22', '.3') }}><ChevronRight size={18} /></button>
           </div>
         </div>
       </div>
@@ -388,13 +388,13 @@ const DrawerCheckout: React.FC<{ selection: Mission | Track | MissionBox | null;
 };
 
 /* ─── FAQ Item --------------------------------------------------------------- */
-const FaqItem: React.FC<{ question: string; answer: string }> = ({ question, answer }) => {
+const FaqItem: React.FC<{ question: string; answer: string; theme: any }> = ({ question, answer, theme }) => {
   const [open, setOpen] = useState(false);
   return (
-    <div className={`border-2 rounded-2xl overflow-hidden transition-all duration-300 ${open ? 'bg-white/5' : 'border-white/10 bg-white/2'}`} style={{ borderColor: open ? `var(--theme-primary)` : undefined }}>
+    <div className={`border-2 rounded-2xl overflow-hidden transition-all duration-300 ${open ? 'bg-white/5' : 'border-white/10 bg-white/2'}`} style={{ borderColor: open ? theme.primary : undefined }}>
       <button onClick={() => setOpen(!open)} className="w-full flex items-center justify-between gap-4 p-6 text-left hover:bg-white/5 transition-colors">
         <span className="font-black text-base md:text-lg">{question}</span>
-        <ChevronDown size={20} className={`shrink-0 transition-transform duration-300 ${open ? 'rotate-180' : ''}`} style={{ color: `var(--theme-primary)` }} />
+        <ChevronDown size={20} className={`shrink-0 transition-transform duration-300 ${open ? 'rotate-180' : ''}`} style={{ color: theme.primary }} />
       </button>
       {open && <div className="px-6 pb-6 text-gray-400 font-medium leading-relaxed border-t border-white/5 pt-4">{answer}</div>}
     </div>
@@ -510,7 +510,10 @@ export const ProgramLanding: React.FC = () => {
             {/* Brand pill */}
             <div className="inline-flex items-center gap-2 mb-8 px-4 py-2 bg-white/5 border border-white/10 rounded-full backdrop-blur-sm">
               <Zap size={14} className={theme.text} fill="currentColor" />
-              <span className={`text-xs font-black uppercase tracking-widest ${theme.text}`}>Makerlab Academy — Casablanca</span>
+              <div className="flex items-center gap-4">
+                <span className={`text-xs font-black uppercase tracking-widest ${theme.text}`}>Makerlab Academy — Casablanca</span>
+                <Countdown theme={theme} />
+              </div>
             </div>
 
             {/* Pre-headline */}
@@ -524,7 +527,7 @@ export const ProgramLanding: React.FC = () => {
 
             {/* CTA */}
             <button onClick={scrollToMissions} className={`cta-pulse hover-theme inline-flex items-center gap-3 px-8 py-5 text-black font-black text-lg md:text-xl uppercase tracking-widest border-4 border-black rounded-2xl transition-all relative z-10`}
-              style={{ backgroundColor: `var(--theme-primary)` }}>
+              style={{ backgroundColor: theme.primary }}>
               <Rocket size={24} strokeWidth={3} />{t('heroCtaText')}<ArrowRight size={24} strokeWidth={3} />
             </button>
             <p className="mt-4 text-sm text-gray-400 font-medium">{t('heroScarcityText')}</p>
@@ -567,12 +570,12 @@ export const ProgramLanding: React.FC = () => {
         </section>
 
         {/* ═══ ANIMATED STATS BAND ══════════════════════════════════════════ */}
-        <div ref={statsRef} className="py-14 px-6 border-y-2" style={{ background: '#0d0d0d', borderColor: `var(--theme-border)` }}>
+        <div ref={statsRef} className="py-14 px-6 border-y-2" style={{ background: '#0d0d0d', borderColor: `rgba(${theme.primaryRGB}, 0.15)` }}>
           <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
-            <StatCounter value={500} suffix="+" label="Makers Formés" inView={statsInView} delay={0} />
-            <StatCounter value={98} suffix="%" label="Parents Satisfaits" inView={statsInView} delay={150} />
-            <StatCounter value={3} suffix="H" label="Pour Créer un Projet Réel" inView={statsInView} delay={300} />
-            <StatCounter value={20} label="Makers Max / Session" inView={statsInView} delay={450} />
+            <StatCounter value={500} suffix="+" label="Makers Formés" inView={statsInView} theme={theme} delay={0} />
+            <StatCounter value={98} suffix="%" label="Parents Satisfaits" inView={statsInView} theme={theme} delay={150} />
+            <StatCounter value={3} suffix="H" label="Pour Créer un Projet Réel" inView={statsInView} theme={theme} delay={300} />
+            <StatCounter value={20} label="Makers Max / Session" inView={statsInView} theme={theme} delay={450} />
           </div>
         </div>
 
@@ -805,8 +808,8 @@ export const ProgramLanding: React.FC = () => {
                           </div>
                           <button
                             onClick={() => setSelectedTarget(mission)}
-                            className="w-full md:w-auto px-6 py-4 font-black uppercase tracking-widest text-xs border-4 rounded-xl transition-all whitespace-nowrap border-black bg-white text-black hover-theme shadow-[3px_3px_0_0_black]"
-                            style={{ boxShadow: `5px 5px 0 0 var(--theme-border)` }}
+                            className="w-full md:w-auto px-6 py-4 font-black uppercase tracking-widest text-xs border-4 rounded-xl transition-all whitespace-nowrap border-black text-black hover-theme shadow-[3px_3px_0_0_black]"
+                            style={{ backgroundColor: theme.primary, boxShadow: `5px 5px 0 0 ${theme.glow.replace('.22', '.3')}` }}
                           >
                             RÉSERVER UNE PLACE →
                           </button>
@@ -837,7 +840,7 @@ export const ProgramLanding: React.FC = () => {
                   { q: "Mon enfant n'a jamais codé. Est-ce un problème ?", a: 'Absolument pas. Nos mentors accompagnent chaque enfant pas-à-pas. Ils passeront de "débutant absolu" à "créateur fier" en une après-midi.' },
                   { q: 'Dois-je rester sur place pendant les 3 heures ?', a: "Non ! Déposez-les, profitez de votre après-midi l'esprit tranquille, et revenez à 17h30 pour découvrir ce qu'ils ont fabriqué." },
                   { q: 'Est-ce vraiment sans Lego ?', a: '100% sans Lego. Nous utilisons du vrai bois (MDF), de véritables composants électroniques (Arduino), et de vrais outils de fabrication.' },
-                ].map((faq, i) => <Reveal key={i} delay={i * 80}><FaqItem question={faq.q} answer={faq.a} /></Reveal>)}
+                ].map((faq, i) => <Reveal key={i} delay={i * 80}><FaqItem question={faq.q} answer={faq.a} theme={theme} /></Reveal>)}
               </div>
               <Reveal>
                 <div className="mt-10 flex flex-wrap justify-center gap-4">
@@ -868,7 +871,7 @@ export const ProgramLanding: React.FC = () => {
               <button 
                 onClick={scrollToMissions} 
                 className="cta-pulse hover-theme inline-flex items-center gap-3 px-10 py-5 text-black font-black text-xl uppercase tracking-widest border-4 border-black rounded-2xl transition-all"
-                style={{ backgroundColor: `var(--theme-primary)` }}
+                style={{ backgroundColor: theme.primary }}
               >
                 <Rocket size={24} strokeWidth={3} />VOIR LES MISSIONS DISPONIBLES
               </button>
@@ -882,7 +885,7 @@ export const ProgramLanding: React.FC = () => {
 
       {/* ═══ STICKY BOTTOM CTA BAR ═══════════════════════════════════════════ */}
       <div className={`fixed bottom-0 left-0 right-0 z-[150] transition-transform duration-500 ${showStickyBar ? 'translate-y-0' : 'translate-y-full'}`}>
-        <div className={`bg-black border-t-4 px-4 py-3 flex items-center justify-between gap-4 max-w-6xl mx-auto`} style={{ borderColor: `var(--theme-primary)` }}>
+        <div className={`bg-black border-t-4 px-4 py-3 flex items-center justify-between gap-4 max-w-6xl mx-auto`} style={{ borderColor: theme.primary }}>
           <div className="hidden sm:block">
             <p className="font-black text-white text-sm">Inscriptions Ouvertes Make & Go</p>
             <p className={`${theme.text} font-black text-xs`}>Packs de 3 semaines ou Sessions Uniques.</p>
@@ -891,7 +894,7 @@ export const ProgramLanding: React.FC = () => {
           <button
             onClick={scrollToMissions}
             className="shrink-0 px-6 py-3 text-black font-black text-sm uppercase tracking-widest border-2 border-black rounded-xl transition-all shadow-[3px_3px_0_0_rgba(255,255,255,.3)] hover-theme"
-            style={{ backgroundColor: `var(--theme-primary)` }}
+            style={{ backgroundColor: theme.primary }}
           >
             SÉCURISER MA PLACE →
           </button>
