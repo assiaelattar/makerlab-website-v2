@@ -489,6 +489,29 @@ export const ProgramLanding: React.FC = () => {
     return () => window.removeEventListener('scroll', fn);
   }, []);
 
+  // Inject Meta Pixel script if configured for this landing page
+  useEffect(() => {
+    if (!lp?.metaPixel) return;
+    const container = document.createElement('div');
+    container.innerHTML = lp.metaPixel;
+    const scripts: HTMLScriptElement[] = [];
+    container.querySelectorAll('script').forEach(s => {
+      const script = document.createElement('script');
+      if (s.src) {
+        script.src = s.src;
+        script.async = true;
+      } else {
+        script.textContent = s.textContent;
+      }
+      script.setAttribute('data-lp-pixel', program?.id || '');
+      document.head.appendChild(script);
+      scripts.push(script);
+    });
+    return () => {
+      scripts.forEach(s => s.parentNode?.removeChild(s));
+    };
+  }, [lp?.metaPixel, program?.id]);
+
   if (isProgramLoading || isMissionsLoading) return <div className="min-h-screen bg-black flex items-center justify-center"><div className="text-white font-black text-2xl animate-pulse">CHARGEMENT...</div></div>;
   
   if (!program) {

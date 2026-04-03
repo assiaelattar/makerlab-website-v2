@@ -108,18 +108,43 @@ export default async function handler(req, res) {
     if (!program) return res.status(200).send(indexHtml);
 
     // Extract fields with proper truncation (155 chars optimal for SEO)
-    const title = program.title?.stringValue || 'MakerLab Academy';
-    let description = program.shortDescription?.stringValue || 
-                         program.description?.stringValue || 
-                         'Découvrez nos ateliers innovants en Coding, Robotique et IA.';
-    
+    // Priority: landingPage fields > program fields > defaults
+    const lp = program.landingPage?.mapValue?.fields || program.landingPage || null;
+    const lpFields = (lp && typeof lp === 'object' && 'enabled' in lp === false)
+      ? lp  // Firestore native format
+      : null;
+
+    // Extract landing page ogImage (Firestore format or plain object)
+    const lpOgImage = program.landingPage?.fields?.ogImage?.stringValue
+      || program.landingPage?.ogImage
+      || null;
+
+    // Title: lp heroHeadline → program title
+    const lpHeroHeadline = program.landingPage?.fields?.heroHeadline?.stringValue
+      || program.landingPage?.heroHeadline
+      || null;
+
+    const title = lpHeroHeadline || program.title?.stringValue || 'MakerLab Academy';
+
+    // Description: lp heroSubHeadline → shortDescription → description
+    const lpSubHeadline = program.landingPage?.fields?.heroSubHeadline?.stringValue
+      || program.landingPage?.heroSubHeadline
+      || null;
+
+    let description = lpSubHeadline
+      || program.shortDescription?.stringValue
+      || program.description?.stringValue
+      || 'Découvrez nos ateliers innovants en Coding, Robotique et IA.';
+
     if (description.length > 155) {
         description = description.substring(0, 152) + '...';
     }
 
-    const image = program.ogImage?.stringValue || 
-                  program.image?.stringValue || 
-                  globalDefaultImage;
+    // Image priority: landingPage.ogImage → program.ogImage → program.image → global default
+    const image = lpOgImage
+      || program.ogImage?.stringValue
+      || program.image?.stringValue
+      || globalDefaultImage;
 
     const html = buildHtml({ title, description, image, url: `${BASE_DOMAIN}${urlPath}` });
     

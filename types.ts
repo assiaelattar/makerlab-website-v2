@@ -24,6 +24,7 @@ export interface LandingPageData {
   enabled: boolean;
   themeColor?: 'orange' | 'blue' | 'green' | 'red';
   ogImage?: string;
+  metaPixel?: string; // Raw <script> block for Meta Pixel / tracking
   layoutVariant?: 'classic' | 'modular';
   ctaMode?: 'booking' | 'lead';
 

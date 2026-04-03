@@ -47,16 +47,37 @@ export const ProgramProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, []);
 
   const addProgram = async (program: Program) => {
+    // Auto-attach a default landing page pre-filled from the program
+    const defaultLandingPage = {
+      enabled: false,
+      layoutVariant: 'classic' as const,
+      ctaMode: 'booking' as const,
+      heroHeadline: `Transformez Son Temps d'Écran avec ${program.title} en Seulement ${program.duration || '3 Heures'}.`,
+      heroSubHeadline: "Pas de jouets en plastique. Pas de Lego. Vos enfants utiliseront de vrais outils, du vrai code et ramèneront chez eux un projet technologique qu'ils ont construit de leurs propres mains.",
+      heroCtaText: 'RÉSERVER UNE MISSION POUR CE WEEK-END',
+      heroScarcityText: '⏳ Places limitées à 20 Makers par session.',
+      missionIds: [],
+      missionBoxes: [],
+      galleryImages: [],
+      faqEnabled: true,
+      finalCtaHeadline: "Le Moment Où Tout S'allume.",
+      finalCtaBody: "Ne laissez pas passer un autre week-end devant les écrans. Donnez-leur les compétences de demain, aujourd'hui.",
+    };
+
+    const programWithLanding = program.landingPage
+      ? program
+      : { ...program, landingPage: defaultLandingPage };
+
     // Generate a temporary ID for optimistic UI update
     const tempId = Date.now().toString();
-    const newProgramWithTempId = { ...program, id: tempId };
+    const newProgramWithTempId = { ...programWithLanding, id: tempId };
     setPrograms(prev => [...prev, newProgramWithTempId]);
 
     try {
-      const { id, ...programData } = program;
+      const { id, ...programData } = programWithLanding;
       const docRef = await addDoc(collection(db, 'website-programs'), programData);
       // Replace tempId with the real Firebase document ID
-      setPrograms(prev => prev.map(p => p.id === tempId ? { ...program, id: docRef.id } : p));
+      setPrograms(prev => prev.map(p => p.id === tempId ? { ...programWithLanding, id: docRef.id } : p));
     } catch (e) {
       console.error("Failed to save to DB", e);
     }

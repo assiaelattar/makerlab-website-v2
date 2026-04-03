@@ -6,8 +6,8 @@ import { useMissions } from '../../contexts/MissionContext';
 import { Button } from '../../components/Button';
 import {
   ArrowLeft, Save, Eye, Copy, Rocket, Plus, Trash2,
-  ToggleLeft, ToggleRight, Upload, Image as ImageIcon, GripVertical, FolderArchive, Palette,
-  FileDown, FileUp
+  ToggleLeft, ToggleRight, Upload, Image as ImageIcon, GripVertical, FolderArchive,
+  FileDown, FileUp, Code2, CheckCircle2
 } from 'lucide-react';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../../firebase';
@@ -422,8 +422,10 @@ export const AdminLandingEditor: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [isUploadingGallery, setIsUploadingGallery] = useState(false);
+  const [isUploadingOgImage, setIsUploadingOgImage] = useState(false);
   const [pendingCropFile, setPendingCropFile] = useState<File | null>(null);
   const [isMediaPickerOpen, setIsMediaPickerOpen] = useState(false);
+  const [isMediaPickerForOgImage, setIsMediaPickerForOgImage] = useState(false);
 
   const program = id ? getProgram(id) : undefined;
 
@@ -516,8 +518,33 @@ export const AdminLandingEditor: React.FC = () => {
   };
 
   const handleMediaPick = (url: string) => {
-    setField('galleryImages', [...(lp.galleryImages || []), url]);
+    if (isMediaPickerForOgImage) {
+      setField('ogImage', url);
+    } else {
+      setField('galleryImages', [...(lp.galleryImages || []), url]);
+    }
     setIsMediaPickerOpen(false);
+    setIsMediaPickerForOgImage(false);
+  };
+
+  const handleOgImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setIsUploadingOgImage(true);
+    try {
+      const imageCompression = (await import('browser-image-compression')).default;
+      const options = { maxSizeMB: 0.35, maxWidthOrHeight: 1200, useWebWorker: false };
+      const compressed = await imageCompression(file, options);
+      const storageRef = ref(storage, `website-programs-images/lp-social_${Date.now()}_${file.name}`);
+      const snapshot = await uploadBytes(storageRef, compressed);
+      const url = await getDownloadURL(snapshot.ref);
+      setField('ogImage', url);
+    } catch (err: any) {
+      alert('Erreur upload image sociale : ' + err.message);
+    } finally {
+      setIsUploadingOgImage(false);
+    }
   };
 
   const removeGalleryImage = (index: number) => {
@@ -1031,26 +1058,116 @@ export const AdminLandingEditor: React.FC = () => {
             <textarea value={lp.finalCtaBody || ''} onChange={e => setField('finalCtaBody', e.target.value)} className={textareaCls} rows={2} />
           </Field>
         </Section>
-        {/* ── Block 7: SEO & Social ────────────────────────────────────────── */}
-        <Section title="SEO & Partage Social" badge="Visibilité" accent="bg-blue-600">
-          <Field label="Image de partage (OG Image URL)" hint="L'image qui s'affiche sur WhatsApp, Facebook, etc. (1200x630 recommandé)">
-            <div className="flex gap-2">
-              <input value={lp.ogImage || ''} onChange={e => setField('ogImage', e.target.value)} className={inputCls} placeholder="https://..." />
-              <button
-                type="button"
-                onClick={() => setIsMediaPickerOpen(true)}
-                className="px-4 border-2 border-black rounded-xl bg-yellow-400 hover:bg-yellow-500 transition-colors"
-                title="Choisir dans la bibliothèque"
-              >
-                <FolderArchive size={18} />
-              </button>
-            </div>
+        {/* ── Block 7: Tracking & Analytics ────────────────────────────────── */}
+        <Section title="🎯 Tracking & Analytics" badge="Meta Pixel" accent="bg-gray-900">
+          <Field
+            label="Script Meta Pixel (Facebook / Instagram)"
+            hint="Collez ici le code complet fourni par le Business Manager Meta. Il sera injecté uniquement sur cette landing page publique."
+          >
+            <textarea
+              value={lp.metaPixel || ''}
+              onChange={e => setField('metaPixel', e.target.value)}
+              className={textareaCls}
+              rows={6}
+              placeholder={`<!-- Meta Pixel Code -->\n<script>\n  !function(f,b,e,v,n,t,s){...}\n</script>\n<!-- End Meta Pixel Code -->`}
+              style={{ fontFamily: 'monospace', fontSize: '12px' }}
+            />
           </Field>
-          {lp.ogImage && (
-            <div className="mt-4 rounded-xl border-2 border-black overflow-hidden bg-gray-100 aspect-[1200/630] max-w-sm">
-              <img src={lp.ogImage} alt="Social Preview" className="w-full h-full object-cover" />
+          {lp.metaPixel && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-xl">
+              <CheckCircle2 size={14} className="text-green-600 shrink-0" />
+              <p className="text-xs text-green-700 font-black">Pixel actif — sera injecté sur <code className="bg-green-100 px-1 rounded">/lp/{program.id}</code></p>
             </div>
           )}
+          <p className="text-[11px] text-gray-400 font-medium">⚠️ Le script ne s'affiche pas sur l'aperçu admin — uniquement sur la page publique.</p>
+        </Section>
+
+        {/* ── Block 8: SEO & Social ────────────────────────────────────────── */}
+        <Section title="SEO & Partage Social" badge="Visibilité" accent="bg-blue-600">
+          <p className="text-sm font-medium text-gray-500 mb-4">
+            Image affichée quand ce lien est partagé sur <strong>WhatsApp, Facebook</strong>, etc. Format idéal : <strong>1200 × 630 px</strong>.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+            {/* ── Upload & Library ── */}
+            <div className="space-y-3">
+              {/* Upload from disk */}
+              <label className={`flex items-center gap-3 p-4 border-4 border-black rounded-2xl bg-white hover:-translate-y-0.5 cursor-pointer transition-transform shadow-[4px_4px_0_0_black] group ${isUploadingOgImage ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center border-2 border-black shrink-0 group-hover:scale-110 transition-transform">
+                  <Upload size={18} className="text-white" />
+                </div>
+                <div className="flex-grow">
+                  <p className="font-black text-sm">{isUploadingOgImage ? '⏳ Upload en cours...' : 'Télécharger une image'}</p>
+                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Depuis votre ordinateur · JPG / PNG</p>
+                </div>
+                <input type="file" accept="image/*" onChange={handleOgImageUpload} disabled={isUploadingOgImage} className="hidden" />
+              </label>
+
+              {/* Choose from library */}
+              <button
+                type="button"
+                onClick={() => { setIsMediaPickerForOgImage(true); setIsMediaPickerOpen(true); }}
+                className="flex items-center gap-3 p-4 w-full border-4 border-black rounded-2xl bg-yellow-400 hover:-translate-y-0.5 cursor-pointer transition-transform shadow-[4px_4px_0_0_black] group"
+              >
+                <div className="w-10 h-10 bg-yellow-300 rounded-xl flex items-center justify-center border-2 border-black shrink-0 group-hover:scale-110 transition-transform">
+                  <FolderArchive size={18} className="text-black" />
+                </div>
+                <div className="text-left flex-grow">
+                  <p className="font-black text-sm">Choisir dans la bibliothèque</p>
+                  <p className="text-[10px] text-yellow-900 font-bold uppercase tracking-wider">Réutiliser une image existante</p>
+                </div>
+              </button>
+
+              {/* Manual URL input */}
+              <div>
+                <label className="text-[10px] font-black uppercase text-gray-400 tracking-wider block mb-1">Ou coller une URL directement</label>
+                <input
+                  value={lp.ogImage || ''}
+                  onChange={e => setField('ogImage', e.target.value)}
+                  className={inputCls}
+                  placeholder="https://..."
+                />
+              </div>
+
+              {/* Remove button */}
+              {lp.ogImage && (
+                <button
+                  type="button"
+                  onClick={() => setField('ogImage', '')}
+                  className="w-full text-xs font-bold text-red-500 hover:text-red-700 border border-red-200 rounded-lg py-2 transition-colors"
+                >
+                  🗑️ Supprimer l'image sociale (utiliser l'image par défaut)
+                </button>
+              )}
+            </div>
+
+            {/* ── WhatsApp-style preview ── */}
+            <div>
+              <p className="text-[10px] font-black uppercase text-gray-400 mb-2 tracking-wider">Aperçu WhatsApp ↓</p>
+              <div className="border-2 border-gray-200 rounded-2xl overflow-hidden bg-white shadow-sm">
+                <div className="aspect-video bg-gray-100 flex items-center justify-center overflow-hidden">
+                  {lp.ogImage ? (
+                    <img src={lp.ogImage} className="w-full h-full object-cover" alt="Social Preview" />
+                  ) : (
+                    <div className="flex flex-col items-center text-gray-300 gap-2 p-4">
+                      <ImageIcon size={36} />
+                      <span className="text-xs font-bold text-center">Aucune image — utilise l'image globale par défaut</span>
+                    </div>
+                  )}
+                </div>
+                <div className="p-3 border-t border-gray-100">
+                  <p className="text-[10px] text-gray-400 font-black uppercase">makerlab.ma</p>
+                  <p className="text-sm font-bold text-gray-800 mt-0.5 line-clamp-2">{lp.heroHeadline || program.title}</p>
+                  <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{lp.heroSubHeadline || program.shortDescription || program.description}</p>
+                </div>
+              </div>
+              {lp.ogImage ? (
+                <p className="text-[10px] text-blue-600 font-black mt-2">✅ Image personnalisée active</p>
+              ) : (
+                <p className="text-[10px] text-gray-400 font-bold mt-2">ℹ️ Image par défaut des paramètres utilisée</p>
+              )}
+            </div>
+          </div>
         </Section>
 
         {/* Save button (bottom) */}
