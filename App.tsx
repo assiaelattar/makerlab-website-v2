@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { useSettings } from './contexts/SettingsContext';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { Home } from './pages/Home';
@@ -49,6 +50,53 @@ const ScrollToTop = () => {
   React.useEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
+  return null;
+};
+
+/* ─── Injects GA4 + GSC from admin settings ─────────────────────────────── */
+const GlobalAnalytics: React.FC = () => {
+  const { settings } = useSettings();
+
+  // Google Analytics 4
+  React.useEffect(() => {
+    const gaId = settings.googleAnalyticsId;
+    if (!gaId) return;
+    // avoid duplicating if already loaded
+    if (document.querySelector(`script[data-ga-id="${gaId}"]`)) return;
+
+    const s1 = document.createElement('script');
+    s1.src = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;
+    s1.async = true;
+    s1.setAttribute('data-ga-id', gaId);
+    document.head.appendChild(s1);
+
+    const s2 = document.createElement('script');
+    s2.setAttribute('data-ga-id', gaId);
+    s2.textContent = `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);} gtag('js',new Date()); gtag('config','${gaId}');`;
+    document.head.appendChild(s2);
+
+    return () => {
+      document.querySelectorAll(`script[data-ga-id="${gaId}"]`).forEach(el => el.remove());
+    };
+  }, [settings.googleAnalyticsId]);
+
+  // Google Search Console verification meta tag
+  React.useEffect(() => {
+    const code = settings.gscVerification;
+    const ATTR = 'data-gsc-verification';
+    // Remove old tag if any
+    document.head.querySelectorAll(`meta[${ATTR}]`).forEach(el => el.remove());
+    if (!code) return;
+    const meta = document.createElement('meta');
+    meta.name = 'google-site-verification';
+    meta.content = code;
+    meta.setAttribute(ATTR, 'true');
+    document.head.appendChild(meta);
+    return () => {
+      document.head.querySelectorAll(`meta[${ATTR}]`).forEach(el => el.remove());
+    };
+  }, [settings.gscVerification]);
+
   return null;
 };
 
@@ -108,6 +156,7 @@ const App: React.FC = () => {
         <ProgramProvider>
           <SchoolProvider>
             <Router>
+              <GlobalAnalytics />
               <ScrollToTop />
               <Routes>
                 {/* ── Standalone marketing funnel (no Navbar / Footer) ── */}

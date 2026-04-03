@@ -37,12 +37,12 @@ const injectMeta = (html, property, content, isName = false) => {
 };
 
 const buildHtml = (meta) => {
-  const { title, description, image, url } = meta;
+  const { title, description, image, url, gaId, gscCode } = meta;
 
   const distHtml = path.join(__dirname, '..', 'dist', 'index.html');
   let html = fs.existsSync(distHtml) 
     ? fs.readFileSync(distHtml, 'utf8') 
-    : `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8" /><title>MakerLab Academy</title></head><body><script>window.location.href="${url}"</script></body></html>`;
+    : `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8" /><title>MakerLab Academy</title></head><body><script>window.location.href="${url}"<\/script></body></html>`;
 
   // Standard Title
   html = html.replace(/<title>[^<]*<\/title>/i, `<title>${esc(title)}</title>`);
@@ -63,6 +63,20 @@ const buildHtml = (meta) => {
   // Standard Description
   html = injectMeta(html, 'description', esc(description), true);
 
+  // Google Search Console verification
+  if (gscCode) {
+    html = injectMeta(html, 'google-site-verification', gscCode, true);
+  }
+
+  // Google Analytics 4 (inject before </head>)
+  if (gaId) {
+    const gaScript = [
+      `  <script async src="https://www.googletagmanager.com/gtag/js?id=${gaId}"></script>`,
+      `  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${gaId}');</script>`,
+    ].join('\n');
+    html = html.replace('</head>', `${gaScript}\n</head>`);
+  }
+
   return html;
 };
 
@@ -80,15 +94,27 @@ export default async function handler(req, res) {
   const DATABASE = 'websitev2';
 
   try {
-    // 1. Fetch Global Default Settings (for socialImage fallback)
+    // 1. Fetch Global Default Settings (socialImage + analytics)
     let globalDefaultImage = DEFAULT_IMAGE;
+    let gaId = '';
+    let gscCode = '';
     try {
-        const settingsRes = await fetch(`https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/${DATABASE}/documents/website-settings/socialImage`);
-        if (settingsRes.ok) {
-            const settingsData = await settingsRes.json();
-            if (settingsData.fields?.value?.stringValue) {
-                globalDefaultImage = settingsData.fields.value.stringValue;
-            }
+        const [socialRes, gaRes, gscRes] = await Promise.all([
+          fetch(`https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/${DATABASE}/documents/website-settings/socialImage`),
+          fetch(`https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/${DATABASE}/documents/website-settings/googleAnalyticsId`),
+          fetch(`https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/${DATABASE}/documents/website-settings/gscVerification`),
+        ]);
+        if (socialRes.ok) {
+            const d = await socialRes.json();
+            if (d.fields?.value?.stringValue) globalDefaultImage = d.fields.value.stringValue;
+        }
+        if (gaRes.ok) {
+            const d = await gaRes.json();
+            if (d.fields?.value?.stringValue) gaId = d.fields.value.stringValue;
+        }
+        if (gscRes.ok) {
+            const d = await gscRes.json();
+            if (d.fields?.value?.stringValue) gscCode = d.fields.value.stringValue;
         }
     } catch (e) {
         console.warn('[program-seo] Global settings fetch failed');
@@ -146,7 +172,7 @@ export default async function handler(req, res) {
       || program.image?.stringValue
       || globalDefaultImage;
 
-    const html = buildHtml({ title, description, image, url: `${BASE_DOMAIN}${urlPath}` });
+    const html = buildHtml({ title, description, image, url: `${BASE_DOMAIN}${urlPath}`, gaId, gscCode });
     
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     // No CDN/edge caching — social crawlers must always get fresh meta tags

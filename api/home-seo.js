@@ -32,31 +32,33 @@ const injectMeta = (html, property, content, isName = false) => {
 };
 
 const buildHtml = (meta) => {
-  const { title, description, image, url } = meta;
+  const { title, description, image, url, gaId, gscCode } = meta;
 
   const distHtml = path.join(__dirname, '..', 'dist', 'index.html');
   let html = fs.existsSync(distHtml)
     ? fs.readFileSync(distHtml, 'utf8')
-    : `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8" /><title>MakerLab Academy</title></head><body><script>window.location.href="${url}"</script></body></html>`;
+    : `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8" /><title>MakerLab Academy</title></head><body><script>window.location.href="${url}"<\/script></body></html>`;
 
-  // Replace <title>
   html = html.replace(/<title>[^<]*<\/title>/i, `<title>${esc(title)}</title>`);
 
-  // Open Graph
   html = injectMeta(html, 'og:title', esc(title));
   html = injectMeta(html, 'og:description', esc(description));
   html = injectMeta(html, 'og:image', image);
   html = injectMeta(html, 'og:url', url);
   html = injectMeta(html, 'og:type', 'website');
 
-  // Twitter
   html = injectMeta(html, 'twitter:card', 'summary_large_image', true);
   html = injectMeta(html, 'twitter:title', esc(title), true);
   html = injectMeta(html, 'twitter:description', esc(description), true);
   html = injectMeta(html, 'twitter:image', image, true);
 
-  // Standard description
   html = injectMeta(html, 'description', esc(description), true);
+
+  if (gscCode) html = injectMeta(html, 'google-site-verification', gscCode, true);
+  if (gaId) {
+    const ga = `  <script async src="https://www.googletagmanager.com/gtag/js?id=${gaId}"></script>\n  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${gaId}');</script>`;
+    html = html.replace('</head>', `${ga}\n</head>`);
+  }
 
   return html;
 };
@@ -73,37 +75,31 @@ export default async function handler(req, res) {
   let description = 'Ateliers innovants de coding, robotique et IA pour préparer vos enfants au futur du numérique.';
   let image = DEFAULT_IMAGE;
 
-  try {
-    // Fetch global default social image AND title from admin settings
-    const settingsRes = await fetch(
-      `https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/${DATABASE}/documents/website-settings/socialImage`
-    );
-    if (settingsRes.ok) {
-      const settingsData = await settingsRes.json();
-      if (settingsData.fields?.value?.stringValue) {
-        image = settingsData.fields.value.stringValue;
-      }
-    }
+  let gaId = '';
+  let gscCode = '';
 
-    // Also try to fetch a custom home title/description from settings
-    const homeSeoRes = await fetch(
-      `https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/${DATABASE}/documents/website-settings/homeSeo`
-    );
+  try {
+    // Fetch all global settings in parallel
+    const [socialRes, homeSeoRes, gaRes, gscRes] = await Promise.all([
+      fetch(`https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/${DATABASE}/documents/website-settings/socialImage`),
+      fetch(`https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/${DATABASE}/documents/website-settings/homeSeo`),
+      fetch(`https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/${DATABASE}/documents/website-settings/googleAnalyticsId`),
+      fetch(`https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/${DATABASE}/documents/website-settings/gscVerification`),
+    ]);
+    if (socialRes.ok) { const d = await socialRes.json(); if (d.fields?.value?.stringValue) image = d.fields.value.stringValue; }
     if (homeSeoRes.ok) {
-      const homeSeoData = await homeSeoRes.json();
-      if (homeSeoData.fields?.title?.stringValue) {
-        title = homeSeoData.fields.title.stringValue;
-      }
-      if (homeSeoData.fields?.description?.stringValue) {
-        description = homeSeoData.fields.description.stringValue;
-      }
+      const d = await homeSeoRes.json();
+      if (d.fields?.title?.stringValue) title = d.fields.title.stringValue;
+      if (d.fields?.description?.stringValue) description = d.fields.description.stringValue;
     }
+    if (gaRes.ok)  { const d = await gaRes.json();  if (d.fields?.value?.stringValue) gaId = d.fields.value.stringValue; }
+    if (gscRes.ok) { const d = await gscRes.json(); if (d.fields?.value?.stringValue) gscCode = d.fields.value.stringValue; }
   } catch (e) {
     console.warn('[home-seo] Settings fetch failed, using defaults');
   }
 
   try {
-    const html = buildHtml({ title, description, image, url: `${BASE_DOMAIN}/` });
+    const html = buildHtml({ title, description, image, url: `${BASE_DOMAIN}/`, gaId, gscCode });
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     // No CDN/edge caching — social crawlers must always get fresh meta tags
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
