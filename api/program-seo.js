@@ -7,7 +7,7 @@ const __dirname = path.dirname(__filename);
 
 const FIRESTORE_PROJECT = 'edufy-makerlab';
 const BASE_DOMAIN = process.env.BASE_DOMAIN || 'https://space.makerlab.academy';
-const DEFAULT_IMAGE = `${BASE_DOMAIN}/logo-social.jpg`;
+const DEFAULT_IMAGE = ''; // No hardcoded fallback — image comes from Firestore admin settings only
 
 const esc = (s = '') =>
   String(s)
@@ -50,7 +50,15 @@ const buildHtml = (meta) => {
   // Open Graph
   html = injectMeta(html, 'og:title', esc(title));
   html = injectMeta(html, 'og:description', esc(description));
-  html = injectMeta(html, 'og:image', image);
+  // Only inject og:image / twitter:image when we actually have a URL
+  if (image) {
+    html = injectMeta(html, 'og:image', image);
+    html = injectMeta(html, 'twitter:image', image, true);
+  } else {
+    // Strip any leftover og:image tags from the static baseline
+    html = html.replace(/\s*<meta\s[^>]*property=['"]og:image['"][^>]*>/gi, '');
+    html = html.replace(/\s*<meta\s[^>]*name=['"]twitter:image['"][^>]*>/gi, '');
+  }
   html = injectMeta(html, 'og:url', url);
   html = injectMeta(html, 'og:type', 'website');
 
@@ -58,7 +66,6 @@ const buildHtml = (meta) => {
   html = injectMeta(html, 'twitter:card', 'summary_large_image', true);
   html = injectMeta(html, 'twitter:title', esc(title), true);
   html = injectMeta(html, 'twitter:description', esc(description), true);
-  html = injectMeta(html, 'twitter:image', image, true);
 
   // Standard Description
   html = injectMeta(html, 'description', esc(description), true);
