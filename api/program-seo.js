@@ -17,21 +17,23 @@ const esc = (s = '') =>
     .replace(/>/g, '&gt;');
 
 /**
- * Robustly injects or replaces meta tags in the HTML shell.
- * It handles both single and double quotes gracefully.
+ * BUG FIX: The old regex [^']* broke on apostrophes in content values (e.g. s'amusant)
+ * causing silent replacement failures and leaving the old og:image tag in place.
+ *
+ * New strategy: strip ALL existing <meta> tags for a given property/name using a
+ * tag-level regex (matching the whole tag, not its content), then prepend a fresh one.
+ * This is apostrophe-safe and handles both attribute orders.
  */
 const injectMeta = (html, property, content, isName = false) => {
   const attr = isName ? 'name' : 'property';
-  const regex = new RegExp(`(<meta\\s[^>]*${attr}=['"]${property}['"]\\s[^>]*content=)(['"])[^'"]*\\2`, 'i');
-  
-  if (regex.test(html)) {
-    // Replace existing tag content, preserving the original quote type
-    return html.replace(regex, `$1$2${content}$2`);
-  } else {
-    // Inject new tag if not found (before </head>)
-    const newTag = `  <meta ${attr}="${property}" content="${content}" />\n`;
-    return html.replace('</head>', `${newTag}</head>`);
-  }
+  // Match the entire <meta ...> tag that has this property, regardless of attribute order or quote type
+  // Uses [\s\S]*? to handle any content including apostrophes
+  const stripRegex = new RegExp(`\\s*<meta\\s[^>]*${attr}=['"]${property}['"][^>]*>`, 'gi');
+  // Remove all existing tags for this property (handles duplicates too)
+  html = html.replace(stripRegex, '');
+  // Inject a fresh, clean tag right before </head>
+  const newTag = `  <meta ${attr}="${property}" content="${content}" />\n`;
+  return html.replace('</head>', `${newTag}</head>`);
 };
 
 const buildHtml = (meta) => {
@@ -122,7 +124,8 @@ export default async function handler(req, res) {
     const html = buildHtml({ title, description, image, url: `${BASE_DOMAIN}${urlPath}` });
     
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+    // No CDN/edge caching — social crawlers must always get fresh meta tags
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
     return res.status(200).send(html);
   } catch (err) {
     console.error('[program-seo] Error:', err.message);

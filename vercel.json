@@ -6,6 +6,7 @@
         { "source": "/programs/:id", "destination": "/api/program-seo" },
         { "source": "/lp/:id", "destination": "/api/program-seo" },
         { "source": "/blog/:id", "destination": "/api/blog-seo" },
+        { "source": "/", "destination": "/api/home-seo" },
         { "source": "/(.*)", "destination": "/index.html" }
     ]
 }

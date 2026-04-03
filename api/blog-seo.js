@@ -18,14 +18,12 @@ const esc = (s = '') =>
 
 const injectMeta = (html, property, content, isName = false) => {
   const attr = isName ? 'name' : 'property';
-  const regex = new RegExp(`(<meta\\s[^>]*${attr}=['"]${property}['"]\\s[^>]*content=)(['"])[^'"]*\\2`, 'i');
-  
-  if (regex.test(html)) {
-    return html.replace(regex, `$1$2${content}$2`);
-  } else {
-    const newTag = `  <meta ${attr}="${property}" content="${content}" />\n`;
-    return html.replace('</head>', `${newTag}</head>`);
-  }
+  // BUG FIX: old regex [^']* broke on apostrophes in content (e.g. s'amusant)
+  // Strip all existing tags for this property, then inject a fresh clean one
+  const stripRegex = new RegExp(`\\s*<meta\\s[^>]*${attr}=['"]${property}['"][^>]*>`, 'gi');
+  html = html.replace(stripRegex, '');
+  const newTag = `  <meta ${attr}="${property}" content="${content}" />\n`;
+  return html.replace('</head>', `${newTag}</head>`);
 };
 
 const buildHtml = (meta) => {
@@ -108,7 +106,7 @@ export default async function handler(req, res) {
     const html = buildHtml({ title, description, image, url: `${BASE_DOMAIN}${urlPath}` });
     
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
     return res.status(200).send(html);
   } catch (err) {
     console.error('[blog-seo] Error:', err.message);
