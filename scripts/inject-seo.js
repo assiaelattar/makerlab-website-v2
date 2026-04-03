@@ -1,39 +1,125 @@
 /**
  * inject-seo.js
- * Run after `vite build` to fetch social image from Firestore and
- * inject it into dist/index.html so crawlers always get the right og:image.
- * 
- * Usage: node scripts/inject-seo.js
+ * Runs automatically after `vite build` (postbuild hook).
+ *
+ * 1. Fetches global SEO settings (socialImage, GA4, GSC) from Firestore
+ * 2. Injects into dist/index.html (home page + default fallback)
+ * 3. Fetches ALL programs and creates:
+ *    - dist/lp/[id]/index.html      → with landingPage.ogImage > program.image
+ *    - dist/programs/[id]/index.html → same
+ * 4. Fetches ALL blogs and creates:
+ *    - dist/blog/[id]/index.html    → with blog-specific og tags
+ *
+ * Hostinger serves these static files directly (since server.js is bypassed).
+ * Each file has the correct per-page og:image baked in.
  */
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DIST_HTML = path.join(__dirname, '..', 'dist', 'index.html');
+const DIST = path.join(__dirname, '..', 'dist');
+const DIST_HTML = path.join(DIST, 'index.html');
 
-const FIRESTORE_PROJECT = 'edufy-makerlab';
-const DATABASE = 'websitev2';
-const BASE = 'https://firestore.googleapis.com/v1/projects';
+const PROJECT   = 'edufy-makerlab';
+const DATABASE  = 'websitev2';
+const BASE_URL  = 'https://firestore.googleapis.com/v1/projects';
+const SITE      = process.env.BASE_DOMAIN || 'https://space.makerlab.academy';
 
-async function fetchSetting(key) {
+// ─── Firestore helpers ────────────────────────────────────────────────────────
+
+async function fsGet(path_) {
   try {
-    const res = await fetch(`${BASE}/${FIRESTORE_PROJECT}/databases/${DATABASE}/documents/website-settings/${key}`);
+    const res = await fetch(`${BASE_URL}/${PROJECT}/databases/${DATABASE}/documents/${path_}`);
     if (!res.ok) return null;
+    return (await res.json()).fields || null;
+  } catch { return null; }
+}
+
+async function fsList(collection) {
+  try {
+    const res = await fetch(`${BASE_URL}/${PROJECT}/databases/${DATABASE}/documents/${collection}`);
+    if (!res.ok) return [];
     const data = await res.json();
-    return data.fields?.value?.stringValue || null;
-  } catch {
-    return null;
-  }
+    return data.documents || [];
+  } catch { return []; }
+}
+
+function str(field)   { return field?.stringValue  || ''; }
+function bool(field)  { return field?.booleanValue  || false; }
+function mapf(field)  { return field?.mapValue?.fields || null; }
+
+// ─── HTML helpers ─────────────────────────────────────────────────────────────
+
+const esc = (s = '') =>
+  String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+function stripMeta(html, attr, value) {
+  return html.replace(
+    new RegExp(`\\s*<meta\\s[^>]*${attr}=['"]${value}['"][^>]*>`, 'gi'), ''
+  );
 }
 
 function injectMeta(html, property, content, isName = false) {
   const attr = isName ? 'name' : 'property';
-  const stripRegex = new RegExp(`\\s*<meta\\s[^>]*${attr}=['"]${property}['"][^>]*>`, 'gi');
-  html = html.replace(stripRegex, '');
-  const newTag = `  <meta ${attr}="${property}" content="${content}" />\n`;
-  return html.replace('</head>', `${newTag}</head>`);
+  html = stripMeta(html, attr, property);
+  return html.replace('</head>', `  <meta ${attr}="${property}" content="${content}" />\n</head>`);
 }
+
+function buildPageHtml(baseHtml, { title, description, image, url, gaId, gscCode }) {
+  let html = baseHtml;
+
+  // Title
+  html = html.replace(/<title>[^<]*<\/title>/i, `<title>${esc(title)}</title>`);
+
+  // OG
+  html = injectMeta(html, 'og:title',       esc(title));
+  html = injectMeta(html, 'og:description', esc(description));
+  html = injectMeta(html, 'og:url',         url);
+  html = injectMeta(html, 'og:type',        'website');
+
+  // og:image — only when we have one
+  html = stripMeta(html, 'property', 'og:image');
+  html = stripMeta(html, 'property', 'og:image:width');
+  html = stripMeta(html, 'property', 'og:image:height');
+  html = stripMeta(html, 'name',     'twitter:image');
+  if (image) {
+    html = injectMeta(html, 'og:image',        image);
+    html = injectMeta(html, 'og:image:width',  '1200');
+    html = injectMeta(html, 'og:image:height', '630');
+    html = injectMeta(html, 'twitter:image',   image, true);
+  }
+
+  // Twitter / standard desc
+  html = injectMeta(html, 'twitter:card',        'summary_large_image', true);
+  html = injectMeta(html, 'twitter:title',        esc(title),           true);
+  html = injectMeta(html, 'twitter:description',  esc(description),     true);
+  html = injectMeta(html, 'description',          esc(description),     true);
+
+  // GSC & GA4
+  if (gscCode) html = injectMeta(html, 'google-site-verification', gscCode, true);
+  if (gaId) {
+    html = stripMeta(html, 'src', `googletagmanager.com/gtag/js\\?id=${gaId}`);
+    const ga = [
+      `  <script async src="https://www.googletagmanager.com/gtag/js?id=${gaId}"></script>`,
+      `  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${gaId}');</script>`,
+    ].join('\n');
+    html = html.replace('</head>', `${ga}\n</head>`);
+  }
+
+  return html;
+}
+
+function writeHtml(filePath, html) {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(filePath, html, 'utf8');
+}
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
 
 async function run() {
   if (!fs.existsSync(DIST_HTML)) {
@@ -41,51 +127,99 @@ async function run() {
     process.exit(1);
   }
 
-  console.log('📡 Fetching SEO settings from Firestore...');
-  const [socialImage, gaId, gscCode] = await Promise.all([
-    fetchSetting('socialImage'),
-    fetchSetting('googleAnalyticsId'),
-    fetchSetting('gscVerification'),
+  const baseHtml = fs.readFileSync(DIST_HTML, 'utf8');
+
+  // 1. Fetch global settings
+  console.log('\n📡 Fetching global SEO settings from Firestore...');
+  const [socialDoc, gaDoc, gscDoc] = await Promise.all([
+    fsGet('website-settings/socialImage'),
+    fsGet('website-settings/googleAnalyticsId'),
+    fsGet('website-settings/gscVerification'),
   ]);
 
-  console.log('  socialImage:', socialImage ? '✅ found' : '❌ not set');
-  console.log('  GA4 ID:    ', gaId     ? '✅ ' + gaId : '❌ not set');
-  console.log('  GSC code:  ', gscCode  ? '✅ found' : '❌ not set');
+  const globalImage = str(socialDoc?.value);
+  const gaId        = str(gaDoc?.value);
+  const gscCode     = str(gscDoc?.value);
 
-  let html = fs.readFileSync(DIST_HTML, 'utf8');
+  console.log('  socialImage:', globalImage ? '✅ ' + globalImage.substring(0, 60) + '...' : '❌ not set');
+  console.log('  GA4 ID:    ', gaId     || '❌ not set');
+  console.log('  GSC code:  ', gscCode  || '❌ not set');
 
-  // Remove any leftover og:image / twitter:image from the static build
-  html = html.replace(/\s*<meta\s[^>]*property=['"]og:image['"][^>]*>/gi, '');
-  html = html.replace(/\s*<meta\s[^>]*name=['"]twitter:image['"][^>]*>/gi, '');
+  const sharedOpts = { gaId, gscCode };
 
-  if (socialImage) {
-    html = injectMeta(html, 'og:image', socialImage);
-    html = injectMeta(html, 'og:image:width', '1200');
-    html = injectMeta(html, 'og:image:height', '630');
-    html = injectMeta(html, 'twitter:image', socialImage, true);
-    console.log('  ✅ og:image injected into dist/index.html');
-  } else {
-    console.log('  ⚠️  No socialImage — og:image will not appear on home page');
+  // 2. Update dist/index.html (home page default)
+  const homeHtml = buildPageHtml(baseHtml, {
+    title:       'MakerLab Academy — Codage, Robotique et IA pour Enfants',
+    description: 'Ateliers innovants de coding, robotique et IA pour préparer vos enfants au futur du numérique.',
+    image:       globalImage,
+    url:         `${SITE}/`,
+    ...sharedOpts,
+  });
+  fs.writeFileSync(DIST_HTML, homeHtml, 'utf8');
+  console.log('\n✅ dist/index.html updated (home page)');
+
+  // 3. Programs — generate per-program HTML files
+  console.log('\n📡 Fetching programs...');
+  const programDocs = await fsList('website-programs');
+  console.log(`  Found ${programDocs.length} programs`);
+
+  let programCount = 0;
+  for (const doc of programDocs) {
+    const id     = doc.name.split('/').pop();
+    const fields = doc.fields || {};
+    const lp     = mapf(fields.landingPage);
+
+    // Build title / description
+    const lpHeadline    = str(lp?.heroHeadline);
+    const lpSubHeadline = str(lp?.heroSubHeadline);
+    const title = lpHeadline || str(fields.title) || 'MakerLab Academy';
+    let   description = lpSubHeadline || str(fields.shortDescription) || str(fields.description)
+                         || 'Découvrez nos ateliers innovants en Coding, Robotique et IA.';
+    if (description.length > 155) description = description.substring(0, 152) + '...';
+
+    // Image priority: landingPage.ogImage → program.ogImage → program.image → global
+    const image = str(lp?.ogImage) || str(fields.ogImage) || str(fields.image) || globalImage;
+
+    const pageOpts = { title, description, image, ...sharedOpts };
+
+    // /lp/:id
+    const lpHtml = buildPageHtml(baseHtml, { ...pageOpts, url: `${SITE}/lp/${id}` });
+    writeHtml(path.join(DIST, 'lp', id, 'index.html'), lpHtml);
+
+    // /programs/:id
+    const progHtml = buildPageHtml(baseHtml, { ...pageOpts, url: `${SITE}/programs/${id}` });
+    writeHtml(path.join(DIST, 'programs', id, 'index.html'), progHtml);
+
+    programCount++;
+    const imgSrc = image ? (image.includes('firebasestorage') ? '🖼️  Firebase' : image.substring(0, 40)) : '⚠️  no image';
+    console.log(`  ✅ [${id}] "${title.substring(0, 40)}" — ${imgSrc}`);
   }
+  console.log(`\n✅ ${programCount} programs → dist/lp/[id]/index.html + dist/programs/[id]/index.html`);
 
-  if (gscCode) {
-    html = injectMeta(html, 'google-site-verification', gscCode, true);
-    console.log('  ✅ GSC verification tag injected');
+  // 4. Blog posts — generate per-blog HTML files
+  console.log('\n📡 Fetching blogs...');
+  const blogDocs = await fsList('website-blogs');
+  let blogCount = 0;
+  for (const doc of blogDocs) {
+    const id     = doc.name.split('/').pop();
+    const fields = doc.fields || {};
+    const title  = str(fields.title) || 'Blog MakerLab Academy';
+    let   description = str(fields.preview) || str(fields.content)?.substring(0, 160)
+                         || 'Conseils et actualités sur le coding, robotique et IA.';
+    if (description.length > 155) description = description.substring(0, 152) + '...';
+    const image  = str(fields.ogImage) || str(fields.image) || globalImage;
+
+    const blogHtml = buildPageHtml(baseHtml, {
+      title, description, image,
+      url: `${SITE}/blog/${id}`,
+      ...sharedOpts,
+    });
+    writeHtml(path.join(DIST, 'blog', id, 'index.html'), blogHtml);
+    blogCount++;
   }
+  console.log(`✅ ${blogCount} blog posts → dist/blog/[id]/index.html`);
 
-  if (gaId) {
-    // Remove any existing GA scripts first
-    html = html.replace(/\s*<script[^>]*googletagmanager[^>]*>[\s\S]*?<\/script>/gi, '');
-    const gaScript = [
-      `  <script async src="https://www.googletagmanager.com/gtag/js?id=${gaId}"></script>`,
-      `  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${gaId}');</script>`,
-    ].join('\n');
-    html = html.replace('</head>', `${gaScript}\n</head>`);
-    console.log('  ✅ GA4 scripts injected');
-  }
-
-  fs.writeFileSync(DIST_HTML, html, 'utf8');
-  console.log('\n✅ dist/index.html updated with live SEO settings.');
+  console.log('\n🚀 SEO injection complete!\n');
 }
 
 run().catch(err => {
