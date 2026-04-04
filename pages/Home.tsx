@@ -8,6 +8,7 @@ import { VideoSection } from '../components/VideoSection';
 import { PhotoGallery } from '../components/PhotoGallery';
 import { FeaturedPrograms } from '../components/FeaturedPrograms';
 import { LoopingBentoImage } from '../components/LoopingBentoImage';
+import { KineticHero } from '../components/KineticHero';
 import { useSettings } from '../contexts/SettingsContext';
 import { SEO } from '../components/SEO';
 
@@ -105,91 +106,13 @@ export const Home: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Visuals - Dynamic Bento Collage */}
+          {/* Right Visuals - Kinetic Bento Accordion */}
           <div className="lg:col-span-5 relative flex justify-center lg:justify-end mt-12 lg:mt-0 h-[500px] md:h-[650px] w-full">
-            <div className="relative w-full max-w-lg h-full perspective-1000">
-
-              {/* Center Large Card: Robotics */}
-              <div className="absolute top-4 right-8 bottom-12 left-4 bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] rounded-2xl overflow-hidden group hover:shadow-none hover:-translate-y-2 hover:translate-x-2 transition-all duration-300 z-10 cursor-pointer">
-                <LoopingBentoImage 
-                  images={settings?.hero_images?.home_bento_1} 
-                  className="group-hover:scale-110 transition-transform duration-700" 
-                  alt="Robotics Program" 
-                />
-
-                {/* Gradient Overlay for Text Visibility */}
-                <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-black/60 to-transparent"></div>
-
-                {/* Text Overlay (Top) */}
-                <div className="absolute top-4 left-4">
-                  <span className="bg-[#27A060] text-white px-3 py-1 text-xs font-bold rounded-full uppercase tracking-wider shadow-sm">Programme MakerLab</span>
-                </div>
-
-                {/* Text Overlay (Bottom) */}
-                <div className="absolute bottom-6 left-6 right-6">
-                  <div className="bg-white border-4 border-black p-4 transform -rotate-2 shadow-neo-sm group-hover:rotate-0 transition-transform">
-                    <h3 className="font-display font-black text-2xl lg:text-3xl uppercase leading-[0.9] mb-2 text-black">
-                      Real Machines.<br />No Kits.
-                    </h3>
-                    <div className="w-16 h-1 bg-[#C0272D] mb-2"></div>
-                    <p className="font-bold text-xs lg:text-sm text-gray-800 leading-snug">Design and assemble an industrial-spec rover. If it works, it's not a toy.</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Top Right Card: Drone App */}
-              <div className="absolute -top-8 -right-4 w-44 h-48 md:w-56 md:h-56 bg-brand-blue border-4 border-black shadow-neo rounded-2xl overflow-hidden group z-20 transform rotate-6 hover:-translate-y-2 hover:rotate-3 transition-all duration-300 cursor-pointer">
-                <LoopingBentoImage 
-                  images={settings?.hero_images?.home_bento_2} 
-                  className="grayscale mix-blend-multiply opacity-50 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500" 
-                  alt="Drone App Building" 
-                />
-
-                <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-black/80 to-transparent"></div>
-
-                <div className="absolute top-3 left-3">
-                  <span className="bg-[#C0272D] text-white px-2 py-0.5 text-[10px] font-bold rounded-full uppercase">Drone App Building</span>
-                </div>
-
-                <div className="absolute bottom-0 left-0 right-0 bg-white border-t-4 border-black p-3">
-                  <h4 className="font-display font-black text-sm uppercase text-black leading-tight drop-shadow-sm">Build Your Drone App.</h4>
-                </div>
-              </div>
-
-              {/* Bottom Left Card: Book Design */}
-              <div className="absolute bottom-4 -left-6 md:-left-12 w-40 h-44 md:w-48 md:h-52 bg-brand-orange border-4 border-black shadow-neo rounded-2xl overflow-hidden group z-20 transform -rotate-6 hover:-translate-y-2 hover:rotate-0 transition-all duration-300 cursor-pointer flex flex-col justify-between">
-                <LoopingBentoImage 
-                  images={settings?.hero_images?.home_bento_3} 
-                  className="filter brightness-75 group-hover:brightness-100 transition-all duration-500" 
-                  alt="Book Design & Binding" 
-                />
-
-                <div className="absolute top-2 left-2 z-10">
-                  <span className="bg-brand-blue text-white px-2 py-0.5 text-[10px] font-bold rounded-full uppercase shadow-neo-sm">Book Design & Binding</span>
-                </div>
-
-                <div className="relative z-10 bg-black text-white p-3 border-t-4 border-black mt-auto backdrop-blur-sm bg-black/80">
-                  <h4 className="font-display font-black text-sm uppercase leading-tight mb-1 shadow-black drop-shadow-lg">Design. Print. Bind. Your Story.</h4>
-                </div>
-              </div>
-
-              {/* Floating Tag Ticket */}
-              <div className="absolute top-1/2 -left-16 bg-white text-black border-4 border-black px-4 py-3 rounded-none transform -rotate-12 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none animate-float z-30 cursor-pointer hidden md:flex items-center gap-2">
-                <div className="border-r-2 border-dashed border-gray-400 pr-3">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500 leading-none mb-1">Duration: 3H</p>
-                  <p className="font-black text-base leading-none">249 DHS <span className="text-[10px] font-normal uppercase">/ Workshop</span></p>
-                </div>
-                <p className="font-display font-black uppercase text-xs pt-1">Book<br />Now</p>
-
-                {/* Decorative Ticket Holes */}
-                <div className="absolute top-1/2 -left-2 w-4 h-4 rounded-full bg-gray-50 border-r-4 border-black transform -translate-y-1/2"></div>
-                <div className="absolute top-1/2 -right-2 w-4 h-4 rounded-full bg-gray-50 border-l-4 border-black transform -translate-y-1/2"></div>
-              </div>
-
-              {/* Background Decorative Blobs */}
-              <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-brand-blue rounded-full filter blur-2xl opacity-60 animate-pulse mix-blend-multiply z-0 pointer-events-none"></div>
-              <div className="absolute -top-4 -left-4 w-24 h-24 bg-brand-green rounded-full filter blur-2xl opacity-60 animate-pulse animation-delay-2000 mix-blend-multiply z-0 pointer-events-none"></div>
-            </div>
+            <KineticHero 
+              images1={settings?.hero_images?.home_bento_1} 
+              images2={settings?.hero_images?.home_bento_2} 
+              images3={settings?.hero_images?.home_bento_3} 
+            />
           </div>
         </div>
       </section>

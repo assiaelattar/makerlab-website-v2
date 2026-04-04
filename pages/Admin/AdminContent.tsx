@@ -5,6 +5,7 @@ import { Save, Plus, Trash2, Upload, Sparkles, Image as ImageIcon, BarChart2 } f
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../../firebase';
 import imageCompression from 'browser-image-compression';
+import { MediaPickerModal } from '../../components/MediaPickerModal';
 
 const colorOptions = [
     { label: 'Bleu (brand-blue)', value: 'brand-blue' },
@@ -16,6 +17,8 @@ const colorOptions = [
 export const AdminContent: React.FC = () => {
     const { settings, updateSetting, isLoading: contextIsLoading } = useSettings();
     const [isUploading, setIsUploading] = useState(false);
+    const [isMediaPickerOpen, setIsMediaPickerOpen] = useState(false);
+    const [activeBentoField, setActiveBentoField] = useState<string | null>(null);
 
     // Initial States
     const [heroData, setHeroData] = useState<Record<string, any>>({
@@ -170,6 +173,15 @@ export const AdminContent: React.FC = () => {
     const [bentoInputs, setBentoInputs] = useState<Record<string, string>>({
         home_bento_1: '', home_bento_2: '', home_bento_3: ''
     });
+    
+    // --- MEDIA PICKER ---
+    const handleMediaPick = (url: string) => {
+        if (activeBentoField && url) {
+            handleAddBentoImage(activeBentoField, url);
+        }
+        setIsMediaPickerOpen(false);
+        setActiveBentoField(null);
+    };
 
     // --- VIDEO ---
     const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setVideoData({ ...videoData, [e.target.name]: e.target.value });
@@ -497,15 +509,28 @@ export const AdminContent: React.FC = () => {
                                     />
                                     <button onClick={() => { handleAddBentoImage(field, bentoInputs[field]); setBentoInputs(p => ({ ...p, [field]: '' })); }} className="bg-black text-white px-3 py-1 rounded-lg hover:bg-gray-800"><Plus size={16} /></button>
                                 </div>
-                                <label htmlFor={`hero-upload-${field}`} className="w-full bg-brand-blue text-black p-2 border-2 border-black rounded-lg text-xs font-black uppercase text-center cursor-pointer hover:bg-cyan-300 transition-colors shadow-neo-sm">
-                                    + Uploader Photo
-                                    <input id={`hero-upload-${field}`} type="file" accept="image/*" onChange={async (e) => {
-                                        if (e.target.files?.[0]) {
-                                            const url = await handleImageUpload('website-hero-images', e.target.files[0]);
-                                            if (url) handleAddBentoImage(field, url);
-                                        }
-                                    }} className="hidden" />
-                                </label>
+                                
+                                <div className="grid grid-cols-2 gap-2">
+                                    <button 
+                                        onClick={() => {
+                                            setActiveBentoField(field);
+                                            setIsMediaPickerOpen(true);
+                                        }}
+                                        className="bg-brand-orange text-black p-2 border-2 border-black rounded-lg text-[10px] font-black uppercase text-center cursor-pointer hover:bg-orange-300 transition-colors shadow-neo-sm flex items-center justify-center gap-1"
+                                    >
+                                        <ImageIcon size={14} /> Bibliothèque
+                                    </button>
+                                    
+                                    <label htmlFor={`hero-upload-${field}`} className="bg-brand-blue text-black p-2 border-2 border-black rounded-lg text-[10px] font-black uppercase text-center cursor-pointer hover:bg-cyan-300 transition-colors shadow-neo-sm flex items-center justify-center gap-1">
+                                        <Upload size={14} /> Uploader
+                                        <input id={`hero-upload-${field}`} type="file" accept="image/*" onChange={async (e) => {
+                                            if (e.target.files?.[0]) {
+                                                const url = await handleImageUpload('website-hero-images', e.target.files[0]);
+                                                if (url) handleAddBentoImage(field, url);
+                                            }
+                                        }} className="hidden" />
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     ))}
@@ -556,6 +581,17 @@ export const AdminContent: React.FC = () => {
                     <Button variant="primary" onClick={handleSaveVideo} className="shadow-none flex items-center gap-2"><Save size={16} /> Enregistrer vidéo</Button>
                 </div>
             </div>
+
+            {/* Media Picker Modal */}
+            {isMediaPickerOpen && (
+                <MediaPickerModal 
+                    onCancel={() => {
+                        setIsMediaPickerOpen(false);
+                        setActiveBentoField(null);
+                    }}
+                    onSelect={handleMediaPick}
+                />
+            )}
 
         </div>
     );

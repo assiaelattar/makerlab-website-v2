@@ -32,6 +32,7 @@ export default {
         wiggle: 'wiggle 1s ease-in-out infinite',
         'fade-in-up': 'fadeInUp 0.8s ease-out forwards',
         marquee: 'marquee 25s linear infinite',
+        'marquee-vertical': 'marqueeVertical 25s linear infinite',
         blob: 'blob 7s infinite',
         drift: 'drift 40s ease-in-out infinite',
         'drift-reverse': 'driftReverse 50s ease-in-out infinite',
@@ -51,7 +52,11 @@ export default {
         },
         marquee: {
           '0%': { transform: 'translateX(0)' },
-          '100%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(-50%)' },
+        },
+        marqueeVertical: {
+          '0%': { transform: 'translateY(0)' },
+          '100%': { transform: 'translateY(-50%)' },
         },
         blob: {
           '0%': { transform: 'translate(0px, 0px) scale(1)' },
