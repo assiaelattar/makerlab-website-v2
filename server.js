@@ -23,8 +23,14 @@ const PORT = process.env.PORT || 3000;
 // ─────────────────────────────────────────────────────────────
 
 // SEO Assets — Robots.txt & Sitemap
-app.get('/robots.txt', (req, res) => robotsHandler(req, res));
-app.get('/sitemap.xml', (req, res) => sitemapHandler(req, res));
+app.get('/robots.txt', (req, res) => {
+  console.log('🤖 Serving robots.txt');
+  return robotsHandler(req, res);
+});
+app.get('/sitemap.xml', (req, res) => {
+  console.log('📜 Serving sitemap.xml');
+  return sitemapHandler(req, res);
+});
 
 // Home page — dynamic social image & title from admin settings
 app.get('/', (req, res) => homeSeoHandler(req, res));
@@ -60,7 +66,7 @@ app.use(express.static(path.join(__dirname, 'dist')));
 // Catch-all — serve index.html for all other React Router routes
 // (e.g. /admin, /about, /kids-families, etc.)
 // ─────────────────────────────────────────────────────────────
-app.get('/{*path}', (req, res) => {
+app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
