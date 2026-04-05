@@ -26,6 +26,7 @@ export const AdminLayout: React.FC = () => {
 
     const navItems = [
         { label: 'Tableau de Bord', path: '/admin/dashboard', icon: LayoutDashboard },
+        { label: 'Calendrier', path: '/admin/calendar', icon: CalendarDays },
         { label: 'Contenu du Site', path: '/admin/content', icon: FileText },
         { label: 'Programmes', path: '/admin/programs', icon: Package },
         { label: 'Réservations', path: '/admin/bookings', icon: CalendarDays },

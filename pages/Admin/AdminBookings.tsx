@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
-import { Trash2, CheckCircle, Clock, Baby, User, Calendar, Mail, Phone, Filter } from 'lucide-react';
+import { Trash2, CheckCircle, Clock, Baby, User, Calendar, Mail, Phone, Filter, MessageCircle } from 'lucide-react';
 
 interface Booking {
     id: string;
@@ -125,9 +125,18 @@ export const AdminBookings: React.FC = () => {
                                             <Mail size={18} />
                                             <a href={`mailto:${booking.parentEmail}`}>{booking.parentEmail}</a>
                                         </div>
-                                        <div className="flex items-center gap-3 font-bold">
+                                        <div className="flex items-center gap-3 font-bold group">
                                             <Phone size={18} />
-                                            <a href={`tel:${booking.parentPhone}`}>{booking.parentPhone}</a>
+                                            <a href={`tel:${booking.parentPhone}`} className="hover:text-brand-red">{booking.parentPhone}</a>
+                                            <a 
+                                                href={`https://wa.me/212${booking.parentPhone.replace(/\s+/g, '').replace(/^\+212/, '').replace(/^0/, '')}`} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer"
+                                                className="bg-green-500 text-white p-1 rounded-lg hover:scale-110 transition-transform shadow-neo-sm ml-2"
+                                                title="Contacter sur WhatsApp"
+                                            >
+                                                <MessageCircle size={14} fill="currentColor" />
+                                            </a>
                                         </div>
                                     </div>
                                 </div>

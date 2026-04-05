@@ -7,6 +7,8 @@ interface SEOProps {
   keywords?: string;
   image?: string;
   url?: string;
+  schemaType?: 'Organization' | 'Course' | 'Event';
+  schemaData?: any;
 }
 
 export const SEO: React.FC<SEOProps> = ({ 
@@ -14,7 +16,9 @@ export const SEO: React.FC<SEOProps> = ({
   description, 
   keywords, 
   image, 
-  url 
+  url,
+  schemaType,
+  schemaData
 }) => {
   const location = useLocation();
   const baseTitle = "MakerLab Academy | Robotics & Coding for Kids in Casablanca";
@@ -62,7 +66,43 @@ export const SEO: React.FC<SEOProps> = ({
     updateMeta('twitter:description', description || baseDescription);
     updateMeta('twitter:image', image || '/logo-full.png');
 
-  }, [title, description, keywords, image, location]);
+    // JSON-LD Structured Data
+    const scriptId = 'json-ld-schema';
+    let script = document.getElementById(scriptId) as HTMLScriptElement;
+    
+    if (!script) {
+      script = document.createElement('script');
+      script.id = scriptId;
+      script.type = 'application/ld+json';
+      document.head.appendChild(script);
+    }
+
+    const defaultSchema = {
+      "@context": "https://schema.org",
+      "@type": "EducationalOrganization",
+      "name": "MakerLab Academy",
+      "url": window.location.origin,
+      "logo": window.location.origin + "/logo-full.png",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Casablanca",
+        "addressCountry": "MA"
+      }
+    };
+
+    const currentSchema = schemaType && schemaData ? {
+        "@context": "https://schema.org",
+        "@type": schemaType,
+        ...schemaData
+    } : defaultSchema;
+
+    script.textContent = JSON.stringify(currentSchema);
+
+    return () => {
+        // Optionnel: On peut laisser le script ou le nettoyer au démontage
+    };
+
+  }, [title, description, keywords, image, location, schemaType, schemaData]);
 
   return null; // This component doesn't render anything
 };

@@ -29,13 +29,8 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
 
     if (!images || images.length === 0) return null;
 
-    // Split images into two groups for double row effect
-    const row1 = [...images.slice(0, Math.ceil(images.length / 2))];
-    const row2 = [...images.slice(Math.ceil(images.length / 2))];
-
     // Triple the images for seamless loop
-    const displayRow1 = [...row1, ...row1, ...row1];
-    const displayRow2 = [...row2, ...row2, ...row2];
+    const displayImages = [...images, ...images, ...images];
 
     const ImageItem = ({ img, i, isReverse = false }: { img: GalleryImage, i: number, isReverse?: boolean }) => {
         // Individual tilt for variety
@@ -98,16 +93,14 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
                 </div>
             </div>
 
-            {/* MULTI-ROW MARQUEE */}
-            <div className="relative py-4 space-y-8">
-                {/* Row 1: Moving Left */}
-                <div className="flex animate-marquee-left hover:pause whitespace-nowrap gap-8 py-4 px-4 h-[400px] md:h-[550px]" style={{ height: large ? '550px' : '300px' }}>
-                    {displayRow1.map((img, i) => ImageItem({ img, i }))}
-                </div>
-
-                {/* Row 2: Moving Right */}
-                <div className="flex animate-marquee-right hover:pause whitespace-nowrap gap-8 py-4 px-4 h-[400px] md:h-[550px]" style={{ height: large ? '550px' : '300px' }}>
-                    {displayRow2.map((img, i) => ImageItem({ img, i, isReverse: true }))}
+            {/* SINGLE-ROW MARQUEE */}
+            <div className="relative py-4">
+                {/* Horizontal Loop */}
+                <div 
+                    className="flex animate-marquee-left hover:pause whitespace-nowrap gap-8 py-4 px-4 overflow-visible" 
+                    style={{ height: large ? '550px' : '300px' }}
+                >
+                    {displayImages.map((img, i) => ImageItem({ img, i }))}
                 </div>
 
                 {/* Side Fade Gradients */}
@@ -121,19 +114,10 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
                     0% { transform: translateX(0); }
                     100% { transform: translateX(calc(-1 * (33.33%))); }
                 }
-                @keyframes marqueeRight {
-                    0% { transform: translateX(calc(-1 * (33.33%))); }
-                    100% { transform: translateX(0); }
-                }
                 .animate-marquee-left {
                     display: flex;
                     width: max-content;
                     animation: marqueeLeft ${speed}s linear infinite;
-                }
-                .animate-marquee-right {
-                    display: flex;
-                    width: max-content;
-                    animation: marqueeRight ${speed}s linear infinite;
                 }
                 .pause:hover {
                     animation-play-state: paused;

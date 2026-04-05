@@ -44,6 +44,9 @@ import { AdminLandingPages } from './pages/Admin/AdminLandingPages';
 import { AdminLandingEditor } from './pages/Admin/AdminLandingEditor';
 import { AdminMissions } from './pages/Admin/AdminMissions';
 import { ProgramLanding } from './pages/ProgramLanding';
+import { CustomCursor } from './components/CustomCursor';
+import { SocialProofToast } from './components/SocialProofToast';
+import { AdminCalendar } from './pages/Admin/AdminCalendar';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -177,7 +180,7 @@ const App: React.FC = () => {
                       <div className="h-1 bg-brand-orange transition-all duration-300 pointer-events-none self-start" style={{ width: scrolled ? '100.1%' : '0%' }}></div>
                     </div>
 
-                    <main className="flex-grow relative z-10">
+                    <main className="flex-grow relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
                       <Routes>
                         <Route path="/" element={<Home />} />
                         <Route path="/programs" element={<Programs />} />
@@ -199,12 +202,14 @@ const App: React.FC = () => {
                         <Route path="/admin" element={<AdminLayout />}>
                           <Route path="dashboard" element={<AdminDashboard />} />
                           <Route path="content" element={<AdminContent />} />
+                          <Route path="programs" element={<AdminDashboard />} />
+                          <Route path="bookings" element={<AdminBookings />} />
+                          <Route path="calendar" element={<AdminCalendar />} />
                           <Route path="media" element={<AdminMedia />} />
                           <Route path="settings" element={<AdminSettings />} />
-                          <Route path="bookings" element={<AdminBookings />} />
                           <Route path="blogs" element={<AdminBlogs />} />
+                          <Route path="landing-pages" element={<AdminLandingPages />} />
                           <Route path="missions" element={<AdminMissions />} />
-                          <Route path="programs" element={<AdminDashboard />} />
                           <Route path="program/:id" element={<ProgramEditor />} />
                           
                           {/* School Partner Admin Routes */}
@@ -226,6 +231,8 @@ const App: React.FC = () => {
                     </main>
                     <ChatAssistant />
                     <Footer />
+                    <CustomCursor />
+                    <SocialProofToast />
                   </div>
                 } />
               </Routes>

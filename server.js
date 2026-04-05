@@ -7,6 +7,8 @@ import programSeoHandler from './api/program-seo.js';
 import blogSeoHandler from './api/blog-seo.js';
 import schoolSeoHandler from './api/school-seo.js';
 import homeSeoHandler from './api/home-seo.js';
+import sitemapHandler from './api/sitemap-handler.js';
+import robotsHandler from './api/robots-handler.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,6 +21,10 @@ const PORT = process.env.PORT || 3000;
 // so that social crawlers (WhatsApp, Facebook, etc.) get the
 // dynamically injected meta tags, not the bare index.html
 // ─────────────────────────────────────────────────────────────
+
+// SEO Assets — Robots.txt & Sitemap
+app.get('/robots.txt', (req, res) => robotsHandler(req, res));
+app.get('/sitemap.xml', (req, res) => sitemapHandler(req, res));
 
 // Home page — dynamic social image & title from admin settings
 app.get('/', (req, res) => homeSeoHandler(req, res));

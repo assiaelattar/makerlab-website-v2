@@ -9,18 +9,41 @@ import { StatsBanner } from '../components/StatsBanner';
 import { PhotoGallery } from '../components/PhotoGallery';
 
 export const Programs: React.FC = () => {
+  const [selectedCategory, setSelectedCategory] = React.useState<string>('All');
+  const [selectedAge, setSelectedAge] = React.useState<string>('All');
+  
   const { programs } = usePrograms();
   const { settings } = useSettings();
   const activePrograms = programs.filter(p => p.active);
   
-  // Robust filtering: supports new categories AND legacy formats/themes
-  const kidsPrograms = activePrograms.filter(p => 
+  // Dynamic Categorical Data from Admin Context
+  const categories = React.useMemo(() => {
+    const rawCategories = Array.from(new Set(activePrograms.map(p => p.category).filter(Boolean)));
+    return ['All', ...rawCategories];
+  }, [activePrograms]);
+
+  const ages = ['All', '7-11 ans', '12-17 ans', 'Adultes'];
+
+  // Mission Finder Logic: Filter based on UI selection
+  const filteredPrograms = activePrograms.filter(p => {
+    const matchesCategory = selectedCategory === 'All' || p.category === selectedCategory;
+    
+    // Simple age mapping if not explicitly in the data
+    const matchesAge = selectedAge === 'All' || 
+      (selectedAge === '7-11 ans' && (p.ageRange?.includes('7') || !p.ageRange)) ||
+      (selectedAge === '12-17 ans' && (p.ageRange?.includes('12') || p.ageRange?.includes('17'))) ||
+      (selectedAge === 'Adultes' && (p.category === 'Business' || p.category === 'Entrepreneuriat'));
+    
+    return matchesCategory && matchesAge;
+  });
+
+  const kidsPrograms = filteredPrograms.filter(p => 
     p.category === 'Enfants & Familles' || 
     (['Coding', 'Robotics', 'AI', 'Design'].includes(p.category)) ||
     (p.format !== 'School Program' && p.category !== 'Écoles & Éducation')
   );
   
-  const schoolPrograms = activePrograms.filter(p => 
+  const schoolPrograms = filteredPrograms.filter(p => 
     p.category === 'Écoles & Éducation' || 
     p.category === 'Entrepreneuriat' ||
     p.category === 'Business' ||
@@ -38,28 +61,53 @@ export const Programs: React.FC = () => {
       <div className="container mx-auto">
         <ScrollReveal>
           {/* HEADER SECTION */}
-          <section className="relative pb-16">
-            <div className="bg-brand-red border-4 border-black px-4 py-20 text-center relative overflow-hidden group shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-              {settings?.hero_images?.hero_bg_programs && (
-                <div className="absolute inset-0 z-0 opacity-40 mix-blend-multiply" style={{ backgroundImage: `url(${settings.hero_images.hero_bg_programs})`, backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
-              )}
+          <section className="relative pb-12">
+            <div className="bg-brand-red border-4 border-black px-4 py-16 md:py-24 text-center relative overflow-hidden group shadow-neo-xl">
               {/* Abstract Background for Header */}
               <div className="absolute inset-0 z-0 bg-[url('https://www.transparenttextures.com/patterns/diagmonds-light.png')] opacity-20"></div>
 
               <div className="container mx-auto relative z-10">
-                <h1 className="font-display font-black text-5xl md:text-7xl text-white mb-6 uppercase tracking-tight leading-tight drop-shadow-[4px_4px_0px_rgba(0,0,0,1)]">
-                  Tous Nos <span className="text-white">Programmes.</span>
+                <h1 className="font-display font-black text-5xl md:text-8xl text-white mb-6 uppercase tracking-tight leading-[0.9] drop-shadow-[6px_6px_0px_rgba(0,0,0,1)]">
+                  Trouve ta <br /> <span className="text-white underline decoration-brand-orange">Mission.</span>
                 </h1>
-                <p className="text-xl md:text-2xl text-white font-medium max-w-3xl mx-auto leading-relaxed">
-                  Découvrez l'ensemble des offres MakerLab Academy, pour les jeunes explorateurs comme pour les établissements scolaires.
+                <p className="text-xl md:text-2xl text-white font-bold max-w-2xl mx-auto leading-relaxed group-hover:scale-105 transition-transform duration-500">
+                  Filtre ton expérience MakerLAB par âge et technologie.
                 </p>
               </div>
-
-              {/* Decorative bottom border */}
-              <div className="absolute bottom-0 left-0 w-full h-4 border-t-4 border-black bg-brand-orange"></div>
             </div>
           </section>
         </ScrollReveal>
+
+        {/* MISSION FINDER UI */}
+        <section className="mb-16 -mt-10 relative z-20 container mx-auto flex flex-col md:flex-row gap-6 items-center justify-center">
+            {/* Category Filter */}
+            <div className="bg-white border-4 border-black p-4 shadow-neo flex flex-wrap gap-2 justify-center">
+                <span className="w-full text-center text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Thématique</span>
+                {categories.map(cat => (
+                    <button 
+                        key={cat}
+                        onClick={() => setSelectedCategory(cat)}
+                        className={`px-4 py-2 border-2 border-black font-black text-sm uppercase transition-all shadow-neo-sm hover:-translate-y-1 ${selectedCategory === cat ? 'bg-brand-blue text-white rotate-1 scale-110 active:rotate-0' : 'bg-white text-black hover:bg-gray-100'}`}
+                    >
+                        {cat === 'All' ? 'Tous' : cat}
+                    </button>
+                ))}
+            </div>
+
+            {/* Age Filter */}
+            <div className="bg-white border-4 border-black p-4 shadow-neo flex flex-wrap gap-2 justify-center">
+                <span className="w-full text-center text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Âge</span>
+                {ages.map(age => (
+                    <button 
+                        key={age}
+                        onClick={() => setSelectedAge(age)}
+                        className={`px-4 py-2 border-2 border-black font-black text-sm uppercase transition-all shadow-neo-sm hover:-translate-y-1 ${selectedAge === age ? 'bg-brand-orange text-black -rotate-1 scale-110 active:rotate-0' : 'bg-white text-black hover:bg-gray-100'}`}
+                    >
+                        {age === 'All' ? 'Tous' : age}
+                    </button>
+                ))}
+            </div>
+        </section>
 
         {/* KIDS PROGRAMS */}
         <div className="mb-24">
