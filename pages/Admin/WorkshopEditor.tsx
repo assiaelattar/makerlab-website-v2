@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSchool } from '../../contexts/SchoolContext';
+import { usePrograms } from '../../contexts/ProgramContext';
 import { Workshop } from '../../types';
 import { Button } from '../../components/Button';
 import { generateImage } from '../../services/geminiService';
@@ -16,12 +17,15 @@ const emptyWorkshop: Omit<Workshop, 'id'> = {
   image: '',
   tags: [],
   active: true,
+  parentProgramId: '',
+  workshopType: '',
 };
 
 export const WorkshopEditor: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { workshops, addWorkshop, updateWorkshop } = useSchool();
+  const { programs } = usePrograms();
   const [formData, setFormData] = useState<Omit<Workshop, 'id'>>(emptyWorkshop);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -109,8 +113,8 @@ export const WorkshopEditor: React.FC = () => {
       <div className="container mx-auto max-w-4xl">
         <Button variant="outline" onClick={() => navigate('/admin/workshop-catalog')} className="mb-8 border-2 border-black shadow-neo-sm"><ArrowLeft size={16} /> Retour au catalogue</Button>
 
-        <div className="bg-white rounded-3xl border-4 border-black shadow-neo-lg p-8">
-          <h1 className="font-display font-black text-4xl mb-8 uppercase tracking-tighter">
+        <div className="bg-white rounded-3xl border-4 border-black shadow-neo-lg p-5 md:p-8">
+          <h1 className="font-display font-black text-2xl md:text-4xl mb-6 md:mb-8 uppercase tracking-tighter">
             {id === 'new' ? 'Nouvel Atelier' : 'Modifier l\'Atelier'}
           </h1>
 
@@ -123,7 +127,7 @@ export const WorkshopEditor: React.FC = () => {
                   <input name="name" value={formData.name} onChange={handleChange} className="w-full p-4 border-4 border-black rounded-xl font-bold focus:ring-4 ring-brand-blue/20 outline-none" required placeholder="ex: Drone Racing Academy" />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block font-black text-sm uppercase mb-2">Tranche d'âge</label>
                     <input name="ageRange" value={formData.ageRange} onChange={handleChange} className="w-full p-4 border-4 border-black rounded-xl font-bold" placeholder="ex: 7-12 ans" />
@@ -137,6 +141,21 @@ export const WorkshopEditor: React.FC = () => {
                 <div>
                   <label className="block font-black text-sm uppercase mb-2">Description</label>
                   <textarea name="description" value={formData.description} onChange={handleChange} className="w-full p-4 border-4 border-black rounded-xl font-bold h-32 focus:ring-4 ring-brand-blue/20 outline-none" required placeholder="Décrivez ce que les enfants vont apprendre et créer..." />
+                </div>
+
+                <div>
+                   <label className="block font-black text-sm uppercase mb-2">Mission Parente / Type (ex: Make & Go)</label>
+                   <select 
+                      name="parentProgramId" 
+                      value={formData.parentProgramId} 
+                      onChange={handleChange} 
+                      className="w-full p-4 border-4 border-black rounded-xl font-bold focus:ring-4 ring-brand-blue/20 outline-none bg-white"
+                   >
+                      <option value="">-- Aucune (Atelier Indépendant) --</option>
+                      {programs.filter(p => p.active).map(p => (
+                         <option key={p.id} value={p.id}>{p.title} (ID: {p.id})</option>
+                      ))}
+                   </select>
                 </div>
 
                 <div>

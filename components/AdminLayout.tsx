@@ -43,15 +43,23 @@ export const AdminLayout: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gray-100 flex font-sans relative">
-            {/* Mobile Header Toggle */}
-            <div className="lg:hidden fixed top-4 left-4 z-[60] flex items-center gap-3">
-                <button 
-                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                    className="p-3 bg-brand-orange border-4 border-black shadow-neo-sm hover:shadow-none transition-all rounded-xl"
-                >
-                    {isSidebarOpen ? <X size={24} strokeWidth={3} /> : <Menu size={24} strokeWidth={3} />}
-                </button>
-            </div>
+            {/* Mobile Header Bar */}
+            <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b-4 border-black z-[60] flex items-center justify-between px-4">
+                <div className="flex items-center gap-3">
+                    <button 
+                        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                        className="p-2 bg-brand-orange border-2 border-black shadow-neo-sm hover:shadow-none transition-all rounded-lg active:scale-95"
+                    >
+                        {isSidebarOpen ? <X size={24} strokeWidth={3} /> : <Menu size={24} strokeWidth={3} />}
+                    </button>
+                    <h1 className="font-display font-black text-lg uppercase tracking-tighter leading-none">
+                        MakerLab <span className="text-brand-orange">Admin.</span>
+                    </h1>
+                </div>
+                <Link to="/" className="text-[10px] font-black uppercase text-gray-400 hover:text-black border-2 border-black/10 px-3 py-1 rounded-full transition-colors">
+                    Quitter
+                </Link>
+            </header>
 
             {/* Overlay for mobile sidebar */}
             {isSidebarOpen && (

@@ -1,15 +1,17 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Program } from '../types';
+import { Program, Workshop } from '../types';
 import { initialPrograms } from '../data/programs';
 import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
 interface ProgramContextType {
   programs: Program[];
+  workshops: Workshop[];
   addProgram: (program: Program) => void;
   updateProgram: (id: string, updatedProgram: Partial<Program>) => void;
   deleteProgram: (id: string) => void;
   getProgram: (id: string) => Program | undefined;
+  getWorkshop: (id: string) => Workshop | undefined;
   isLoading: boolean;
 }
 
@@ -17,27 +19,31 @@ const ProgramContext = createContext<ProgramContextType | undefined>(undefined);
 
 export const ProgramProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [programs, setPrograms] = useState<Program[]>(initialPrograms);
+  const [workshops, setWorkshops] = useState<Workshop[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchPrograms = async () => {
       try {
         const querySnapshot = await getDocs(collection(db, 'website-programs'));
-        const data = querySnapshot.docs.map(doc => {
-          const docData = doc.data();
-          return {
-            ...docData,
-            id: doc.id,
-            active: docData.active ?? true,
-            format: docData.format ?? 'Workshop',
-          } as Program;
-        });
+        const data = querySnapshot.docs.map(doc => ({
+          ...doc.data(),
+          id: doc.id,
+          active: doc.data().active ?? true,
+          format: doc.data().format ?? 'Workshop',
+        } as Program));
 
-        if (data.length > 0) {
-          setPrograms(data);
-        }
+        const workshopSnapshot = await getDocs(collection(db, 'website-workshops'));
+        const workshopData = workshopSnapshot.docs.map(doc => ({
+            ...doc.data(),
+            id: doc.id,
+            active: doc.data().active ?? true
+        } as Workshop));
+
+        if (data.length > 0) setPrograms(data);
+        setWorkshops(workshopData);
       } catch (error) {
-        console.warn("⚠️ Firebase offline or unreachable. Using local fallback data.", error);
+        console.warn("⚠️ Firebase offline. Using fallback.", error);
       } finally {
         setIsLoading(false);
       }
@@ -113,8 +119,12 @@ export const ProgramProvider: React.FC<{ children: ReactNode }> = ({ children })
     return programs.find(p => p.id === id);
   };
 
+  const getWorkshop = (id: string) => {
+    return workshops.find(w => w.id === id);
+  };
+
   return (
-    <ProgramContext.Provider value={{ programs, addProgram, updateProgram, deleteProgram, getProgram, isLoading }}>
+    <ProgramContext.Provider value={{ programs, workshops, addProgram, updateProgram, deleteProgram, getProgram, getWorkshop, isLoading }}>
       {children}
     </ProgramContext.Provider>
   );

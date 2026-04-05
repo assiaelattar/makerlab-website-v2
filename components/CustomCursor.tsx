@@ -1,13 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 
 export const CustomCursor: React.FC = () => {
-    const [position, setPosition] = useState({ x: 0, y: 0 });
+    const cursorRef = useRef<HTMLDivElement>(null);
+    const mousePos = useRef({ x: 0, y: 0 });
+    const cursorPos = useRef({ x: 0, y: 0 });
     const [isHovering, setIsHovering] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
+    const requestRef = useRef<number>(0);
 
     useEffect(() => {
         const onMouseMove = (e: MouseEvent) => {
-            setPosition({ x: e.clientX, y: e.clientY });
+            mousePos.current = { x: e.clientX, y: e.clientY };
             if (!isVisible) setIsVisible(true);
         };
 
@@ -26,12 +29,28 @@ export const CustomCursor: React.FC = () => {
             }
         };
 
+        const animate = () => {
+            // Smooth lerping (interpolation) for high performance
+            const easing = 0.15;
+            cursorPos.current.x += (mousePos.current.x - cursorPos.current.x) * easing;
+            cursorPos.current.y += (mousePos.current.y - cursorPos.current.y) * easing;
+
+            if (cursorRef.current) {
+                cursorRef.current.style.setProperty('--mouse-x', `${cursorPos.current.x}px`);
+                cursorRef.current.style.setProperty('--mouse-y', `${cursorPos.current.y}px`);
+            }
+            
+            requestRef.current = requestAnimationFrame(animate);
+        };
+
         window.addEventListener('mousemove', onMouseMove);
         window.addEventListener('mouseover', onMouseOver);
+        requestRef.current = requestAnimationFrame(animate);
 
         return () => {
             window.removeEventListener('mousemove', onMouseMove);
             window.removeEventListener('mouseover', onMouseOver);
+            cancelAnimationFrame(requestRef.current);
         };
     }, [isVisible]);
 
@@ -39,15 +58,17 @@ export const CustomCursor: React.FC = () => {
 
     return (
         <div 
+            ref={cursorRef}
             className="fixed inset-0 pointer-events-none z-[9999] hidden md:block"
-            style={{ mixBlendMode: 'difference' }}
+            style={{ 
+                mixBlendMode: 'difference',
+                transform: 'translate3d(var(--mouse-x, 0), var(--mouse-y, 0), 0)'
+            }}
         >
             {/* Main Crosshair */}
             <div 
-                className="absolute transition-transform duration-100 ease-out flex items-center justify-center"
+                className="absolute flex items-center justify-center transition-transform duration-300 ease-out"
                 style={{ 
-                    left: `${position.x}px`, 
-                    top: `${position.y}px`,
                     transform: `translate(-50%, -50%) scale(${isHovering ? 1.5 : 1})`
                 }}
             >

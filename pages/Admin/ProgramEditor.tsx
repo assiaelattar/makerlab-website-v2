@@ -189,56 +189,49 @@ export const ProgramEditor: React.FC = () => {
 
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Status */}
-            <div className="flex items-center gap-6 p-4 bg-gray-100 rounded-xl border border-gray-300">
-              <label className="font-bold flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={formData.active} onChange={(e) => setFormData(p => ({ ...p, active: e.target.checked }))} className="w-5 h-5 accent-brand-red" />
-                <span>Workshop Actif (Visible sur le site)</span>
+            <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4 p-4 bg-gray-100 rounded-xl border border-gray-300">
+              <label className="font-bold flex items-center gap-3 cursor-pointer p-2 bg-white md:bg-transparent rounded-lg border-2 border-black/5 md:border-0">
+                <input type="checkbox" checked={formData.active} onChange={(e) => setFormData(p => ({ ...p, active: e.target.checked }))} className="w-6 h-6 accent-brand-red" />
+                <span className="text-sm">Actif (Sur le site)</span>
               </label>
-              <div className="w-px h-6 bg-gray-300"></div>
-              <label className="font-bold flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={formData.isFeatured} onChange={(e) => setFormData(p => ({ ...p, isFeatured: e.target.checked }))} className="w-5 h-5 accent-brand-orange" />
-                <span>Mettre en avant (Recommandé)</span>
+              <div className="hidden md:block w-px h-6 bg-gray-300"></div>
+              <label className="font-bold flex items-center gap-3 cursor-pointer p-2 bg-white md:bg-transparent rounded-lg border-2 border-black/5 md:border-0">
+                <input type="checkbox" checked={formData.isFeatured} onChange={(e) => setFormData(p => ({ ...p, isFeatured: e.target.checked }))} className="w-6 h-6 accent-brand-orange" />
+                <span className="text-sm">En Avant</span>
               </label>
-              <div className="w-px h-6 bg-gray-300"></div>
-              <label className="font-bold flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={formData.trialAvailable} onChange={(e) => setFormData(p => ({ ...p, trialAvailable: e.target.checked }))} className="w-5 h-5 accent-brand-blue" />
-                <span>Atelier d'essai (Trial) disponible</span>
+              <div className="hidden md:block w-px h-6 bg-gray-300"></div>
+              <label className="font-bold flex items-center gap-3 cursor-pointer p-2 bg-white md:bg-transparent rounded-lg border-2 border-black/5 md:border-0">
+                <input type="checkbox" checked={formData.trialAvailable} onChange={(e) => setFormData(p => ({ ...p, trialAvailable: e.target.checked }))} className="w-6 h-6 accent-brand-blue" />
+                <span className="text-sm">Trial dispos.</span>
               </label>
             </div>
 
             {/* Basic Info */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
+              <div className="col-span-1 sm:col-span-2 lg:col-span-1">
                 <label className="block font-bold mb-2">Titre</label>
-                <input name="title" value={formData.title} onChange={handleChange} className="w-full p-3 border-2 border-black rounded-lg" required />
+                <input name="title" value={formData.title} onChange={handleChange} className="w-full p-4 border-2 border-black rounded-lg" required />
               </div>
-              <div>
-                <label className="block font-bold mb-2">Format (Type de programme)</label>
-                <select name="format" value={formData.format || ''} onChange={handleChange} className="w-full p-3 border-2 border-black rounded-lg">
+              <div className="col-span-1">
+                <label className="block font-bold mb-2">Format (Type)</label>
+                <select name="format" value={formData.format || ''} onChange={handleChange} className="w-full p-4 border-2 border-black rounded-lg bg-white">
                   <option value="Workshop">Workshop (Atelier)</option>
-                  <option value="Year Program">Programme Annuel (Ex: STEMQuest)</option>
-                  <option value="Holiday Camp">Stage de Vacances (Holiday Camp)</option>
-                  <option value="School Program">Programme École (B2B)</option>
+                  <option value="Year Program">Programme Annuel</option>
+                  <option value="Holiday Camp">Stage Vacances</option>
+                  <option value="School Program">Programme École</option>
                   <option value="Event">Événement spécial</option>
-                  <option value="Store Product">Produit Boutique / Kit</option>
                 </select>
               </div>
-              <div>
-                <label className="block font-bold mb-2">Audience (Catégorie principale)</label>
+              <div className="col-span-1">
+                <label className="block font-bold mb-2 text-sm uppercase">Audience principale</label>
                 <input 
                   name="category" 
                   value={formData.category} 
                   onChange={handleChange} 
                   list="category-suggestions"
-                  className="w-full p-3 border-2 border-black rounded-lg" 
-                  placeholder="ex: Enfants & Familles, Écoles..."
+                  className="w-full p-4 border-2 border-black rounded-lg bg-gray-50/50" 
+                  placeholder="ex: Enfants & Familles..."
                 />
-                <datalist id="category-suggestions">
-                  <option value="Enfants & Familles" />
-                  <option value="Écoles & Éducation" />
-                  <option value="Entrepreneuriat" />
-                  <option value="Professionnels" />
-                </datalist>
               </div>
             </div>
 

@@ -19,7 +19,8 @@ export const Programs: React.FC = () => {
   // Dynamic Categorical Data from Admin Context
   const categories = React.useMemo(() => {
     const rawCategories = Array.from(new Set(activePrograms.map(p => p.category).filter(Boolean)));
-    return ['All', ...rawCategories];
+    const essential = ['All', 'Stages Vacances', 'Drones'];
+    return Array.from(new Set([...essential, ...rawCategories]));
   }, [activePrograms]);
 
   const ages = ['All', '7-11 ans', '12-17 ans', 'Adultes'];
@@ -54,9 +55,9 @@ export const Programs: React.FC = () => {
   return (
     <div className="min-h-screen py-16 md:py-20 px-4">
       <SEO 
-        title="Nos Programmes - Robotique & Codage"
-        description="Explorez nos missions de 3h et nos programmes annuels : stage robotique Maroc, cours de codage Scratch et Python, impression 3D et plus encore."
-        keywords="cours de robotique Maroc, stage programmation enfants, apprendre à coder Casablanca, cours Scratch Maroc, programmation Python enfants"
+        title="Missions & Ateliers Robotique Casablanca" 
+        description="Parcours Ateliers Drone, Stages de Vacances Coding et Camp Robotique à Casablanca. Choisissez votre mission technologique et devenez un Maker !"
+        keywords="robotique casablanca, camp robotique casablanca, stage vacances enfant casablanca, atelier drone maroc, coding for kids"
       />
       <div className="container mx-auto">
         <ScrollReveal>

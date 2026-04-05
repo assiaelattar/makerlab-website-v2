@@ -9,7 +9,7 @@ import { useSettings } from '../contexts/SettingsContext';
 
 export const ProgramDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { getProgram } = usePrograms();
+  const { getProgram, getWorkshop, workshops } = usePrograms();
   const { settings } = useSettings();
   const program = getProgram(id || '');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -168,6 +168,60 @@ export const ProgramDetail: React.FC = () => {
             </div>
           </div>
         </ScrollReveal>
+
+        {/* ═══════════════════════════════════════════════════════
+            SECTION 1.5: MISSION COMPONENTS (CHILD WORKSHOPS)
+        ═══════════════════════════════════════════════════════ */}
+        {(() => {
+          // Combine workshops explicitly listed + those pointing to this parent
+          const explicitWorkshops = (program.childWorkshopIds || []).map(wid => getWorkshop(wid)).filter(Boolean);
+          const implicitWorkshops = workshops.filter(w => w.parentProgramId === program.id && !program.childWorkshopIds?.includes(w.id));
+          const allWorkshops = [...explicitWorkshops, ...implicitWorkshops];
+
+          if (allWorkshops.length === 0) return null;
+
+          return (
+            <ScrollReveal>
+              <section className="mb-16">
+                <div className="flex flex-col md:flex-row justify-between items-end gap-4 mb-10">
+                  <div>
+                     <h2 className="font-display font-black text-4xl uppercase border-b-8 border-brand-blue pb-4 inline-block">Modules de la Mission</h2>
+                     <p className="mt-4 font-bold text-gray-500 uppercase tracking-widest text-sm">Contenu détaillé du pack {program.title}</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {allWorkshops.map(workshop => {
+                    if (!workshop) return null;
+                    
+                    return (
+                      <div key={workshop.id} className="bg-white border-4 border-black shadow-neo hover:shadow-neo-xl transition-all group overflow-hidden flex flex-col">
+                        <div className="h-48 overflow-hidden border-b-4 border-black relative">
+                           <img src={workshop.image} alt={workshop.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                           <div className="absolute top-3 left-3 flex flex-wrap gap-1">
+                              {workshop.tags?.map(tag => (
+                                <span key={tag} className="bg-black text-white text-[10px] font-black px-2 py-1 uppercase border border-white">
+                                  {tag}
+                                </span>
+                              ))}
+                           </div>
+                        </div>
+                        <div className="p-6 flex-grow">
+                          <h4 className="font-black text-xl mb-2 uppercase text-black">{workshop.name}</h4>
+                          <p className="text-gray-600 font-bold text-sm line-clamp-3">{workshop.description}</p>
+                        </div>
+                        <div className="p-4 bg-gray-50 border-t-2 border-black flex justify-between items-center text-black">
+                           <span className="font-black text-xs uppercase text-gray-400">{workshop.duration}</span>
+                           <span className="font-black text-xs uppercase text-brand-blue">Inclus</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            </ScrollReveal>
+          );
+        })()}
 
         {/* ═══════════════════════════════════════════════════════
             SECTION 2: POUR LES PARENTS — Conversion Section

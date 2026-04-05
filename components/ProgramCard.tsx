@@ -61,6 +61,15 @@ export const ProgramCard: React.FC<Props> = ({ program, index = 0 }) => {
       className={`${theme.bg} ${theme.text} rounded-2xl border-4 border-black shadow-neo overflow-hidden flex flex-col h-full group hover:shadow-neo-xl relative z-10 hover:z-20`}
     >
 
+      {/* 🚀 Trending Badge (Based on GSC Search Intent) */}
+      {(program.title.toLowerCase().includes('camp') || 
+        program.title.toLowerCase().includes('drone') || 
+        program.category?.toLowerCase().includes('vacances')) && (
+        <div className="absolute top-4 left-4 z-30 bg-brand-orange text-black border-2 border-black px-3 py-1 font-black text-[10px] uppercase tracking-widest shadow-neo-sm -rotate-6 animate-bounce">
+          🔥 Populaire
+        </div>
+      )}
+
       {/* Image Header */}
       <div className="h-64 overflow-hidden border-b-4 border-black relative bg-gray-100">
         <AiImage

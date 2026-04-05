@@ -125,6 +125,9 @@ export interface Program {
   description: string;
   shortDescription?: string;
   format?: 'Workshop' | 'Year Program' | 'School Program';
+  programType?: 'annual' | 'camp' | 'workshop' | 'birthday'; // Enhanced Taxonomy
+  childWorkshopIds?: string[]; // Links to sub-workshops (sons)
+  parentProgramId?: string;    // Links to parent mission (e.g. Make & Go)
   isFeatured?: boolean;
   image: string;
   imagePrompt?: string;
@@ -184,6 +187,8 @@ export interface Workshop {
   image: string;
   tags: string[];
   active: boolean;
+  parentProgramId?: string; // Link to Parent Mission (e.g. Make & Go)
+  workshopType?: string;      // Free-form category or type
 }
 
 export interface SchoolPartner {

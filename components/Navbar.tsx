@@ -33,14 +33,9 @@ export const Navbar: React.FC<NavbarProps> = ({ scrolled = false }) => {
     }
   }, [isOpen]);
 
-  // Don't show navbar on Admin pages
+  // Don't show public navbar on Admin pages (AdminLayout handles its own)
   if (location.pathname.startsWith('/admin')) {
-    return (
-      <nav className="sticky top-0 z-50 bg-black text-white p-4 flex justify-between items-center">
-        <Link to="/" className="font-bold font-display flex items-center gap-2 text-xl"><img src="/logo-icon.png" alt="Logo Icon" className="w-8 h-8 object-contain bg-white rounded-full p-0.5" /> Makerlab Academy <span className="text-xs bg-brand-green px-2 rounded">ADMIN</span></Link>
-        <Link to="/" className="text-sm underline">Retour au site</Link>
-      </nav>
-    );
+    return null;
   }
 
   return (

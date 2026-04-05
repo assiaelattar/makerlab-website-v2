@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '../components/Button';
 import { db } from '../firebase';
 import { collection, addDoc } from 'firebase/firestore';
+import { SEO } from '../components/SEO';
 import { Phone, CheckCircle, Mail, MapPin, MessageCircle } from 'lucide-react';
 
 export const Register: React.FC = () => {
@@ -115,7 +116,12 @@ export const Register: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen py-16 md:py-24 px-4 bg-gray-50">
+    <div className="min-h-screen py-16 md:py-24 px-4 bg-gray-50 text-black">
+      <SEO 
+        title="Inscription Ateliers & Camps Robotique" 
+        description="Réservez votre place pour nos ateliers de robotique, coding et drones à Casablanca. Inscription rapide en 3 étapes pour les futurs Makers !"
+        keywords="inscription robotique casablanca, réserver atelier coding, camp vacances inscription, makerlab academy registration"
+      />
       <div className="container mx-auto max-w-3xl">
         
         {/* Mission Progress Bar */}

@@ -21,9 +21,9 @@ export const SEO: React.FC<SEOProps> = ({
   schemaData
 }) => {
   const location = useLocation();
-  const baseTitle = "MakerLab Academy | Robotics & Coding for Kids in Casablanca";
-  const baseDescription = "MakerLab Academy is the leading STEM education center in Casablanca. We offer robotics, coding, AI, and 3D printing workshops for kids and teens (7-17 years). No kits, real engineering!";
-  const baseKeywords = "robotique enfants Casablanca, cours de codage Maroc, STEM activities Morocco, coding for kids Casablanca, ateliers scientifiques enfants";
+  const baseTitle = "MakerLab Academy | Ateliers de Robotique & Coding pour Enfants à Casablanca";
+  const baseDescription = "Inscrivez vos enfants au meilleur Camp Robotique à Casablanca. Ateliers 100% pratiques sur les Drones, le Codage et l'Ingénierie. Devenez un Créateur, pas un simple assembleur !";
+  const baseKeywords = "robotique enfants Casablanca, camp robotique casablanca, stages de vacances casablanca, école de robotique maroc, drone workshop casablanca, coding for kids maroc";
 
   useEffect(() => {
     // Update Title
