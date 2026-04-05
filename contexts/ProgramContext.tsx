@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { Program, Workshop } from '../types';
 import { initialPrograms } from '../data/programs';
 import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
@@ -115,13 +115,13 @@ export const ProgramProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
-  const getProgram = (id: string) => {
+  const getProgram = useCallback((id: string) => {
     return programs.find(p => p.id === id);
-  };
+  }, [programs]);
 
-  const getWorkshop = (id: string) => {
+  const getWorkshop = useCallback((id: string) => {
     return workshops.find(w => w.id === id);
-  };
+  }, [workshops]);
 
   return (
     <ProgramContext.Provider value={{ programs, workshops, addProgram, updateProgram, deleteProgram, getProgram, getWorkshop, isLoading }}>

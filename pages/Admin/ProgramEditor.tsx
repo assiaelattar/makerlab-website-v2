@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { usePrograms } from '../../contexts/ProgramContext';
 import { Program } from '../../types';
@@ -49,12 +49,18 @@ export const ProgramEditor: React.FC = () => {
   const [scheduleInput, setScheduleInput] = useState('');
   const [tagInput, setTagInput] = useState('');
 
+  const hasInitialized = useRef(false);
+
   useEffect(() => {
     if (id && id !== 'new') {
       const existing = getProgram(id);
-      if (existing) setFormData(existing);
-    } else {
+      if (existing && !hasInitialized.current) {
+        setFormData(existing);
+        hasInitialized.current = true;
+      }
+    } else if (id === 'new' && !hasInitialized.current) {
       setFormData({ ...emptyProgram, id: Date.now().toString() });
+      hasInitialized.current = true;
     }
   }, [id, getProgram]);
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSchool } from '../../contexts/SchoolContext';
 import { usePrograms } from '../../contexts/ProgramContext';
@@ -32,13 +32,18 @@ export const WorkshopEditor: React.FC = () => {
   const [tagInput, setTagInput] = useState('');
   const [imagePrompt, setImagePrompt] = useState('');
 
+  const hasInitialized = useRef(false);
+
   useEffect(() => {
     if (id && id !== 'new') {
       const existing = workshops.find(w => w.id === id);
-      if (existing) {
+      if (existing && !hasInitialized.current) {
         const { id: _, ...data } = existing;
         setFormData(data);
+        hasInitialized.current = true;
       }
+    } else if (id === 'new' && !hasInitialized.current) {
+      hasInitialized.current = true;
     }
   }, [id, workshops]);
 

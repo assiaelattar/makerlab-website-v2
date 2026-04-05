@@ -44,7 +44,6 @@ import { AdminLandingPages } from './pages/Admin/AdminLandingPages';
 import { AdminLandingEditor } from './pages/Admin/AdminLandingEditor';
 import { AdminMissions } from './pages/Admin/AdminMissions';
 import { ProgramLanding } from './pages/ProgramLanding';
-import { CustomCursor } from './components/CustomCursor';
 import { SocialProofToast } from './components/SocialProofToast';
 import { AdminCalendar } from './pages/Admin/AdminCalendar';
 
@@ -231,7 +230,6 @@ const App: React.FC = () => {
                     </main>
                     <ChatAssistant />
                     <Footer />
-                    <CustomCursor />
                     <SocialProofToast />
                   </div>
                 } />
