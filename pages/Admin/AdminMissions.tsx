@@ -32,10 +32,10 @@ export const AdminMissions: React.FC = () => {
         </div>
         <div className="flex gap-3">
           {activeTab === 'missions' && (
-            <Button onClick={() => setEditingMission({ status: 'open', spotsTotal: 20, spotsLeft: 20 })} variant="primary" className="shadow-neo bg-orange-500 border-black text-black font-black uppercase"><Plus size={20} /> Nouvelle Mission</Button>
+            <Button onClick={() => setEditingMission({ status: 'open', spotsTotal: 20, spotsLeft: 20, active: true })} variant="primary" className="shadow-neo bg-orange-500 border-black text-black font-black uppercase"><Plus size={20} /> Nouvelle Mission</Button>
           )}
           {activeTab === 'tracks' && (
-            <Button onClick={() => setEditingTrack({ benefits: ['', '', ''] })} variant="primary" className="shadow-neo bg-blue-500 border-black text-white font-black uppercase"><Plus size={20} /> Nouveau Parcours</Button>
+            <Button onClick={() => setEditingTrack({ benefits: ['', '', ''], active: true })} variant="primary" className="shadow-neo bg-blue-500 border-black text-white font-black uppercase"><Plus size={20} /> Nouveau Parcours</Button>
           )}
         </div>
       </div>
@@ -84,27 +84,54 @@ export const AdminMissions: React.FC = () => {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {missions.map(mission => (
-                    <div key={mission.id} className="group border-4 border-black rounded-2xl overflow-hidden hover:-translate-y-1 hover:shadow-neo transition-all bg-gray-50">
+                   {missions.map(mission => (
+                    <div key={mission.id} className={`group border-4 border-black rounded-2xl overflow-hidden hover:-translate-y-1 hover:shadow-neo transition-all bg-gray-50 flex flex-col ${!mission.active ? 'grayscale opacity-75' : ''}`}>
                       <div className="aspect-video bg-gray-200 relative overflow-hidden border-b-4 border-black flex items-center justify-center">
                         {mission.coverImage ? (
                           <img src={mission.coverImage} className="w-full h-full object-cover group-hover:scale-105 transition-transform" alt="" />
                         ) : (
                           <ImageIcon className="text-gray-400 opacity-50" size={32} />
                         )}
-                        <div className="absolute top-2 right-2 bg-black text-white px-2 py-1 text-[10px] font-black uppercase rounded">
-                          {mission.category}
+                        <div className="absolute top-2 left-2 flex gap-2">
+                          <div className="bg-black text-white px-2 py-1 text-[10px] font-black uppercase rounded">
+                            {mission.category}
+                          </div>
+                          {!mission.active && (
+                            <div className="bg-red-500 text-white px-2 py-1 text-[10px] font-black uppercase rounded flex items-center gap-1">
+                              <X size={10} /> Masqué
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Admin Action Menu on Card */}
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); setEditingMission(mission); }}
+                            className="w-12 h-12 bg-white border-2 border-black rounded-full flex items-center justify-center shadow-neo-sm hover:-translate-y-1 transition-transform"
+                            title="Modifier"
+                          >
+                            <Settings size={20} />
+                          </button>
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); if(window.confirm('Supprimer cette mission ?')) deleteMission(mission.id); }}
+                            className="w-12 h-12 bg-red-500 text-white border-2 border-black rounded-full flex items-center justify-center shadow-neo-sm hover:-translate-y-1 transition-transform"
+                            title="Supprimer"
+                          >
+                            <X size={20} strokeWidth={3} />
+                          </button>
                         </div>
                       </div>
-                      <div className="p-4">
-                        <div className="flex items-start justify-between mb-2">
-                          <h3 className="font-black text-lg leading-tight">{mission.title}</h3>
+                      <div className="p-4 flex-1 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-start justify-between mb-2">
+                            <h3 className="font-black text-lg leading-tight">{mission.title}</h3>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs font-bold text-orange-600 bg-orange-100 w-fit px-2 py-1 rounded-md mb-3 border border-orange-200">
+                            <Calendar size={14} />
+                            {mission.date}
+                          </div>
+                          <p className="text-sm text-gray-600 line-clamp-2 mb-4 font-medium">{mission.description}</p>
                         </div>
-                        <div className="flex items-center gap-2 text-xs font-bold text-orange-600 bg-orange-100 w-fit px-2 py-1 rounded-md mb-3 border border-orange-200">
-                          <Calendar size={14} />
-                          {mission.date}
-                        </div>
-                        <p className="text-sm text-gray-600 line-clamp-2 mb-4 font-medium">{mission.description}</p>
                         <div className="flex items-center justify-between pt-4 border-t-2 border-gray-200">
                           <span className="font-black">{mission.price}</span>
                           <span className="text-xs font-bold text-gray-500">{mission.spotsTotal - mission.spotsLeft}/{mission.spotsTotal} réservées</span>
@@ -129,22 +156,45 @@ export const AdminMissions: React.FC = () => {
               ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {tracks.map(track => (
-                    <div key={track.id} className="flex flex-col sm:flex-row border-4 border-black rounded-2xl overflow-hidden hover:-translate-y-1 hover:shadow-neo transition-all bg-white">
-                      <div className="w-full sm:w-2/5 aspect-square sm:aspect-auto sm:h-full bg-gray-200 border-b-4 sm:border-b-0 sm:border-r-4 border-black relative">
+                    <div key={track.id} className={`group flex flex-col sm:flex-row border-4 border-black rounded-2xl overflow-hidden hover:-translate-y-1 hover:shadow-neo transition-all bg-white relative ${!track.active ? 'grayscale opacity-75' : ''}`}>
+                      <div className="w-full sm:w-2/5 aspect-square sm:aspect-auto sm:h-full bg-gray-200 border-b-4 sm:border-b-0 sm:border-r-4 border-black relative overflow-hidden">
                          {track.coverImage ? (
-                            <img src={track.coverImage} className="w-full h-full object-cover" alt="" />
+                            <img src={track.coverImage} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="" />
                           ) : (
                             <div className="flex items-center justify-center w-full h-full"><ImageIcon className="text-gray-400 opacity-50" size={32} /></div>
                           )}
-                          <div className="absolute bottom-2 left-2 right-2 bg-black text-white px-3 py-1.5 text-xs font-black uppercase text-center rounded">
-                            {track.price}
+                          <div className="absolute top-2 left-2 flex gap-2">
+                            <div className="bg-black text-white px-3 py-1.5 text-[10px] font-black uppercase text-center rounded">
+                              {track.price}
+                            </div>
+                            {!track.active && (
+                              <div className="bg-red-500 text-white px-2 py-1 text-[10px] font-black uppercase rounded flex items-center gap-1">
+                                <X size={10} /> Masqué
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Admin Action Overlay */}
+                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 backdrop-blur-[2px]">
+                            <button 
+                              onClick={() => setEditingTrack(track)}
+                              className="w-10 h-10 bg-white border-2 border-black rounded-full flex items-center justify-center shadow-neo-sm hover:-translate-y-1 transition-transform"
+                            >
+                              <Settings size={20} />
+                            </button>
+                            <button 
+                              onClick={() => { if(window.confirm('Supprimer ce parcours ?')) deleteTrack(track.id); }}
+                              className="w-10 h-10 bg-red-500 text-white border-2 border-black rounded-full flex items-center justify-center shadow-neo-sm hover:-translate-y-1 transition-transform"
+                            >
+                              <X size={20} strokeWidth={3} />
+                            </button>
                           </div>
                       </div>
                       <div className="p-5 flex-1 content-center">
                         <h3 className="font-black text-xl mb-2">{track.title}</h3>
                         <p className="text-sm text-gray-600 mb-4 line-clamp-3">{track.description}</p>
-                        <ul className="space-y-1">
-                          {track.benefits.slice(0, 3).map((b, i) => (
+                        <ul className="space-y-1 text-left">
+                          {(track.benefits || []).slice(0, 3).map((b, i) => (
                             <li key={i} className="text-xs font-bold flex gap-2"><span className="text-green-500">✓</span> {b}</li>
                           ))}
                         </ul>
@@ -239,6 +289,20 @@ export const AdminMissions: React.FC = () => {
                 <label className="block text-xs font-black uppercase mb-1">Description</label>
                 <textarea rows={3} value={editingMission.description || ''} onChange={e => setEditingMission({ ...editingMission, description: e.target.value })} className="w-full p-3 border-2 border-black rounded-xl font-medium" />
               </div>
+
+               {/* Active Toggle */}
+               <div className="p-4 bg-gray-100 border-2 border-black rounded-xl flex items-center justify-between">
+                <div>
+                  <h4 className="font-black text-sm uppercase">Mission Active</h4>
+                  <p className="text-[10px] font-bold text-gray-500 uppercase">Si décoché, la mission sera masquée du site public</p>
+                </div>
+                <input 
+                  type="checkbox" 
+                  checked={editingMission.active ?? true} 
+                  onChange={e => setEditingMission({ ...editingMission, active: e.target.checked })}
+                  className="w-8 h-8 rounded-lg border-4 border-black accent-green-500 transition-all cursor-pointer"
+                />
+              </div>
               
               <div className="grid grid-cols-2 gap-4 border-t-2 border-gray-100 pt-4">
                 <div>
@@ -320,6 +384,20 @@ export const AdminMissions: React.FC = () => {
               <div>
                 <label className="block text-xs font-black uppercase mb-1">Description Courte</label>
                 <textarea rows={2} value={editingTrack.description || ''} onChange={e => setEditingTrack({ ...editingTrack, description: e.target.value })} className="w-full p-3 border-2 border-black rounded-xl font-medium" />
+              </div>
+
+               {/* Track Active Toggle */}
+               <div className="p-4 bg-gray-100 border-2 border-black rounded-xl flex items-center justify-between">
+                <div>
+                  <h4 className="font-black text-sm uppercase">Parcours Actif</h4>
+                  <p className="text-[10px] font-bold text-gray-500 uppercase">Si décoché, ce pack sera masqué du site public</p>
+                </div>
+                <input 
+                  type="checkbox" 
+                  checked={editingTrack.active ?? true} 
+                  onChange={e => setEditingTrack({ ...editingTrack, active: e.target.checked })}
+                  className="w-8 h-8 rounded-lg border-4 border-black accent-blue-500 transition-all cursor-pointer"
+                />
               </div>
               
               <div className="border-t-2 border-gray-100 pt-4">

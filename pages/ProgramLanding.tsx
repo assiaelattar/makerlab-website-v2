@@ -546,11 +546,11 @@ export const ProgramLanding: React.FC = () => {
 
   let visibleMissions: (Mission | MissionBox)[] = [];
   if (lp?.missionIds && lp.missionIds.length > 0) {
-    visibleMissions = missions.filter(m => lp.missionIds!.includes(m.id));
+    visibleMissions = missions.filter(m => lp.missionIds!.includes(m.id) && m.active !== false);
   } else if (lp?.missionBoxes && lp.missionBoxes.length > 0) {
     visibleMissions = lp.missionBoxes;
   } else {
-    visibleMissions = missions.filter(m => m.status !== 'full');
+    visibleMissions = missions.filter(m => m.status !== 'full' && m.active !== false);
   }
 
   return (
@@ -773,7 +773,7 @@ export const ProgramLanding: React.FC = () => {
             </Reveal>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-14">
-              {tracks?.map((track, i) => (
+              {tracks?.filter(t => t.active !== false).map((track, i) => (
                 <Reveal key={track.id} delay={i * 100}>
                   <div className="relative rounded-3xl border-4 border-white/10 bg-black/50 overflow-hidden card-theme transition-all duration-300 group shadow-2xl flex flex-col h-full"
                     style={{ borderColor: `rgba(${theme.primaryRGB}, 0.1)` }}>

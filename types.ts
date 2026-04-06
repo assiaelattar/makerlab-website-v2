@@ -105,6 +105,7 @@ export interface Mission {
   spotsLeft: number;
   status: 'open' | 'limited' | 'full';
   trackId?: string; // Links this mission directly to a bundle
+  active: boolean;
 }
 
 export interface Track {
@@ -114,6 +115,7 @@ export interface Track {
   coverImage?: string;
   price: string; // e.g., "1200 DHS"
   benefits: string[]; // Key selling points for the UI cards
+  active: boolean;
 }
 
 export interface Program {
