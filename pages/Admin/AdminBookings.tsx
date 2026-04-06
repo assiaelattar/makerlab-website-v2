@@ -16,6 +16,7 @@ interface Booking {
     preferredDate: string;
     notes?: string;
     status: 'pending' | 'confirmed' | 'cancelled';
+    selectedPack?: string;
     createdAt: string;
 }
 
@@ -143,14 +144,22 @@ export const AdminBookings: React.FC = () => {
 
                                 {/* Actions & Status */}
                                 <div className="lg:w-1/3 flex flex-col justify-between items-end gap-4">
-                                    <div className={`px-4 py-2 border-2 border-black font-black text-xs uppercase rounded-lg flex items-center gap-2 ${
-                                        booking.status === 'confirmed' ? 'bg-brand-green text-white' : 
-                                        booking.status === 'cancelled' ? 'bg-red-100 text-red-600' : 'bg-brand-orange text-black'
-                                    }`}>
-                                        {booking.status === 'pending' && <Clock size={14} />}
-                                        {booking.status === 'confirmed' && <CheckCircle size={14} />}
-                                        {booking.status === 'cancelled' && <Trash2 size={14} />}
-                                        {booking.status}
+                                    <div className="flex flex-col items-end gap-2">
+                                        <div className={`px-4 py-2 border-2 border-black font-black text-xs uppercase rounded-lg flex items-center gap-2 ${
+                                            booking.status === 'confirmed' ? 'bg-brand-green text-white' : 
+                                            booking.status === 'cancelled' ? 'bg-red-100 text-red-600' : 'bg-brand-orange text-black'
+                                        }`}>
+                                            {booking.status === 'pending' && <Clock size={14} />}
+                                            {booking.status === 'confirmed' && <CheckCircle size={14} />}
+                                            {booking.status === 'cancelled' && <Trash2 size={14} />}
+                                            {booking.status}
+                                        </div>
+
+                                        {booking.selectedPack && (
+                                            <div className="bg-black text-white px-3 py-1 border-2 border-black font-black text-[10px] uppercase rounded-lg shadow-neo-sm">
+                                                Formule: {booking.selectedPack}
+                                            </div>
+                                        )}
                                     </div>
 
                                     {booking.notes && (

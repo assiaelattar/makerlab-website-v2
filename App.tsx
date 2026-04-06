@@ -46,6 +46,7 @@ import { AdminMissions } from './pages/Admin/AdminMissions';
 import { ProgramLanding } from './pages/ProgramLanding';
 import { SocialProofToast } from './components/SocialProofToast';
 import { AdminCalendar } from './pages/Admin/AdminCalendar';
+import { ThankYou } from './pages/ThankYou';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -163,6 +164,7 @@ const App: React.FC = () => {
               <Routes>
                 {/* ── Standalone marketing funnel (no Navbar / Footer) ── */}
                 <Route path="/lp/:id" element={<ProgramLanding />} />
+                <Route path="/thanks" element={<ThankYou />} />
 
                 {/* ── Everything else uses the standard layout shell ── */}
                 <Route path="*" element={

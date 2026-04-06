@@ -68,6 +68,17 @@ export interface LandingPageData {
   // Block 6 Final CTA
   finalCtaHeadline?: string;
   finalCtaBody?: string;
+
+  // Thank You Page Configuration
+  thankYou?: {
+    headline?: string;
+    subHeadline?: string;
+    videoUrl?: string;
+    benefits?: string[];
+    showMarquee?: boolean;
+    showTrustPillars?: boolean;
+    showPacks?: boolean;
+  };
 }
 
 export interface LandingLead {
@@ -90,7 +101,22 @@ export interface LandingLead {
   whatsapp: string;
   createdAt: string;
 
+  selectedPack?: string;
   paymentStatus?: 'Deposit' | 'Full Bundle' | 'Pending';
+}
+
+export interface OrientationLead {
+  id?: string;
+  parentName: string;
+  parentEmail: string;
+  parentPhone: string;
+  childName: string;
+  childAge: string;
+  interests: string[];
+  level: string;
+  additionalNotes?: string;
+  status: 'Pending' | 'Contacted' | 'Closed';
+  createdAt: string;
 }
 
 export interface Mission {
@@ -234,5 +260,6 @@ export interface Enrollment {
   parentEmail: string;
   parentPhone: string;
   status: 'Pending' | 'Confirmed' | 'Paid';
+  selectedPack?: string;
   createdAt: string;
 }

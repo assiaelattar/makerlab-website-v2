@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { useParams, Navigate } from 'react-router-dom';
+import { useParams, Navigate, useNavigate } from 'react-router-dom';
 import { usePrograms } from '../contexts/ProgramContext';
 import { useMissions } from '../contexts/MissionContext';
 import { LandingLead, Mission, Track, MissionBox } from '../types';
@@ -253,6 +253,7 @@ const TestimonialsSection: React.FC<{ theme: any }> = ({ theme }) => {
 
 /* ─── Drawer Checkout -------------------------------------------------------- */
 const DrawerCheckout: React.FC<{ selection: Mission | Track | MissionBox | null; programId: string; programTitle: string; theme: any; onClose: () => void; ctaMode?: 'booking' | 'lead' }> = ({ selection, programId, programTitle, theme, onClose, ctaMode }) => {
+  const navigate = useNavigate();
   const [form, setForm] = useState({ parentName: '', childName: '', childAge: '', whatsapp: '' });
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
@@ -288,7 +289,17 @@ const DrawerCheckout: React.FC<{ selection: Mission | Track | MissionBox | null;
         lead.missionDate = (selection as any).date; 
       }
       
-      await addDoc(collection(db, 'website-landing-leads'), lead);
+      const docRef = await addDoc(collection(db, 'website-landing-leads'), lead);
+      
+      // Marketing redirect to Thank You page
+      const params = new URLSearchParams({
+        leadId: docRef.id,
+        programId: programId || '',
+        childName: form.childName,
+        programTitle: targetName || programTitle,
+        type: isTrack ? 'track' : (isLeadMode ? 'lead' : 'mission')
+      });
+      navigate(`/thanks?${params.toString()}`);
     } catch (_) {}
     setLoading(false); setDone(true);
   };

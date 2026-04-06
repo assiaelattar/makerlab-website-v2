@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useSchool } from '../contexts/SchoolContext';
 import { Offer, SchoolPartner, Period, Workshop, Enrollment } from '../types';
 import { Button } from '../components/Button';
@@ -8,6 +8,7 @@ import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 
 export const SchoolLanding: React.FC = () => {
+  const navigate = useNavigate();
   const { slug } = useParams<{ slug: string }>();
   const { getOfferBySlug, addEnrollment, isLoading: contextLoading } = useSchool();
   
@@ -58,6 +59,7 @@ export const SchoolLanding: React.FC = () => {
     
     setIsSubmitting(true);
     try {
+      let firstId = '';
       for (const workshop of cart) {
         const enrollment: Omit<Enrollment, 'id'> = {
           offerId: data.offer.id,
@@ -66,8 +68,19 @@ export const SchoolLanding: React.FC = () => {
           status: 'Pending',
           createdAt: new Date().toISOString()
         };
-        await addEnrollment(enrollment);
+        const id = await addEnrollment(enrollment);
+        if (!firstId) firstId = id;
       }
+      
+      const params = new URLSearchParams({
+        leadId: firstId,
+        programId: cart[0]?.parentProgramId || '',
+        childName: formData.childName,
+        programTitle: data.school.name,
+        type: 'enrollment'
+      });
+      navigate(`/thanks?${params.toString()}`);
+      
       setSubmitted(true);
       setTimeout(() => {
         setShowModal(false);

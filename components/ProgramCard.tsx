@@ -1,14 +1,15 @@
-
 import React, { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Clock, Trophy, Zap, Star, Calendar } from 'lucide-react';
-import { Program } from '../types';
+import { Program, Mission } from '../types';
 import { AiImage } from './AiImage';
 
 interface Props {
-  program: Program;
+  program: Program | Mission;
   index?: number;
 }
+
+const DEFAULT_MISSION_IMG = 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=800';
 
 export const ProgramCard: React.FC<Props> = ({ program, index = 0 }) => {
   // Brand colors cycle
@@ -61,8 +62,15 @@ export const ProgramCard: React.FC<Props> = ({ program, index = 0 }) => {
       className={`${theme.bg} ${theme.text} rounded-2xl border-4 border-black shadow-neo overflow-hidden flex flex-col h-full group hover:shadow-neo-xl relative z-10 hover:z-20`}
     >
 
+      {/* 🧩 Context Badge — "Make & Go" Theme Indicator */}
+      {('date' in program) && (
+        <div className="absolute top-4 left-4 z-30 bg-black text-white border-2 border-white px-3 py-1 font-black text-[10px] uppercase tracking-widest shadow-neo-sm rotate-3">
+          🚀 Session Unique
+        </div>
+      )}
+
       {/* 🚀 Trending Badge (Based on GSC Search Intent) */}
-      {(program.title.toLowerCase().includes('camp') || 
+      {!('date' in program) && (program.title.toLowerCase().includes('camp') || 
         program.title.toLowerCase().includes('drone') || 
         program.category?.toLowerCase().includes('vacances')) && (
         <div className="absolute top-4 left-4 z-30 bg-brand-orange text-black border-2 border-black px-3 py-1 font-black text-[10px] uppercase tracking-widest shadow-neo-sm -rotate-6 animate-bounce">
@@ -73,9 +81,9 @@ export const ProgramCard: React.FC<Props> = ({ program, index = 0 }) => {
       {/* Image Header */}
       <div className="h-64 overflow-hidden border-b-4 border-black relative bg-gray-100">
         <AiImage
-          src={program.image}
-          prompt={program.imagePrompt || ''}
-          alt={program.title}
+          src={('coverImage' in program && program.coverImage) ? program.coverImage : (('image' in program && program.image) ? (program as any).image : DEFAULT_MISSION_IMG)}
+          prompt={'imagePrompt' in program ? program.imagePrompt || '' : ''}
+          alt={('title' in program) ? program.title : (program as any).name}
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
         />
 
@@ -86,7 +94,7 @@ export const ProgramCard: React.FC<Props> = ({ program, index = 0 }) => {
         </div>
 
         {/* Tags / Themes - Individual mini badges */}
-        {program.tags && program.tags.length > 0 && (
+        {!('date' in program) && program.tags && program.tags.length > 0 && (
           <div className="absolute top-16 right-4 flex flex-col items-end gap-2 z-10 pointer-events-none">
             {program.tags.map((tag, i) => (
               <span key={i} className="bg-black text-white px-2 py-1 border border-white text-[10px] font-black uppercase tracking-tighter shadow-neo-sm transform translate-x-2 group-hover:translate-x-0 transition-transform duration-300" style={{ transitionDelay: `${i * 50}ms` }}>
@@ -99,7 +107,7 @@ export const ProgramCard: React.FC<Props> = ({ program, index = 0 }) => {
         {/* Level/XP Badge */}
         <div className="absolute bottom-0 left-0 bg-black text-white px-4 py-2 rounded-tr-xl font-bold text-xs md:text-sm flex items-center gap-2 border-t-2 border-r-2 border-white/20">
           <Star size={14} strokeWidth={3} className="text-brand-orange fill-brand-orange" />
-          <span>XP: +{program.stats?.[0]?.value || 300}</span>
+          <span>XP: +{('stats' in program && program.stats?.[0]?.value) || 300}</span>
         </div>
 
         {/* Overlay on hover */}
@@ -114,14 +122,14 @@ export const ProgramCard: React.FC<Props> = ({ program, index = 0 }) => {
       {/* Body Area */}
       <div className="p-5 md:p-6 flex flex-col flex-grow relative">
         <h3 className={`font-display font-black text-2xl md:text-3xl mb-3 leading-tight transition-colors line-clamp-2 uppercase tracking-wide`}>
-          {program.title}
+          {('title' in program) ? program.title : (program as any).name}
         </h3>
         <p className={`${theme.subtext} mb-6 flex-grow text-base font-bold leading-relaxed border-l-4 ${theme.text === 'text-white' ? 'border-white' : 'border-black'} pl-4 line-clamp-3 opacity-90`}>
           {program.description}
         </p>
 
         {/* Schedule Preview */}
-        {program.schedule && program.schedule.length > 0 && (
+        {('schedule' in program && program.schedule && program.schedule.length > 0) && (
           <div className={`mb-4 text-xs font-black flex items-center gap-2 uppercase tracking-widest`}>
             <Calendar size={16} strokeWidth={3} />
             <span>Prochain: {program.schedule[0]}</span>
@@ -134,8 +142,12 @@ export const ProgramCard: React.FC<Props> = ({ program, index = 0 }) => {
             <Trophy size={20} strokeWidth={3} />
           </div>
           <div className="flex flex-col overflow-hidden text-black">
-            <span className={`text-[10px] md:text-xs font-black uppercase tracking-widest opacity-80`}>Tu repars avec :</span>
-            <span className="text-xs md:text-sm font-black truncate uppercase">{program.benefits || 'Compétences + Certif'}</span>
+            <span className={`text-[10px] md:text-xs font-black uppercase tracking-widest opacity-80`}>
+              {('date' in program) ? 'Thématique :' : 'Tu repars avec :'}
+            </span>
+            <span className="text-xs md:text-sm font-black truncate uppercase">
+              {('date' in program) ? (program as any).title : (program.benefits || 'Compétences + Certif')}
+            </span>
           </div>
         </div>
 
@@ -153,13 +165,13 @@ export const ProgramCard: React.FC<Props> = ({ program, index = 0 }) => {
         {/* Footer Buttons */}
         <div className="mt-auto space-y-3">
           <div className="flex gap-2">
-            <Link to={`/programs/${program.id}`} className="flex-1">
+            <Link to={('date' in program) ? `/programs/kids-2` : `/programs/${program.id}`} className="flex-1">
               <button className={`w-full bg-white text-black p-3 rounded-none border-4 border-black font-black uppercase tracking-widest text-xs flex items-center justify-center gap-1 hover:bg-gray-100 transition-all`}>
                 Détails
               </button>
             </Link>
             
-            {program.trialAvailable && (
+            {('trialAvailable' in program && program.trialAvailable) && (
               <Link to={`/booking/${program.id}?type=trial`} className="flex-1">
                 <button className={`w-full bg-brand-blue text-black p-3 rounded-none border-4 border-black font-black uppercase tracking-widest text-xs flex items-center justify-center gap-1 hover:translate-x-0.5 hover:translate-y-0.5 transition-all shadow-neo-sm`}>
                    Essai Offert
@@ -170,8 +182,11 @@ export const ProgramCard: React.FC<Props> = ({ program, index = 0 }) => {
 
           <button 
             onClick={() => {
-              if (program.bookingType === 'external' && program.externalBookingUrl) {
-                window.open(program.externalBookingUrl, '_blank');
+              if (!('date' in program) && (program as Program).bookingType === 'external' && (program as Program).externalBookingUrl) {
+                window.open((program as Program).externalBookingUrl, '_blank');
+              } else if ('date' in program) {
+                // It's a mission, point to Make & Go program with missionId
+                window.location.href = `#/booking/kids-2?missionId=${program.id}`;
               } else {
                 window.location.href = `#/booking/${program.id}`;
               }

@@ -3,6 +3,7 @@ import { SEO } from '../components/SEO';
 import { ProgramCard } from '../components/ProgramCard';
 import { ScrollReveal } from '../components/ScrollReveal';
 import { usePrograms } from '../contexts/ProgramContext';
+import { useMissions } from '../contexts/MissionContext';
 import { ParallaxGallery } from '../components/ParallaxGallery';
 import { useSettings } from '../contexts/SettingsContext';
 import { StatsBanner } from '../components/StatsBanner';
@@ -13,13 +14,14 @@ export const Programs: React.FC = () => {
   const [selectedAge, setSelectedAge] = React.useState<string>('All');
   
   const { programs } = usePrograms();
+  const { missions } = useMissions();
   const { settings } = useSettings();
   const activePrograms = programs.filter(p => p.active);
   
   // Dynamic Categorical Data from Admin Context
   const categories = React.useMemo(() => {
     const rawCategories = Array.from(new Set(activePrograms.map(p => p.category).filter(Boolean)));
-    const essential = ['All', 'Stages Vacances', 'Drones'];
+    const essential = ['All', 'Stages Vacances', 'Unitaires (3h)', 'Drones'];
     return Array.from(new Set([...essential, ...rawCategories]));
   }, [activePrograms]);
 
@@ -38,11 +40,26 @@ export const Programs: React.FC = () => {
     return matchesCategory && matchesAge;
   });
 
-  const kidsPrograms = filteredPrograms.filter(p => 
-    p.category === 'Enfants & Familles' || 
-    (['Coding', 'Robotics', 'AI', 'Design'].includes(p.category)) ||
-    (p.format !== 'School Program' && p.category !== 'Écoles & Éducation')
-  );
+  // Combine missions for "Units" or "All"
+  const relevantMissions = React.useMemo(() => {
+    if (selectedCategory !== 'All' && selectedCategory !== 'Unitaires (3h)') return [];
+    
+    return missions.filter(m => {
+      const matchesAge = selectedAge === 'All' || 
+        (selectedAge === '7-11 ans' && (m.category.includes('Enfant') || m.title.includes('Kids'))) ||
+        (selectedAge === '12-17 ans' && (m.category.includes('Ado') || m.title.includes('Teen')));
+      return m.active && matchesAge;
+    });
+  }, [missions, selectedCategory, selectedAge]);
+
+  const kidsPrograms = [
+    ...filteredPrograms.filter(p => 
+      p.category === 'Enfants & Familles' || 
+      (['Coding', 'Robotics', 'AI', 'Design'].includes(p.category)) ||
+      (p.format !== 'School Program' && p.category !== 'Écoles & Éducation')
+    ),
+    ...relevantMissions
+  ];
   
   const schoolPrograms = filteredPrograms.filter(p => 
     p.category === 'Écoles & Éducation' || 
@@ -115,9 +132,9 @@ export const Programs: React.FC = () => {
           <h2 className="font-display font-black text-4xl uppercase border-b-8 border-brand-orange pb-4 mb-8 inline-block">Enfants & Familles</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {kidsPrograms.length > 0 ? (
-              kidsPrograms.map((program, index) => (
-                <ScrollReveal key={program.id} delay={index * 100}>
-                  <ProgramCard program={program} index={index} />
+              kidsPrograms.map((item, index) => (
+                <ScrollReveal key={item.id} delay={index * 100}>
+                  <ProgramCard program={item as any} index={index} />
                 </ScrollReveal>
               ))
             ) : (

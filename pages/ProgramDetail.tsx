@@ -1,17 +1,21 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { usePrograms } from '../contexts/ProgramContext';
+import { useMissions } from '../contexts/MissionContext';
 import { Button } from '../components/Button';
-import { ArrowLeft, CheckCircle, Clock, Users, Calendar, ChevronDown, ChevronUp, Heart, Shield, Star, Rocket } from 'lucide-react';
+import { ArrowLeft, CheckCircle, CheckCircle2, Clock, Users, Calendar, ChevronDown, ChevronUp, Heart, Shield, Star, Rocket } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { ScrollReveal } from '../components/ScrollReveal';
 import { useSettings } from '../contexts/SettingsContext';
+import { AiImage } from '../components/AiImage';
 
 export const ProgramDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { getProgram, getWorkshop, workshops } = usePrograms();
+  const { missions, tracks } = useMissions();
   const { settings } = useSettings();
   const program = getProgram(id || '');
+  const DEFAULT_MISSION_IMG = 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=800';
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   if (!program) {
@@ -174,9 +178,28 @@ export const ProgramDetail: React.FC = () => {
         ═══════════════════════════════════════════════════════ */}
         {(() => {
           // Combine workshops explicitly listed + those pointing to this parent
-          const explicitWorkshops = (program.childWorkshopIds || []).map(wid => getWorkshop(wid)).filter(Boolean);
-          const implicitWorkshops = workshops.filter(w => w.parentProgramId === program.id && !program.childWorkshopIds?.includes(w.id));
-          const allWorkshops = [...explicitWorkshops, ...implicitWorkshops];
+          const isMakeAndGo = program.id === 'kids-2' || program.title.toLowerCase().includes('make & go') || (program as any).landingPage?.layoutVariant === 'modular';
+          
+          let allWorkshops: any[] = [];
+          
+          if (isMakeAndGo) {
+            // SHOW LIVE MISSIONS for Make & Go
+            allWorkshops = missions.filter(m => m.active);
+            // If still loading or empty, we might want to show a placeholder or nothing
+            if (allWorkshops.length === 0) {
+               return (
+                 <div className="py-20 text-center border-4 border-dashed border-gray-100 rounded-3xl mb-16">
+                   <Rocket size={48} className="mx-auto text-gray-200 mb-4 animate-pulse" />
+                   <h3 className="font-black text-xl text-gray-400">Prochaines thématiques en cours de préparation...</h3>
+                   <p className="text-sm font-medium text-gray-300 mt-2 uppercase tracking-widest">Revenez bientôt pour plus de missions !</p>
+                 </div>
+               );
+            }
+          } else {
+            const explicitWorkshops = (program.childWorkshopIds || []).map(wid => getWorkshop(wid)).filter(Boolean);
+            const implicitWorkshops = workshops.filter(w => w.parentProgramId === program.id && !program.childWorkshopIds?.includes(w.id));
+            allWorkshops = [...explicitWorkshops, ...implicitWorkshops];
+          }
 
           if (allWorkshops.length === 0) return null;
 
@@ -185,34 +208,59 @@ export const ProgramDetail: React.FC = () => {
               <section className="mb-16">
                 <div className="flex flex-col md:flex-row justify-between items-end gap-4 mb-10">
                   <div>
-                     <h2 className="font-display font-black text-4xl uppercase border-b-8 border-brand-blue pb-4 inline-block">Modules de la Mission</h2>
-                     <p className="mt-4 font-bold text-gray-500 uppercase tracking-widest text-sm">Contenu détaillé du pack {program.title}</p>
+                     <h2 className="font-display font-black text-4xl uppercase border-b-8 border-brand-blue pb-4 inline-block">
+                       {isMakeAndGo ? 'Thématiques Disponibles' : 'Modules de la Mission'}
+                     </h2>
+                     <p className="mt-4 font-bold text-gray-500 uppercase tracking-widest text-sm">
+                       {isMakeAndGo ? 'Choisissez votre session à la carte' : `Contenu détaillé du pack ${program.title}`}
+                     </p>
                   </div>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {allWorkshops.map(workshop => {
-                    if (!workshop) return null;
+                  {allWorkshops.map(item => {
+                    if (!item) return null;
                     
+                    const title = isMakeAndGo ? item.title : item.name;
+                    const desc = item.description;
+                    const meta = isMakeAndGo ? item.date : item.duration;
+
                     return (
-                      <div key={workshop.id} className="bg-white border-4 border-black shadow-neo hover:shadow-neo-xl transition-all group overflow-hidden flex flex-col">
+                      <div key={item.id} className="bg-white border-4 border-black shadow-neo hover:shadow-neo-xl transition-all group overflow-hidden flex flex-col">
                         <div className="h-48 overflow-hidden border-b-4 border-black relative">
-                           <img src={workshop.image} alt={workshop.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                           <AiImage
+                              src={('coverImage' in item && item.coverImage) ? item.coverImage : ((item as any).image || DEFAULT_MISSION_IMG)}
+                              prompt={'imagePrompt' in item ? item.imagePrompt || '' : ''}
+                              alt={title}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                            />
                            <div className="absolute top-3 left-3 flex flex-wrap gap-1">
-                              {workshop.tags?.map(tag => (
-                                <span key={tag} className="bg-black text-white text-[10px] font-black px-2 py-1 uppercase border border-white">
-                                  {tag}
+                              {isMakeAndGo ? (
+                                <span className={`bg-black text-white text-[10px] font-black px-2 py-1 uppercase border border-white ${item.status === 'full' ? 'bg-red-500' : 'bg-green-500'}`}>
+                                  {item.status === 'full' ? 'Complet' : 'Session 3H'}
                                 </span>
-                              ))}
+                              ) : (
+                                item.tags?.map((tag: string) => (
+                                  <span key={tag} className="bg-black text-white text-[10px] font-black px-2 py-1 uppercase border border-white">
+                                    {tag}
+                                  </span>
+                                ))
+                              )}
                            </div>
                         </div>
                         <div className="p-6 flex-grow">
-                          <h4 className="font-black text-xl mb-2 uppercase text-black">{workshop.name}</h4>
-                          <p className="text-gray-600 font-bold text-sm line-clamp-3">{workshop.description}</p>
+                          <h4 className="font-black text-xl mb-2 uppercase text-black">{title}</h4>
+                          <p className="text-gray-600 font-bold text-sm line-clamp-3">{desc}</p>
                         </div>
                         <div className="p-4 bg-gray-50 border-t-2 border-black flex justify-between items-center text-black">
-                           <span className="font-black text-xs uppercase text-gray-400">{workshop.duration}</span>
-                           <span className="font-black text-xs uppercase text-brand-blue">Inclus</span>
+                           <span className="font-black text-xs uppercase text-gray-400">{meta}</span>
+                           {isMakeAndGo ? (
+                             <Link to={item.status === 'full' ? '#' : `/booking/${program.id}?missionId=${item.id}`} className="font-black text-xs uppercase text-brand-blue hover:underline">
+                               {item.status === 'full' ? 'Sold Out' : 'Réserver →'}
+                             </Link>
+                           ) : (
+                             <span className="font-black text-xs uppercase text-brand-blue">Inclus</span>
+                           )}
                         </div>
                       </div>
                     );
@@ -222,6 +270,58 @@ export const ProgramDetail: React.FC = () => {
             </ScrollReveal>
           );
         })()}
+
+        {/* ═══════════════════════════════════════════════════════
+            SECTION 1.6: PARCOURS (ONLY FOR MAKE & GO)
+        ═══════════════════════════════════════════════════════ */}
+        {(program.id === 'kids-2' || program.title.toLowerCase().includes('make & go')) && tracks.length > 0 && (
+          <ScrollReveal>
+             <section className="mb-16">
+                <div className="flex flex-col md:flex-row justify-between items-end gap-4 mb-10">
+                  <div>
+                     <h2 className="font-display font-black text-4xl uppercase border-b-8 border-brand-orange pb-4 inline-block">Parcours (Packs)</h2>
+                     <p className="mt-4 font-bold text-gray-500 uppercase tracking-widest text-sm">Regroupez vos missions pour progresser plus vite</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {tracks.filter(t => t.active).map(track => (
+                    <div key={track.id} className="bg-white border-4 border-black rounded-[2rem] overflow-hidden flex flex-col md:flex-row shadow-neo hover:shadow-neo-xl transition-all group">
+                       <div className="md:w-2/5 h-64 md:h-auto border-b-4 md:border-b-0 md:border-r-4 border-black relative bg-gray-100">
+                          <AiImage 
+                            src={track.coverImage || DEFAULT_MISSION_IMG} 
+                            prompt="" 
+                            alt={track.title} 
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                          />
+                          <div className="absolute top-4 left-4 bg-brand-orange text-black border-2 border-black px-3 py-1 font-black text-[10px] uppercase shadow-neo-sm">
+                             {track.price}
+                          </div>
+                       </div>
+                       <div className="p-8 flex-1 flex flex-col justify-between">
+                          <div>
+                            <h3 className="font-black text-2xl mb-3 uppercase">{track.title}</h3>
+                            <p className="text-gray-600 font-bold text-sm mb-6 leading-relaxed line-clamp-3">{track.description}</p>
+                            <ul className="space-y-2">
+                               {(track.benefits || []).slice(0, 3).map((b, i) => (
+                                 <li key={i} className="flex items-center gap-2 text-xs font-black uppercase text-gray-800">
+                                    <CheckCircle2 size={14} className="text-brand-green" strokeWidth={3} /> {b}
+                                 </li>
+                               ))}
+                            </ul>
+                          </div>
+                          <Link to={`/booking/${program.id}?trackId=${track.id}`} className="mt-8">
+                             <Button variant="primary" className="w-full justify-center bg-black text-white hover:bg-brand-orange hover:text-black shadow-neo-sm transition-all">
+                               Réserver ce parcours
+                             </Button>
+                          </Link>
+                       </div>
+                    </div>
+                  ))}
+                </div>
+             </section>
+          </ScrollReveal>
+        )}
 
         {/* ═══════════════════════════════════════════════════════
             SECTION 2: POUR LES PARENTS — Conversion Section

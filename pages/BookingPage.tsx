@@ -1,7 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { usePrograms } from '../contexts/ProgramContext';
+import { useMissions } from '../contexts/MissionContext';
 import { Button } from '../components/Button';
 import { ArrowLeft, CheckCircle2, Calendar, User, Phone, Mail, Baby, Info, Zap } from 'lucide-react';
 import { collection, addDoc } from 'firebase/firestore';
@@ -12,9 +12,22 @@ export const BookingPage: React.FC = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const { getProgram } = usePrograms();
+    const { missions, tracks } = useMissions();
     const type = searchParams.get('type') || 'workshop'; // 'workshop' or 'trial'
+    const missionId = searchParams.get('missionId');
+    const trackId = searchParams.get('trackId');
 
     const program = getProgram(id || '');
+    
+    // Find specific mission or track if applicable
+    const selectedMission = missionId ? missions.find(m => m.id === missionId) : null;
+    const selectedTrack = trackId ? tracks.find(t => t.id === trackId) : null;
+
+    // Determine booking details (override program values if specific mission/track)
+    const bookingTitle = selectedMission?.title || selectedTrack?.title || program?.title || 'Réservation';
+    const bookingPrice = selectedMission?.price || selectedTrack?.price || program?.price || '';
+    const bookingDesc = selectedMission?.description || selectedTrack?.description || program?.description || '';
+
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
 
@@ -53,12 +66,15 @@ export const BookingPage: React.FC = () => {
                 ...formData,
                 programId: program.id,
                 programTitle: program.title,
+                missionId: missionId || null,
+                trackId: trackId || null,
+                itemTitle: bookingTitle,
+                itemPrice: bookingPrice,
                 bookingType: type,
                 createdAt: new Date().toISOString(),
                 status: 'pending'
             });
-            setIsSuccess(true);
-            window.scrollTo(0, 0);
+            navigate(`/thanks?programId=${program.id}&title=${encodeURIComponent(bookingTitle)}`);
         } catch (error) {
             console.error("Booking error:", error);
             alert("Une erreur est survenue lors de la réservation. Veuillez réessayer.");
@@ -77,8 +93,8 @@ export const BookingPage: React.FC = () => {
                     <h2 className="font-display font-black text-4xl mb-6 uppercase">C'est validé !</h2>
                     <p className="text-xl font-bold mb-8 leading-relaxed">
                         {type === 'trial' 
-                            ? `Votre demande d'atelier d'essai pour "${program.title}" a bien été reçue. Notre équipe vous recontactera très vite pour confirmer la date.`
-                            : `Votre réservation pour "${program.title}" est en cours. Un conseiller MakerLab vous appellera pour finaliser l'inscription.`
+                            ? `Votre demande d'atelier d'essai pour "${bookingTitle}" a bien été reçue. Notre équipe vous recontactera très vite pour confirmer la date.`
+                            : `Votre réservation pour "${bookingTitle}" est en cours. Un conseiller MakerLab vous appellera pour finaliser l'inscription.`
                         }
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -101,10 +117,10 @@ export const BookingPage: React.FC = () => {
                     <div className="lg:col-span-2 space-y-6">
                         <div className={`p-6 border-4 border-black rounded-3xl shadow-neo ${type === 'trial' ? 'bg-brand-blue' : 'bg-brand-red text-white'}`}>
                             <div className="mb-4 inline-block bg-white text-black px-3 py-1 border-2 border-black font-black text-[10px] uppercase tracking-widest">
-                                {type === 'trial' ? '🎁 Atelier Offert' : '📅 Réservation'}
+                                {type === 'trial' ? '🎁 Atelier Offert' : (selectedTrack ? '📦 Pack Parcours' : '📅 Réservation')}
                             </div>
-                            <h2 className="font-display font-black text-3xl mb-4 leading-tight uppercase">{program.title}</h2>
-                            <p className="font-bold opacity-90 mb-6">{program.shortDescription || program.description.substring(0, 100) + '...'}</p>
+                            <h2 className="font-display font-black text-3xl mb-4 leading-tight uppercase">{bookingTitle}</h2>
+                            <p className="font-bold opacity-90 mb-6 line-clamp-4">{bookingDesc.substring(0, 150) + (bookingDesc.length > 150 ? '...' : '')}</p>
                             
                             <div className="space-y-3 pt-6 border-t-2 border-black/20 text-sm">
                                 <div className="flex items-center gap-3">
@@ -117,7 +133,7 @@ export const BookingPage: React.FC = () => {
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <Info size={18} strokeWidth={3} />
-                                    <span className="font-black">Total: {type === 'trial' ? 'GRATUIT' : program.price}</span>
+                                    <span className="font-black">Total: {type === 'trial' ? 'GRATUIT' : bookingPrice}</span>
                                 </div>
                                 {program.spotsAvailable && (
                                     <div className="flex items-center gap-3 text-brand-orange font-black animate-pulse">

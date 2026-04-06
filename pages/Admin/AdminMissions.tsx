@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useMissions } from '../../contexts/MissionContext';
-import { Target, Package, Layers, Plus, Calendar, Settings, Image as ImageIcon, Users, X, Save } from 'lucide-react';
+import { Target, Package, Layers, Plus, Calendar, Settings, Image as ImageIcon, Users, X, Save, Compass } from 'lucide-react';
 import { Button } from '../../components/Button';
 import { Mission, Track } from '../../types';
 import { MediaPickerModal } from '../../components/MediaPickerModal';
 
 export const AdminMissions: React.FC = () => {
-  const { missions, tracks, leads, loading, addMission, addTrack, deleteMission, deleteTrack } = useMissions();
-  const [activeTab, setActiveTab] = useState<'missions' | 'tracks' | 'leads'>('missions');
+  const { missions, tracks, leads, orientationLeads, loading, addMission, addTrack, deleteMission, deleteTrack } = useMissions();
+  const [activeTab, setActiveTab] = useState<'missions' | 'tracks' | 'leads' | 'orientation'>('missions');
   const [editingMission, setEditingMission] = useState<Partial<Mission> | null>(null);
   const [editingTrack, setEditingTrack] = useState<Partial<Track> | null>(null);
   const [isMediaPickerOpen, setIsMediaPickerOpen] = useState<'mission' | 'track' | null>(null);
@@ -16,6 +16,7 @@ export const AdminMissions: React.FC = () => {
     { id: 'missions', label: 'Sessions Uniques', icon: Target },
     { id: 'tracks', label: 'Parcours (Packs)', icon: Layers },
     { id: 'leads', label: 'Inscriptions', icon: Users },
+    { id: 'orientation', label: 'Demandes Conseil', icon: Compass },
   ];
 
   return (
@@ -47,7 +48,7 @@ export const AdminMissions: React.FC = () => {
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as 'missions' | 'tracks' | 'leads')}
+              onClick={() => setActiveTab(tab.id as 'missions' | 'tracks' | 'leads' | 'orientation')}
               className={`flex items-center gap-2 px-6 py-3 font-black uppercase text-sm rounded-xl border-4 transition-all ${
                 isActive 
                   ? 'bg-black text-white border-black shadow-[4px_4px_0px_0px_rgba(255,165,0,1)] -translate-y-1' 
@@ -58,6 +59,9 @@ export const AdminMissions: React.FC = () => {
               {tab.label}
               {tab.id === 'leads' && leads.length > 0 && (
                 <span className="ml-2 bg-red-500 text-white px-2 py-0.5 rounded-full text-xs">{leads.length}</span>
+              )}
+              {tab.id === 'orientation' && orientationLeads.length > 0 && (
+                <span className="ml-2 bg-orange-500 text-white px-2 py-0.5 rounded-full text-xs">{orientationLeads.length}</span>
               )}
             </button>
           );

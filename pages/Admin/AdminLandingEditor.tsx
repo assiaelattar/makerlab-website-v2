@@ -7,7 +7,7 @@ import { Button } from '../../components/Button';
 import {
   ArrowLeft, Save, Eye, Copy, Rocket, Plus, Trash2,
   ToggleLeft, ToggleRight, Upload, Image as ImageIcon, GripVertical, FolderArchive,
-  FileDown, FileUp, Code2, CheckCircle2
+  FileDown, FileUp, Code2, CheckCircle2, ChevronDown, ChevronRight
 } from 'lucide-react';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../../firebase';
@@ -46,21 +46,54 @@ const DEFAULT_LP: LandingPageData = {
     { id: '1', text: 'Matériel 100% fourni par le Lab' },
     { id: '2', text: 'Encadrement par des ingénieurs mentors' },
     { id: '3', text: 'Projet réel construit par l\'enfant' },
-  ]
+  ],
+  thankYou: {
+    showMarquee: true,
+    showTrustPillars: true,
+    showPacks: true,
+    benefits: [
+      "Accès prioritaire aux futures sessions",
+      "Certificat d'Innovation Makerlab",
+      "Équipements professionnels sécurisés"
+    ]
+  }
 };
 
-/* ─── Section Card wrapper ─────────────────────────────────────────────────── */
-const Section: React.FC<{ title: string; badge?: string; children: React.ReactNode; accent?: string }> = ({
-  title, badge, children, accent = 'bg-orange-500'
-}) => (
-  <div className="bg-white rounded-2xl border-4 border-black shadow-[4px_4px_0_0_black] overflow-hidden">
-    <div className={`flex items-center gap-3 px-6 py-4 border-b-4 border-black ${accent}`}>
-      <h2 className="font-black text-xl text-black uppercase tracking-tight">{title}</h2>
-      {badge && <span className="ml-auto text-xs font-black bg-black/20 text-black px-2 py-0.5 rounded-full uppercase">{badge}</span>}
+/* ─── Section Card wrapper (Collapsible) ──────────────────────────────────── */
+const Section: React.FC<{ 
+  title: string; 
+  badge?: string; 
+  children: React.ReactNode; 
+  accent?: string;
+  defaultOpen?: boolean;
+}> = ({
+  title, badge, children, accent = 'bg-orange-500', defaultOpen = false
+}) => {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+
+  return (
+    <div className="bg-white rounded-2xl border-4 border-black shadow-[4px_4px_0_0_black] overflow-hidden transition-all duration-300">
+      <button 
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-full flex items-center gap-3 px-6 py-4 border-b-4 border-black text-left hover:brightness-105 active:brightness-95 transition-all group ${accent}`}
+      >
+        <div className="flex-1 flex items-center gap-3">
+          <h2 className="font-black text-xl text-black uppercase tracking-tight">{title}</h2>
+          {badge && <span className="text-[10px] font-black bg-black/20 text-black px-2 py-0.5 rounded-full uppercase">{badge}</span>}
+        </div>
+        <div className={`p-1 border-2 border-black rounded-lg bg-white/30 group-hover:bg-white/50 transition-all ${isOpen ? 'rotate-180' : ''}`}>
+          <ChevronDown size={20} className="text-black" />
+        </div>
+      </button>
+      <div className={`transition-all duration-500 ease-in-out overflow-hidden ${isOpen ? 'max-h-[5000px] opacity-100' : 'max-h-0 opacity-0'}`}>
+        <div className="p-6 space-y-6 bg-gray-50/30 border-t-2 border-black/5">
+          {children}
+        </div>
+      </div>
     </div>
-    <div className="p-6 space-y-5">{children}</div>
-  </div>
-);
+  );
+};
 
 /* ─── Field helper ─────────────────────────────────────────────────────────── */
 const Field: React.FC<{ label: string; hint?: string; children: React.ReactNode }> = ({ label, hint, children }) => (
@@ -720,6 +753,146 @@ export const AdminLandingEditor: React.FC = () => {
       </div>
 
       <div className="space-y-6">
+
+        {/* ── Configuration de Base ────────────────────────────────────────── */}
+        <Section title="Configuration de Base" badge="Status & Mode" accent="bg-green-400" defaultOpen={true}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Field label="Type de Structure" hint="Le design s'adapte au contenu du programme.">
+              <div className="flex gap-2">
+                {[
+                  { id: 'classic', label: 'Classic (Make & Go)', hint: 'Focus sur les missions' },
+                  { id: 'modular', label: 'Modular (StemQuest)', hint: 'Focus sur les pôles' },
+                ].map(v => (
+                  <button
+                    key={v.id}
+                    onClick={() => setField('layoutVariant', v.id as any)}
+                    className={`flex-1 p-3 border-4 rounded-xl text-left transition-all ${lp.layoutVariant === v.id ? 'border-black bg-blue-50 shadow-[4px_4px_0_0_black]' : 'border-transparent bg-white hover:bg-gray-50'}`}
+                  >
+                    <p className="font-black text-xs uppercase">{v.label}</p>
+                    <p className="text-[9px] text-gray-400 font-bold">{v.hint}</p>
+                  </button>
+                ))}
+              </div>
+            </Field>
+
+            <Field label="Mode d'Appel à l'Action (CTA)" hint="Vendez-vous une place ou un entretien ?">
+              <div className="flex gap-2">
+                {[
+                  { id: 'booking', label: 'Booking Direct', hint: 'Paiement / Réservation' },
+                  { id: 'lead', label: 'Lead Discovery', hint: 'Visite du Lab' },
+                ].map(v => (
+                  <button
+                    key={v.id}
+                    onClick={() => setField('ctaMode', v.id as any)}
+                    className={`flex-1 p-3 border-4 rounded-xl text-left transition-all ${lp.ctaMode === v.id ? 'border-black bg-green-50 shadow-[4px_4px_0_0_black]' : 'border-transparent bg-white hover:bg-gray-50'}`}
+                  >
+                    <p className="font-black text-xs uppercase">{v.label}</p>
+                    <p className="text-[9px] text-gray-400 font-bold">{v.hint}</p>
+                  </button>
+                ))}
+              </div>
+            </Field>
+          </div>
+        </Section>
+
+        {/* ── Thank You Page Configuration ───────────────────────────────────── */}
+        <Section title="Configuration Page Merci" badge="Post-Conversion" accent="bg-purple-600">
+          <div className="space-y-6">
+            <p className="text-sm font-medium text-gray-500">
+              Personnalisez l'expérience du parent immédiatement après son inscription. Un tunnel bien optimisé continue de vendre même après le clic.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Field label="Titre de la Page" hint="Par défaut : 'Encore une étape : Confirmez sa place'">
+                <input 
+                  value={lp.thankYou?.headline || ''} 
+                  onChange={e => setField('thankYou', { ...lp.thankYou, headline: e.target.value })} 
+                  className={inputCls} 
+                  placeholder="Félicitations pour l'inscription !"
+                />
+              </Field>
+              <Field label="Sous-titre" hint="Par défaut : 'Pour garantir l'accès de [Nom] au lab...'">
+                <input 
+                  value={lp.thankYou?.subHeadline || ''} 
+                  onChange={e => setField('thankYou', { ...lp.thankYou, subHeadline: e.target.value })} 
+                  className={inputCls} 
+                  placeholder="On a hâte de voir votre maker au lab."
+                />
+              </Field>
+            </div>
+
+            <Field label="Vidéo de Remerciement (Lien)" hint="YouTube ou Vimeo. Une vidéo de 30s du lab multiplie la confiance par 3.">
+              <div className="flex gap-2">
+                <div className="flex-grow relative">
+                  <input 
+                    value={lp.thankYou?.videoUrl || ''} 
+                    onChange={e => setField('thankYou', { ...lp.thankYou, videoUrl: e.target.value })} 
+                    className={inputCls} 
+                    placeholder="https://www.youtube.com/watch?v=..."
+                  />
+                  <Code2 size={18} className="absolute right-3 top-3 text-gray-400" />
+                </div>
+              </div>
+            </Field>
+
+            <Field label="Bénéfices de la Session (Checklist)" hint="Qu'est-ce que l'enfant ramène chez lui ?">
+              <div className="space-y-2">
+                {(lp.thankYou?.benefits || []).map((b, i) => (
+                  <div key={i} className="flex gap-2">
+                    <div className="flex-grow relative">
+                      <input 
+                        value={b} 
+                        onChange={e => {
+                          const newBenefits = [...(lp.thankYou?.benefits || [])];
+                          newBenefits[i] = e.target.value;
+                          setField('thankYou', { ...lp.thankYou, benefits: newBenefits });
+                        }} 
+                        className={inputCls} 
+                      />
+                      <CheckCircle2 size={14} className="absolute right-3 top-3.5 text-green-500" />
+                    </div>
+                    <button 
+                      onClick={() => {
+                        const newBenefits = (lp.thankYou?.benefits || []).filter((_, idx) => idx !== i);
+                        setField('thankYou', { ...lp.thankYou, benefits: newBenefits });
+                      }}
+                      className="p-3 border-2 border-black rounded-xl text-red-500 hover:bg-red-50 transition-colors"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                ))}
+                <button 
+                  onClick={() => setField('thankYou', { ...lp.thankYou, benefits: [...(lp.thankYou?.benefits || []), ''] })}
+                  className="w-full py-2 border-2 border-dashed border-gray-300 rounded-xl text-xs font-black uppercase text-gray-400 hover:border-black hover:text-black transition-all"
+                >
+                  + Ajouter un bénéfice
+                </button>
+              </div>
+            </Field>
+
+            <div className="pt-4 border-t-2 border-gray-100 grid grid-cols-1 md:grid-cols-3 gap-4">
+               {[
+                 { id: 'showMarquee', label: 'Bandeau Marquee' },
+                 { id: 'showTrustPillars', label: 'Piliers de Confiance' },
+                 { id: 'showPacks', label: 'Options de Packs' }
+               ].map(toggle => (
+                 <button
+                    key={toggle.id}
+                    onClick={() => setField('thankYou', { ...lp.thankYou, [toggle.id]: !((lp.thankYou as any)?.[toggle.id] ?? true) })}
+                    className="flex items-center justify-between p-4 border-2 border-black rounded-2xl bg-gray-50 hover:bg-white transition-all group"
+                 >
+                    <span className="font-black text-xs uppercase tracking-tight">{toggle.label}</span>
+                    {((lp.thankYou as any)?.[toggle.id] ?? true) ? (
+                      <ToggleRight size={28} className="text-green-500" />
+                    ) : (
+                      <ToggleLeft size={28} className="text-gray-300" />
+                    )}
+                 </button>
+               ))}
+            </div>
+          </div>
+        </Section>
 
         {/* ── Design & Colors ────────────────────────────────────────────────── */}
         <Section title="Design & Couleurs" badge="Identité Visuelle" accent="bg-white">

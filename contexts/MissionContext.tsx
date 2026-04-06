@@ -1,12 +1,13 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { collection, onSnapshot, doc, setDoc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Mission, Track, LandingLead } from '../types';
+import { Mission, Track, LandingLead, OrientationLead } from '../types';
 
 interface MissionContextType {
   missions: Mission[];
   tracks: Track[];
   leads: LandingLead[];
+  orientationLeads: OrientationLead[];
   loading: boolean;
   addMission: (mission: Mission) => Promise<void>;
   updateMission: (id: string, data: Partial<Mission>) => Promise<void>;
@@ -22,12 +23,14 @@ export const MissionProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [missions, setMissions] = useState<Mission[]>([]);
   const [tracks, setTracks] = useState<Track[]>([]);
   const [leads, setLeads] = useState<LandingLead[]>([]);
+  const [orientationLeads, setOrientationLeads] = useState<OrientationLead[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let unsubscribeMissions: () => void;
     let unsubscribeTracks: () => void;
     let unsubscribeLeads: () => void;
+    let unsubscribeOrientation: () => void;
 
     try {
       unsubscribeMissions = onSnapshot(collection(db, 'website-missions'), (snapshot) => {
@@ -45,6 +48,11 @@ export const MissionProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setLoading(false);
       });
 
+      unsubscribeOrientation = onSnapshot(collection(db, 'website-orientation-leads'), (snapshot) => {
+        setOrientationLeads(snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as OrientationLead)));
+        setLoading(false);
+      });
+
     } catch (error) {
       console.error("Error subscribing to missions/tracks", error);
       setLoading(false);
@@ -54,6 +62,7 @@ export const MissionProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (unsubscribeMissions) unsubscribeMissions();
       if (unsubscribeTracks) unsubscribeTracks();
       if (unsubscribeLeads) unsubscribeLeads();
+      if (unsubscribeOrientation) unsubscribeOrientation();
     };
   }, []);
 
@@ -83,7 +92,7 @@ export const MissionProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   return (
     <MissionContext.Provider value={{
-      missions, tracks, leads, loading,
+      missions, tracks, leads, orientationLeads, loading,
       addMission, updateMission, deleteMission,
       addTrack, updateTrack, deleteTrack
     }}>
