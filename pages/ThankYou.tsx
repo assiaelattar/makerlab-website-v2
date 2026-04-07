@@ -196,116 +196,48 @@ export const ThankYou: React.FC = () => {
         </div>
       )}
 
-      {/* ── Progress & Personalization ── */}
-      <div className="max-w-2xl mx-auto px-6 mb-12">
+      {/* ── Progress Bar ── */}
+      <div className="max-w-2xl mx-auto mb-16 px-6">
         <div className="flex items-center justify-between mb-3">
             <span className="text-[10px] font-black uppercase tracking-widest text-green-600">Inscription Reçue!</span>
-            <span className="text-[10px] font-black uppercase tracking-widest text-brand-orange animate-pulse">Confirmation Requise</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-brand-orange animate-pulse">Étape Finale : Confirmation</span>
         </div>
         <div className="h-5 bg-gray-100 border-4 border-black rounded-full overflow-hidden flex shadow-neo-sm">
-            <div className="h-full bg-green-500 w-1/2 border-r-4 border-black"></div>
-            <div className="h-full bg-brand-orange/20 w-1/2"></div>
+            <div className="h-full bg-green-500 w-3/4 border-r-4 border-black"></div>
+            <div className="h-full bg-brand-orange/20 w-1/4"></div>
         </div>
       </div>
 
       <div className="container mx-auto px-6">
         <div className="max-w-5xl mx-auto">
           
-          {/* ── Hero Section ── */}
+          {/* ── Hero Section (Simplified) ── */}
           <div className="relative text-center mb-16">
             <div className="inline-flex items-center gap-2 px-6 py-2 bg-green-50 border-4 border-green-600 rounded-full mb-8 transform -rotate-1 shadow-neo-sm">
               <CheckCircle2 size={24} className="text-green-600" />
               <span className="text-sm font-black uppercase tracking-widest text-green-700">Demande de {childName} Reçue</span>
             </div>
-            <h1 className="font-display font-black text-5xl md:text-7xl uppercase tracking-tighter leading-[0.9] mb-8">
+            <h1 className="font-display font-black text-4xl md:text-7xl uppercase tracking-tighter leading-[0.9] mb-8">
               {config?.headline || (
-                <>Encore une étape :<br />
-                <span className="text-brand-orange">Confirmez sa place</span></>
+                <>Bienvenue au Lab !<br />
+                <span className="text-brand-orange">Prochaine étape...</span></>
               )}
             </h1>
-            <p className="text-xl font-bold text-gray-700 max-w-2xl mx-auto mb-10 leading-relaxed uppercase tracking-tight">
+            <p className="text-lg md:text-xl font-bold text-gray-700 max-w-2xl mx-auto mb-10 leading-relaxed uppercase tracking-tight">
               {config?.subHeadline || (
-                <>Pour garantir l'accès de <span className="bg-brand-orange/20 px-2">{childName}</span> au lab ce week-end, veuillez nous envoyer un message de confirmation via WhatsApp.</>
+                <>Choisissez l'expérience complète de <span className="bg-brand-orange/20 px-2">{childName.split(' ')[0]}</span> ci-dessous, puis confirmez votre place.</>
               )}
             </p>
-
             <div className="flex flex-col items-center gap-4">
-              <a 
-                href={whatsappUrl} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="w-full max-w-lg px-2"
-              >
-                <Button variant="accent" size="lg" className="w-full py-8 text-xl md:text-2xl group transform hover:-translate-y-2 hover:shadow-neo-xl transition-all border-4 border-black flex items-center justify-center gap-4 shadow-neo">
-                  <MessageCircle size={36} className="group-hover:rotate-12 transition-transform shrink-0" />
-                  <span className="truncate">CONFIRMER VIA WHATSAPP</span>
-                </Button>
-              </a>
-              <p className="text-[10px] md:text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-full border-2 border-black/5">
-                <Clock size={16} className="text-brand-orange" /> Réponse humaine sous 15 minutes
+              <p className="text-[10px] md:text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2 bg-gray-100 px-6 py-3 rounded-full border-2 border-black/5">
+                <Clock size={16} className="text-brand-orange" /> Inscription en cours de traitement par nos mentors
               </p>
             </div>
           </div>
 
-          {/* ── Custom Video & Benefits Section ── */}
-          {(config?.videoUrl || (config?.benefits && config.benefits.length > 0)) && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-20">
-              {config?.videoUrl && (
-                <div className="bg-white border-4 border-black rounded-[40px] overflow-hidden shadow-neo-lg aspect-video relative group">
-                  <iframe
-                    src={getVideoEmbedUrl(config.videoUrl)}
-                    className="absolute inset-0 w-full h-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                  {!config.videoUrl && (
-                    <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
-                       <Play size={48} className="text-white opacity-20" />
-                    </div>
-                  )}
-                </div>
-              )}
-              
-              {config?.benefits && config.benefits.length > 0 && (
-                <div className="bg-blue-50 border-4 border-black p-8 rounded-[40px] shadow-neo">
-                   <h3 className="font-display font-black text-2xl uppercase mb-6 flex items-center gap-3">
-                     <Sparkles className="text-brand-orange" /> Ce qui l'attend au Lab
-                   </h3>
-                   <ul className="space-y-4">
-                     {config.benefits.map((benefit, i) => (
-                       <li key={i} className="flex items-start gap-3">
-                         <div className="mt-1 bg-green-500 text-white rounded-full p-1 border-2 border-black">
-                            <CheckCircle2 size={14} />
-                         </div>
-                         <span className="font-bold text-sm uppercase leading-tight">{benefit}</span>
-                       </li>
-                     ))}
-                   </ul>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ── Trust Pillars Section ── */}
-          {showTrustPillars && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20">
-              {[
-                { icon: <ShieldCheck size={32} className="text-brand-green" />, title: "Satisfait ou Remboursé", desc: "Si votre enfant n'apprend rien, session remboursée" },
-                { icon: <Award size={32} className="text-brand-blue" />, title: "Mentors Certifiés", desc: "Ingénieurs & Experts passionnés par l'éducation" },
-                { icon: <ShieldAlert size={32} className="text-brand-red" />, title: "Sécurité Maximale", desc: "Environnement encadré et supervision constante" },
-              ].map((pillar, i) => (
-                  <div key={i} className="bg-white border-4 border-black p-6 rounded-2xl shadow-neo-sm flex flex-col items-center text-center">
-                      <div className="mb-4 bg-gray-50 p-4 rounded-full border-2 border-black/10">{pillar.icon}</div>
-                      <h4 className="font-black text-sm uppercase mb-2 leading-none">{pillar.title}</h4>
-                      <p className="text-xs font-bold text-gray-500 leading-tight uppercase">{pillar.desc}</p>
-                  </div>
-              ))}
-            </div>
-          )}
-
-          {/* ── The Pack Selection Section ── */}
+          {/* ── 1. The Pack Selection Section ── */}
           {showPacks && (
-            <div className="mb-20 bg-gray-50 border-4 border-black rounded-[40px] p-8 md:p-12 relative overflow-hidden shadow-neo-lg">
+            <div className="mb-12 bg-gray-50 border-4 border-black rounded-[40px] p-8 md:p-12 relative overflow-hidden shadow-neo-lg">
               <div className="absolute top-0 right-0 p-8 font-display font-black text-9xl text-black/5 select-none pointer-events-none uppercase">PACKS</div>
               
               <div className="text-center mb-12 relative z-10 px-4">
@@ -373,21 +305,96 @@ export const ThankYou: React.FC = () => {
               </div>
               
               <div className="mt-12 text-center relative z-10">
-                  <p className="text-sm font-black text-gray-400 uppercase max-w-lg mx-auto flex items-center justify-center gap-3">
-                      <span className="h-px bg-gray-200 flex-grow"></span>
-                      Pas de paiement immédiat requis
-                      <span className="h-px bg-gray-200 flex-grow"></span>
-                  </p>
-                  {syncing && <p className="text-[10px] font-black text-brand-orange mt-2 uppercase animate-pulse">Syncing with Admin...</p>}
+                  {syncing && <p className="text-[10px] font-black text-brand-orange mt-2 uppercase animate-pulse">Synchronisation...</p>}
               </div>
+            </div>
+          )}
+
+          {/* ── 2. Final WhatsApp Action ── */}
+          <div className="flex flex-col items-center gap-6 mb-20">
+             <div className="text-center mb-4">
+                <p className="font-black text-brand-orange uppercase text-sm mb-2">Dernière Étape : Validation</p>
+                <h3 className="font-display font-black text-2xl md:text-3xl uppercase">Confirmez votre place via WhatsApp</h3>
+             </div>
+             
+             <a 
+                href={whatsappUrl} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="w-full max-w-lg px-2 group"
+              >
+                <div className="relative">
+                  <div className="absolute inset-0 bg-green-600 translate-x-2 translate-y-2 rounded-none border-4 border-black"></div>
+                  <Button variant="accent" size="lg" className="relative w-full py-8 text-xl md:text-2xl group transform hover:-translate-y-1 transition-all border-4 border-black flex items-center justify-center gap-4 bg-brand-orange shadow-neo-sm">
+                    <MessageCircle size={36} className="group-hover:rotate-12 transition-transform shrink-0" />
+                    <span className="truncate">CONFIRMER POUR {childName.split(' ')[0].toUpperCase()}</span>
+                  </Button>
+                </div>
+              </a>
+              
+              <div className="flex flex-col items-center gap-2">
+                 <p className="text-[10px] md:text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                    <CheckCircle2 size={16} className="text-brand-green" /> Sans paiement immédiat
+                 </p>
+              </div>
+          </div>
+
+          {/* ── 3. Custom Video & Benefits Section ── */}
+          {(config?.videoUrl || (config?.benefits && config.benefits.length > 0)) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-20">
+              {config?.videoUrl && (
+                <div className="bg-white border-4 border-black rounded-[40px] overflow-hidden shadow-neo-lg aspect-video relative group">
+                  <iframe
+                    src={getVideoEmbedUrl(config.videoUrl)}
+                    className="absolute inset-0 w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              )}
+              
+              {config?.benefits && config.benefits.length > 0 && (
+                <div className="bg-blue-50 border-4 border-black p-8 rounded-[40px] shadow-neo">
+                   <h3 className="font-display font-black text-2xl uppercase mb-6 flex items-center gap-3">
+                     <Sparkles className="text-brand-orange" /> Ce qui l'attend au Lab
+                   </h3>
+                   <ul className="space-y-4">
+                     {config.benefits.map((benefit, i) => (
+                       <li key={i} className="flex items-start gap-3">
+                         <div className="mt-1 bg-green-500 text-white rounded-full p-1 border-2 border-black">
+                            <CheckCircle2 size={14} />
+                         </div>
+                         <span className="font-bold text-sm uppercase leading-tight">{benefit}</span>
+                       </li>
+                     ))}
+                   </ul>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── 4. Trust Pillars Section ── */}
+          {showTrustPillars && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20">
+              {[
+                { icon: <ShieldCheck size={32} className="text-brand-green" />, title: "Satisfait ou Remboursé", desc: "Si votre enfant n'apprend rien, session remboursée" },
+                { icon: <Award size={32} className="text-brand-blue" />, title: "Mentors Certifiés", desc: "Ingénieurs & Experts passionnés" },
+                { icon: <ShieldAlert size={32} className="text-brand-red" />, title: "Sécurité Maximale", desc: "Environnement encadré et supervisé" },
+              ].map((pillar, i) => (
+                  <div key={i} className="bg-white border-4 border-black p-6 rounded-2xl shadow-neo-sm flex flex-col items-center text-center">
+                      <div className="mb-4 bg-gray-50 p-4 rounded-full border-2 border-black/10">{pillar.icon}</div>
+                      <h4 className="font-black text-sm uppercase mb-2 leading-none">{pillar.title}</h4>
+                      <p className="text-[10px] font-bold text-gray-500 leading-tight uppercase">{pillar.desc}</p>
+                  </div>
+              ))}
             </div>
           )}
 
           {/* ── Partner Logo Bar ── */}
           <div className="mb-20 text-center">
-            <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-8">Ils nous font confiance pour leurs élèves</p>
+            <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-8">Ils nous font confiance</p>
             <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-30 grayscale contrast-125">
-               {['Lycée Lyautey', 'American School', 'Technopark', 'Collège Anatole France', 'Ecole Mermoz'].map((school, i) => (
+               {['Lycée Lyautey', 'American School', 'Technopark', 'Anatole France', 'Mermoz'].map((school, i) => (
                    <span key={i} className="font-display font-black text-xl md:text-2xl tracking-tighter uppercase italic">{school}</span>
                ))}
             </div>
@@ -396,21 +403,21 @@ export const ThankYou: React.FC = () => {
           {/* ── Retention / Roadmap ── */}
           <div className="border-t-4 border-black border-dashed pt-20">
             <h2 className="font-display font-black text-4xl md:text-5xl uppercase text-center mb-16 leading-tight">
-                Préparez {childName} <br />
-                <span className="text-brand-blue">Au futur de la technologie</span>
+                Préparez {childName.split(' ')[0]} <br />
+                <span className="text-brand-blue">Au futur technologique</span>
             </h2>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
-                    { icon: <Target className="text-brand-orange" />, title: "Parcours Maker", desc: "Découvrez la suite" },
-                    { icon: <Rocket className="text-brand-blue" />, title: "Le Lab", desc: "Visite virtuelle" },
-                    { icon: <Award className="text-brand-red" />, title: "Certificats", desc: "Valorisez l'effort" },
-                    { icon: <Star className="text-yellow-500" />, title: "Galerie", desc: "Projets finis" },
+                    { icon: <Target className="text-brand-orange" />, title: "Parcours Maker", desc: "La suite" },
+                    { icon: <Rocket className="text-brand-blue" />, title: "Le Lab", desc: "Visite" },
+                    { icon: <Award className="text-brand-red" />, title: "Certificats", desc: "Mérite" },
+                    { icon: <Star className="text-yellow-500" />, title: "Galerie", desc: "Projets" },
                 ].map((item, i) => (
                     <Link key={i} to="/programs" className="group">
-                        <div className="p-8 border-4 border-black bg-white hover:bg-black hover:text-white transition-all transform hover:-rotate-1 active:scale-95 h-full shadow-neo-sm hover:shadow-neo text-center flex flex-col items-center">
-                            <div className="mb-6 transform group-hover:scale-110 group-hover:rotate-6 transition-all bg-gray-50 p-4 rounded-xl border-2 border-black group-hover:bg-white/20 group-hover:border-white/20">{item.icon}</div>
-                            <h4 className="font-black text-sm uppercase mb-2">{item.title}</h4>
-                            <p className="text-[10px] font-bold opacity-60 uppercase">{item.desc}</p>
+                        <div className="p-6 border-4 border-black bg-white hover:bg-black hover:text-white transition-all transform hover:-rotate-1 active:scale-95 h-full shadow-neo-sm hover:shadow-neo text-center flex flex-col items-center">
+                            <div className="mb-4 transform group-hover:scale-110 group-hover:rotate-6 transition-all bg-gray-50 p-3 rounded-xl border-2 border-black group-hover:bg-white/20 group-hover:border-white/20">{item.icon}</div>
+                            <h4 className="font-black text-xs md:text-sm uppercase mb-1">{item.title}</h4>
+                            <p className="text-[9px] font-bold opacity-60 uppercase">{item.desc}</p>
                         </div>
                     </Link>
                 ))}
@@ -420,7 +427,7 @@ export const ThankYou: React.FC = () => {
           {/* ── Final Footer ── */}
           <div className="mt-24 pt-12 border-t-2 border-black/5 text-center flex flex-col md:flex-row items-center justify-between gap-8">
             <Link to="/" className="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-black transition-colors underline decoration-2 underline-offset-4">
-             ← Retour au site principal
+             ← Retour au site
             </Link>
             <div className="flex gap-4">
                 <div className="w-10 h-10 bg-black text-white p-2 rounded-lg border-2 border-black">
