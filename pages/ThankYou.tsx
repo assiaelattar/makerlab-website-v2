@@ -49,35 +49,71 @@ export const ThankYou: React.FC = () => {
   const program = useMemo(() => programId ? getProgram(programId) : null, [programId, getProgram]);
   const config = program?.landingPage?.thankYou;
 
+  const itemPrice = searchParams.get('itemPrice') || '';
+  const isSingleMission = itemPrice.includes('400') || type === 'mission';
+
   const [selectedPack, setSelectedPack] = useState<PackType>('3-projects');
   const [syncing, setSyncing] = useState(false);
 
-  const packs: Record<PackType, Pack> = {
-    '1-project': {
-      title: "1 Atelier",
-      subtitle: "1 Projet construit",
-      price: "400 DHS",
-      label: "Standard",
-      icon: <Star className="text-gray-400" />
-    },
-    '3-projects': {
-      title: "Pack 3 Ateliers",
-      subtitle: "3 Projets réels",
-      price: "990 DHS",
-      oldPrice: "1200 DHS",
-      savings: "210 DHS",
-      label: "Le Plus Populaire",
-      icon: <Zap className="text-white" />,
-      featured: true
-    },
-    '10-projects': {
-      title: "Pack Champion",
-      subtitle: "10 Projets & Maîtrise",
-      price: "2900 DHS",
-      label: "Meilleure Valeur",
-      icon: <Trophy className="text-white" />
+  const packs: Record<PackType, Pack> = useMemo(() => {
+    if (isSingleMission) {
+      return {
+        '1-project': {
+          title: "Session Unique",
+          subtitle: "Confirmé",
+          price: "400 DHS",
+          label: "Payé",
+          icon: <CheckCircle2 className="text-green-500" />
+        },
+        '3-projects': {
+          title: "Upgrade Duo (2 sessions)",
+          subtitle: "Progressez plus vite",
+          price: "700 DHS",
+          oldPrice: "800 DHS",
+          savings: "100 DHS",
+          label: "Offre Flash",
+          icon: <Zap className="text-white" />,
+          featured: true
+        },
+        '10-projects': {
+          title: "Pack Découverte (3 sessions)",
+          subtitle: "Le meilleur départ",
+          price: "990 DHS",
+          oldPrice: "1200 DHS",
+          savings: "210 DHS",
+          label: "Plus Populaire",
+          icon: <Sparkles className="text-white" />
+        }
+      };
     }
-  };
+
+    return {
+      '1-project': {
+        title: "1 Projet",
+        subtitle: "Introduction",
+        price: "400 DHS",
+        label: "Standard",
+        icon: <Star className="text-gray-400" />
+      },
+      '3-projects': {
+        title: "Pack 3 Projets",
+        subtitle: "Maîtrise de base",
+        price: "990 DHS",
+        oldPrice: "1200 DHS",
+        savings: "210 DHS",
+        label: "Le Plus Populaire",
+        icon: <Zap className="text-white" />,
+        featured: true
+      },
+      '10-projects': {
+        title: "Pack Champion (10)",
+        subtitle: "Expertise Maker",
+        price: "2900 DHS",
+        label: "Meilleure Valeur",
+        icon: <Trophy className="text-white" />
+      }
+    };
+  }, [isSingleMission]);
 
   const syncSelectionWithAdmin = useCallback(async (pack: PackType) => {
     if (!leadId) return;
@@ -113,7 +149,7 @@ export const ThankYou: React.FC = () => {
   const cleanPhone = phoneNumber.replace(/\s+/g, '').replace(/^\+/, '');
   
   const whatsappMessage = encodeURIComponent(
-    `Bonjour Makerlab ! Je viens d'inscrire ${childName} pour ${programTitle}. J'ai choisi la formule : ${packs[selectedPack].title}. Comment puis-je régler pour confirmer ?`
+    `Bonjour MakerLab ! Je suis le parent de ${childName}. Je viens de réserver ${programTitle}. 🚀 \n\nJe souhaite profiter de l'offre : "${packs[selectedPack].title}" au prix de ${packs[selectedPack].price}. \n\nComment puis-je confirmer et régler ?`
   );
   const whatsappUrl = `https://wa.me/${cleanPhone}/?text=${whatsappMessage}`;
 
@@ -198,15 +234,15 @@ export const ThankYou: React.FC = () => {
                 href={whatsappUrl} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="w-full max-w-lg"
+                className="w-full max-w-lg px-2"
               >
-                <Button variant="accent" size="lg" className="w-full py-8 text-2xl group transform hover:-translate-y-2 hover:shadow-neo-xl transition-all border-4 border-black flex items-center justify-center gap-4">
-                  <MessageCircle size={36} className="group-hover:rotate-12 transition-transform" />
-                  CONFIRMER VIA WHATSAPP
+                <Button variant="accent" size="lg" className="w-full py-8 text-xl md:text-2xl group transform hover:-translate-y-2 hover:shadow-neo-xl transition-all border-4 border-black flex items-center justify-center gap-4 shadow-neo">
+                  <MessageCircle size={36} className="group-hover:rotate-12 transition-transform shrink-0" />
+                  <span className="truncate">CONFIRMER VIA WHATSAPP</span>
                 </Button>
               </a>
-              <p className="text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-full border-2 border-black/5">
-                <Clock size={16} className="text-brand-orange" /> Réponse prioritaire sous 15 minutes
+              <p className="text-[10px] md:text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-full border-2 border-black/5">
+                <Clock size={16} className="text-brand-orange" /> Réponse humaine sous 15 minutes
               </p>
             </div>
           </div>
@@ -272,9 +308,16 @@ export const ThankYou: React.FC = () => {
             <div className="mb-20 bg-gray-50 border-4 border-black rounded-[40px] p-8 md:p-12 relative overflow-hidden shadow-neo-lg">
               <div className="absolute top-0 right-0 p-8 font-display font-black text-9xl text-black/5 select-none pointer-events-none uppercase">PACKS</div>
               
-              <div className="text-center mb-12 relative z-10">
-                <h2 className="font-display font-black text-4xl uppercase mb-3">Choisissez Votre Formule</h2>
-                <p className="font-bold text-gray-600 uppercase tracking-tight">Fixez le tarif aujourd'hui et profitez de l'apprentissage continu</p>
+              <div className="text-center mb-12 relative z-10 px-4">
+                <div className="inline-block bg-brand-orange text-black px-4 py-1 border-2 border-black font-black text-[10px] uppercase mb-4 animate-bounce">
+                  ⏳ Offre exclusive : Valable 15 minutes
+                </div>
+                <h2 className="font-display font-black text-3xl md:text-5xl uppercase mb-3 leading-none">
+                  {isSingleMission ? "Ne vous arrêtez pas là !" : "Choisissez Votre Formule"}
+                </h2>
+                <p className="font-bold text-gray-600 uppercase tracking-tight text-sm md:text-base">
+                  {isSingleMission ? "Complétez l'expérience avec un pack avantageux" : "Fixez le tarif aujourd'hui et profitez de l'apprentissage continu"}
+                </p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">

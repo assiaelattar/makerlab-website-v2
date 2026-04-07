@@ -74,7 +74,7 @@ export const BookingPage: React.FC = () => {
                 createdAt: new Date().toISOString(),
                 status: 'pending'
             });
-            navigate(`/thanks?programId=${program.id}&title=${encodeURIComponent(bookingTitle)}`);
+            navigate(`/thanks?programId=${program.id}&title=${encodeURIComponent(bookingTitle)}&itemPrice=${encodeURIComponent(bookingPrice)}&missionId=${missionId || ''}&trackId=${trackId || ''}`);
         } catch (error) {
             console.error("Booking error:", error);
             alert("Une erreur est survenue lors de la réservation. Veuillez réessayer.");
@@ -114,13 +114,13 @@ export const BookingPage: React.FC = () => {
 
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
                     {/* Left: Info Card */}
-                    <div className="lg:col-span-2 space-y-6">
-                        <div className={`p-6 border-4 border-black rounded-3xl shadow-neo ${type === 'trial' ? 'bg-brand-blue' : 'bg-brand-red text-white'}`}>
+                    <div className="lg:col-span-2 space-y-6 px-2 md:px-0">
+                        <div className={`p-6 md:p-8 border-4 border-black rounded-3xl shadow-neo ${type === 'trial' ? 'bg-brand-blue' : 'bg-brand-red text-white'}`}>
                             <div className="mb-4 inline-block bg-white text-black px-3 py-1 border-2 border-black font-black text-[10px] uppercase tracking-widest">
                                 {type === 'trial' ? '🎁 Atelier Offert' : (selectedTrack ? '📦 Pack Parcours' : '📅 Réservation')}
                             </div>
-                            <h2 className="font-display font-black text-3xl mb-4 leading-tight uppercase">{bookingTitle}</h2>
-                            <p className="font-bold opacity-90 mb-6 line-clamp-4">{bookingDesc.substring(0, 150) + (bookingDesc.length > 150 ? '...' : '')}</p>
+                            <h2 className="font-display font-black text-3xl md:text-4xl mb-4 leading-tight uppercase">{bookingTitle}</h2>
+                            <p className="font-bold opacity-90 mb-6 text-sm md:text-base">{bookingDesc.substring(0, 150) + (bookingDesc.length > 150 ? '...' : '')}</p>
                             
                             <div className="space-y-3 pt-6 border-t-2 border-black/20 text-sm">
                                 <div className="flex items-center gap-3">
@@ -150,9 +150,9 @@ export const BookingPage: React.FC = () => {
                     </div>
 
                     {/* Right: Form */}
-                    <div className="lg:col-span-3">
-                        <form onSubmit={handleSubmit} className="bg-white border-4 border-black rounded-[2.5rem] shadow-neo-xl p-8 md:p-10 space-y-6">
-                            <h3 className="font-display font-black text-2xl uppercase tracking-wider mb-2">
+                    <div className="lg:col-span-3 px-2 md:px-0">
+                        <form onSubmit={handleSubmit} className="bg-white border-4 border-black rounded-[2.5rem] shadow-neo-xl p-6 md:p-10 space-y-6">
+                            <h3 className="font-display font-black text-2xl md:text-3xl uppercase tracking-wider mb-2 text-center md:text-left">
                                 {type === 'trial' ? "L'aventure commence ici" : "Réserver ma place"}
                             </h3>
                             
@@ -196,10 +196,10 @@ export const BookingPage: React.FC = () => {
                             <button
                                 type="submit"
                                 disabled={isSubmitting}
-                                className="w-full bg-brand-orange text-black py-6 rounded-none border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all font-black uppercase text-xl tracking-widest flex items-center justify-center gap-2 mt-4 disabled:opacity-50"
+                                className="w-full bg-brand-orange text-black py-5 md:py-6 rounded-none border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all font-black uppercase text-lg md:text-xl tracking-widest flex items-center justify-center gap-2 mt-4 disabled:opacity-50"
                             >
-                                {isSubmitting ? 'Traitement en cours...' : (type === 'trial' ? "REJOINDRE L'ESSAI" : "RÉSERVER MA PLACE")}
-                                <Zap size={24} className="fill-black" strokeWidth={3} />
+                                {isSubmitting ? 'Traitement...' : (type === 'trial' ? "REJOINDRE L'ESSAI" : "RÉSERVER MA PLACE")}
+                                <Zap size={24} className="fill-black shrink-0" strokeWidth={3} />
                             </button>
                             
                             <p className="text-[10px] text-center font-bold opacity-40 uppercase tracking-widest mt-4">

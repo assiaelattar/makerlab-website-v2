@@ -111,16 +111,16 @@ export const Register: React.FC = () => {
       <div className="container mx-auto max-w-4xl relative z-10">
         
         {/* Header Section */}
-        <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-6 py-2 bg-black text-white border-4 border-black rounded-full mb-8 transform -rotate-1 shadow-neo-sm">
-              <Compass size={24} className="text-brand-orange animate-spin-slow" />
-              <span className="text-sm font-black uppercase tracking-widest">Guide & Orientation</span>
+        <div className="text-center mb-10 md:mb-16 px-2">
+            <div className="inline-flex items-center gap-2 px-6 py-2 bg-black text-white border-4 border-black rounded-full mb-6 md:mb-8 transform -rotate-1 shadow-neo-sm">
+              <Compass size={24} className="text-brand-orange animate-spin-slow shrink-0" />
+              <span className="text-xs md:text-sm font-black uppercase tracking-widest leading-none">Guide & Orientation</span>
             </div>
-            <h1 className="font-display font-black text-5xl md:text-7xl uppercase leading-[0.9] mb-8 tracking-tighter">
-              Trouvez le <span className="text-brand-orange text-outline-black">Parcours Idéal</span><br />
+            <h1 className="font-display font-black text-4xl md:text-7xl uppercase leading-[0.9] mb-6 md:mb-8 tracking-tighter">
+              Trouvez le <span className="text-brand-orange text-outline-black">Parcours Idéal</span><br className="hidden md:block" />
               Pour Votre Enfant
             </h1>
-            <p className="text-xl font-bold text-gray-600 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-base md:text-xl font-bold text-gray-600 max-w-2xl mx-auto leading-relaxed px-4 md:px-0">
               Vous hésitez entre le Coding, la Robotique ou le Design 3D ? Répondez à ces 3 questions et recevez un conseil personnalisé de nos mentors.
             </p>
         </div>
@@ -144,7 +144,7 @@ export const Register: React.FC = () => {
             <div className="absolute top-6 left-0 h-1 bg-black z-0 transition-all duration-700 ease-in-out rounded-full shadow-[0_0_10px_rgba(0,0,0,0.2)]" style={{ width: `${((step-1)/(totalSteps-1)) * 100}%` }}></div>
         </div>
 
-        <div className="bg-white rounded-[40px] border-8 border-black shadow-neo-xl p-8 md:p-16 relative overflow-hidden">
+        <div className="bg-white rounded-[2rem] md:rounded-[40px] border-4 md:border-8 border-black shadow-neo-xl p-6 md:p-16 relative overflow-hidden">
           
           <div className="relative z-10">
             <form onSubmit={handleSubmit} className="space-y-10">
@@ -271,12 +271,12 @@ export const Register: React.FC = () => {
                     </div>
                 )}
 
-                <div className="flex gap-4 pt-4">
+                <div className="flex flex-col sm:flex-row gap-4 pt-4">
                     {step > 1 && (
                         <button 
                             type="button" 
                             onClick={() => setStep(step - 1)}
-                            className="px-8 py-5 border-4 border-black font-black uppercase text-sm hover:bg-gray-100 transition-all shadow-neo-sm rounded-2xl active:scale-95"
+                            className="w-full sm:w-auto px-8 py-4 md:py-5 border-4 border-black font-black uppercase text-sm hover:bg-gray-100 transition-all shadow-neo-sm rounded-xl md:rounded-2xl active:scale-95"
                         >
                             Retour
                         </button>
@@ -285,17 +285,17 @@ export const Register: React.FC = () => {
                         type="submit" 
                         size="lg" 
                         disabled={loading} 
-                        className="flex-1 justify-center bg-black text-white uppercase tracking-widest disabled:opacity-50 h-[72px] text-lg rounded-2xl group shadow-neo hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
+                        className="flex-1 justify-center bg-black text-white uppercase tracking-widest disabled:opacity-50 h-[64px] md:h-[72px] text-base md:text-lg rounded-xl md:rounded-2xl group shadow-neo hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
                     >
                         {loading ? (
                             <span className="flex items-center gap-2">
                                 <span className="w-5 h-5 border-4 border-white/30 border-t-white rounded-full animate-spin"></span>
-                                Analyse en cours...
+                                Analyse...
                             </span>
                         ) : (
                             <span className="flex items-center gap-2">
-                                {step === totalSteps ? "Recevoir mon Conseil Perso" : "Phase Suivante"}
-                                <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform" />
+                                {step === totalSteps ? "Recevoir mon Conseil" : "Étape Suivante"}
+                                <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform shrink-0" />
                             </span>
                         )}
                     </Button>
