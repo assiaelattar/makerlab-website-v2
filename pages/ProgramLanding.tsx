@@ -12,6 +12,7 @@ import {
   ArrowDownCircle, HelpCircle, Gamepad2, PenTool, Lightbulb, TrendingUp,
   Globe, Briefcase, Video
 } from 'lucide-react';
+import { MakeAndGoForm } from '../components/MakeAndGoForm';
 
 /* ─── Icons Helper ────────────────────────────────────────────────────────── */
 const StationIcon: React.FC<{ name?: string; size?: number; className?: string }> = ({ name, size = 24, className }) => {
@@ -324,142 +325,26 @@ const DrawerCheckout: React.FC<{
   onClose: () => void; 
   ctaMode?: 'booking' | 'lead';
 }> = ({ selection, funnel, programId, programTitle, theme, onClose, ctaMode }) => {
-  const navigate = useNavigate();
-  const [form, setForm] = useState({ 
-    parentName: '', childName: '', childAge: '', whatsapp: '', 
-    digitalHabits: '', tinkeringHabits: '', artisticHabits: '', habits: '' 
-  });
-  const [loading, setLoading] = useState(false);
-  const [done, setDone] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const lead: LandingLead = {
-        programId,
-        programTitle,
-        parentName: form.parentName,
-        childName: form.childName,
-        childAge: form.childAge,
-        whatsapp: form.whatsapp,
-        digitalHabits: form.digitalHabits,
-        tinkeringHabits: form.tinkeringHabits,
-        artisticHabits: form.artisticHabits,
-        createdAt: new Date().toISOString(),
-        paymentStatus: 'Pending',
-        funnelId: funnel?.id,
-        funnelSlug: funnel?.slug
-      };
-      
-      if (selection?.id) {
-        lead.missionId = selection.id;
-        lead.missionTheme = selection.title || selection.theme;
-        lead.missionDate = selection.date;
-      }
-      
-      const docRef = await addDoc(collection(db, 'website-landing-leads'), lead);
-      setLoading(false); 
-      setDone(true);
-      navigate(`/thanks?leadId=${docRef.id}&programTitle=${encodeURIComponent(programTitle)}&slug=${funnel?.slug || ''}&childName=${encodeURIComponent(form.childName)}`);
-    } catch (e) {
-      console.error("Submission error", e);
-      setLoading(false);
-      alert("Une erreur est survenue, veuillez réessayer.");
-    }
-  };
-
   return (
     <>
       <div className={`fixed inset-0 bg-black/90 backdrop-blur-md z-[500] transition-opacity duration-500 ${selection ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={onClose} />
       <div className={`fixed top-0 right-0 bottom-0 w-full md:w-[600px] bg-white border-l-[12px] border-black z-[510] transition-transform duration-700 flex flex-col ${selection ? 'translate-x-0' : 'translate-x-full'}`}>
-        <div className="flex-1 overflow-y-auto p-12 relative scrollbar-hide">
-          <button onClick={onClose} className="absolute top-8 right-8 w-12 h-12 flex items-center justify-center rounded-full border-4 border-black bg-gray-100 hover:scale-110 active:scale-95 transition-all"><X size={24} className="text-black" /></button>
-          {!done ? (
-            <div className="space-y-12">
-               <div>
-                  <span className="inline-block bg-orange-100 text-orange-600 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-[0.2em] mb-4">🚀 SESSION INSCRIPTION</span>
-                  <h2 className="font-black text-4xl leading-none mb-6 uppercase italic">Demandez Votre Place.</h2>
-                  <div className="p-8 bg-black text-white border-4 border-black rounded-[2.5rem] shadow-[10px_10px_0_0_#f97316]">
-                     <p className="text-orange-500 font-black text-xs uppercase tracking-widest mb-2 flex items-center gap-2"><Target size={14}/> Mission Sélectionnée</p>
-                     <p className="font-black text-2xl uppercase italic leading-tight">{selection?.title || selection?.theme || programTitle}</p>
-                     <div className="flex items-center justify-between mt-6 pt-6 border-t border-white/10">
-                        <p className="text-gray-400 font-bold text-sm tracking-widest uppercase">{selection?.date || 'Date à confirmer'}</p>
-                        <p className="text-white font-black text-2xl italic">{selection?.price || "400 DHS"}</p>
-                     </div>
-                  </div>
-               </div>
-
-               <form onSubmit={handleSubmit} className="space-y-6 text-black">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FieldGroup label="Nom du Parent" value={form.parentName} onChange={v => setForm(p=>({...p, parentName: v}))} placeholder="Fatima Zahra" />
-                    <FieldGroup label="Nom de l'enfant" value={form.childName} onChange={v => setForm(p=>({...p, childName: v}))} placeholder="Youssef" />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FieldGroup label="Âge de l'enfant" type="number" value={form.childAge} onChange={v => setForm(p=>({...p, childAge: v}))} placeholder="11" />
-                    <FieldGroup label="WhatsApp" type="tel" value={form.whatsapp} onChange={v => setForm(p=>({...p, whatsapp: v}))} placeholder="06..." />
-                  </div>
-
-                  <div className="space-y-4 pt-6 border-t-4 border-black">
-                     <p className="font-black text-xs uppercase tracking-widest text-gray-400 flex items-center gap-2"><Sparkles size={14} className="text-orange-500"/> Profil Maker Discovery</p>
-                     <DiscoveryOption 
-                        icon={<Gamepad2/>} 
-                        label="Temps d'écran / Jeux vidéo ?" 
-                        value={form.digitalHabits} 
-                        onChange={v => setForm(p=>({...p, digitalHabits: v}))} 
-                        options={['Peu ( <1h )', 'Modéré ( 1-3h )', 'Beaucoup ( 3h+ )']} 
-                     />
-                     <DiscoveryOption 
-                        icon={<PenTool/>} 
-                        label="Intérêt pour le Bricolage / Art ?" 
-                        value={form.tinkeringHabits} 
-                        onChange={v => setForm(p=>({...p, tinkeringHabits: v}))} 
-                        options={['Curieux', 'Passionné', 'Déjà Pro']} 
-                     />
-                  </div>
-
-                  <button type="submit" disabled={loading} className="w-full py-6 bg-black text-white font-black text-2xl uppercase tracking-widest border-6 border-black rounded-[1.5rem] shadow-[10px_10px_0_0_#f97316] hover:translate-x-2 hover:translate-y-2 hover:shadow-none transition-all disabled:opacity-50">
-                    {loading ? 'ENVOI EN COURS...' : 'CONFIRMER ✨'}
-                  </button>
-               </form>
-            </div>
-          ) : (
-            <div className="h-full flex flex-col items-center justify-center text-center">
-               <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center mb-8 border-4 border-black animate-bounce shadow-xl"><CheckCircle2 size={48} className="text-black" strokeWidth={4} /></div>
-               <h3 className="font-black text-5xl mb-6 uppercase italic tracking-tighter leading-none">C'est Partant ! 🚀</h3>
-               <p className="text-gray-500 font-bold text-xl mb-12 max-w-sm leading-relaxed italic">"Nous préparons les outils pour {form.childName}. On se parle sur WhatsApp dans quelques minutes !"</p>
-               <button onClick={onClose} className="px-12 py-5 bg-black text-white font-black rounded-3xl uppercase tracking-widest border-4 border-black shadow-[8px_8px_0_0_#f97316]">RETOUR AU LAB</button>
-            </div>
+        <div className="flex-1 overflow-y-auto relative scrollbar-hide bg-white">
+          <button onClick={onClose} className="absolute top-4 right-4 z-[550] w-12 h-12 flex items-center justify-center rounded-full border-4 border-black bg-white hover:scale-110 active:scale-95 transition-all shadow-neo-sm"><X size={24} className="text-black" /></button>
+          {selection && (
+             <MakeAndGoForm 
+                context={{
+                   programTitle: programTitle,
+                   missionTheme: selection?.title || selection?.theme,
+                   missionDate: selection?.date
+                }}
+             />
           )}
         </div>
       </div>
     </>
   );
 };
-
-const FieldGroup: React.FC<{ label: string; value: string; onChange: (v: string) => void; placeholder?: string; type?: string }> = ({ label, value, onChange, placeholder, type = 'text' }) => (
-  <div className="space-y-1.5">
-     <label className="block text-[10px] font-black uppercase text-gray-400 tracking-widest pl-2">{label}</label>
-     <input required type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} className="w-full p-4 border-4 border-black rounded-2xl font-black focus:bg-orange-50 outline-none transition-all" />
-  </div>
-);
-
-const DiscoveryOption: React.FC<{ icon: any; label: string; value: string; onChange: (v: string) => void; options: string[] }> = ({ icon, label, value, onChange, options }) => (
-  <div className="space-y-2 mb-4">
-     <p className="text-[11px] font-black uppercase flex items-center gap-2">{icon} {label}</p>
-     <div className="flex flex-wrap gap-2">
-        {options.map(opt => (
-          <button 
-            key={opt} type="button" 
-            onClick={() => onChange(opt)}
-            className={`px-4 py-2 rounded-xl border-3 border-black text-[10px] font-black uppercase transition-all ${value === opt ? 'bg-black text-white' : 'bg-gray-50 hover:bg-gray-100'}`}
-          >
-            {opt}
-          </button>
-        ))}
-     </div>
-  </div>
-);
 
 const FAQSection: React.FC<{ items: any[]; theme: any }> = ({ items, theme }) => {
   const [openedIndex, setOpenedIndex] = useState<number | null>(null);

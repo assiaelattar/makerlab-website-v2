@@ -118,10 +118,13 @@ async function writeToFirestore(payload) {
       price_tag:      payload.price_tag,
       lead_score:     payload.lead_score,
       lead_tier:      payload.lead_tier,
-      submitted_at:   payload.submitted_at,
       wa_sent:        false,
       capi_sent:      false,
       source:         'make_and_go_quiz',
+      // Optional Context
+      program_title:  payload.program_title || null,
+      mission_theme:  payload.mission_theme || null,
+      mission_date:   payload.mission_date || null,
     }),
   };
 
@@ -193,8 +196,14 @@ async function sendCallMeBotNotification(payload) {
   if (payload.lead_tier === 'Tier_3_Cold') return false;
 
   const tierPrefix = payload.lead_tier === 'Tier_1_Hot' ? '*** 🔥 HOT ***' : '>> ⚡ WARM';
+  
+  const missionLine = payload.mission_theme 
+    ? `📅 RÉSERVATION : ${payload.program_title || 'Programme'} - ${payload.mission_theme} (${payload.mission_date || 'Date à def'})\n`
+    : '';
+
   const message = [
     `${tierPrefix} NOUVEAU LEAD — Make & Go`,
+    missionLine,
     `Enfant : ${payload.child_name} | ${payload.age_tag}`,
     `Parent : ${payload.parent_name}`,
     `WA : ${payload.phone}`,
@@ -220,8 +229,14 @@ async function sendTextMeBotNotification(payload) {
   if (payload.lead_tier === 'Tier_3_Cold') return false;
 
   const tierEmoji  = payload.lead_tier === 'Tier_1_Hot' ? '🔥 HOT' : '⚡ WARM';
+
+  const missionLine = payload.mission_theme 
+    ? `📅 RÉSERVATION : ${payload.program_title || 'Programme'} - ${payload.mission_theme} (${payload.mission_date || 'Date à def'})\n`
+    : '';
+
   const message = [
     `${tierEmoji} NEW LEAD — Make & Go`,
+    missionLine,
     `Enfant : ${payload.child_name} | ${payload.age_tag}`,
     `Parent : ${payload.parent_name}`,
     `WA : ${payload.phone}`,

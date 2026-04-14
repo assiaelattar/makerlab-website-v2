@@ -127,7 +127,13 @@ const Cta: React.FC<{
    Layout: flex-col h-full — Progress at top, options in flex-1, button at bottom
    → nothing ever needs to scroll on a standard mobile screen
 ══════════════════════════════════════════════════════════════════════════ */
-export const MakeAndGoForm: React.FC = () => {
+export interface MakeAndGoContext {
+  programTitle?: string;
+  missionTheme?: string;
+  missionDate?: string;
+}
+
+export const MakeAndGoForm: React.FC<{ context?: MakeAndGoContext }> = ({ context }) => {
   const navigate = useNavigate();
 
   const [step, setStep]       = useState<Step>(1);
@@ -195,6 +201,10 @@ export const MakeAndGoForm: React.FC = () => {
       phone: contact.phone.trim(), track: hs.trackTag, age_tag: hs.ageTag,
       motivation_tag: hs.motivationTag, urgency_tag: urgTag, price_tag: priceTag,
       lead_score: finalScore, lead_tier: finalTier, submitted_at: new Date().toISOString(),
+      // Context properties (Strategy B)
+      program_title: context?.programTitle,
+      mission_theme: context?.missionTheme,
+      mission_date: context?.missionDate,
     };
     // Persist child name so post-conversion pages can personalise their greeting
     try { sessionStorage.setItem('mg_child_name', contact.childName.trim()); } catch { /* ignore */ }
