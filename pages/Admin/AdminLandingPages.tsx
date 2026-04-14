@@ -43,17 +43,27 @@ export const AdminLandingPages: React.FC = () => {
       framework: newFunnel.framework,
       layoutVariant: newFunnel.framework === 'classic' ? 'classic' : 'modular',
       ctaMode: 'booking',
-      heroHeadline: program ? `Solution pour ${program.title}` : 'Nouvelle Landing Page',
-      heroCtaText: 'RÉSERVER MAINTENANT',
-      // Pre-fill framework specific defaults
+      heroHeadline: program?.landingPage?.heroHeadline || `Solution pour ${program?.title || 'Nouvelle Landing Page'}`,
+      heroSubHeadline: program?.landingPage?.heroSubHeadline || '',
+      heroCtaText: program?.landingPage?.heroCtaText || 'RÉSERVER MAINTENANT',
+      
       ...(newFunnel.framework === 'pas' && {
-        problemHeadline: "Le problème que vos enfants rencontrent...",
-        agitationHeadline: "Pourquoi c'est urgent de changer...",
+        problemHeadline: program?.landingPage?.problemHeadline || "Le problème que vos enfants rencontrent...",
+        problemBody: program?.landingPage?.problemBody || "",
+        agitationHeadline: program?.landingPage?.agitationHeadline || "Pourquoi c'est urgent de changer...",
+        agitationBody: program?.landingPage?.agitationBody || "",
+        solutionHeadline: program?.landingPage?.solutionHeadline || "La solution ultime...",
+        solutionBody: program?.landingPage?.solutionBody || ""
       }),
       ...(newFunnel.framework === 'bab' && {
-        beforeHeadline: "Avant de nous rejoindre...",
-        afterHeadline: "Ce qu'ils deviennent avec nous...",
-        bridgeHeadline: "Comment nous faisons le pont...",
+        beforeHeadline: program?.landingPage?.beforeHeadline || "Avant de nous rejoindre...",
+        afterHeadline: program?.landingPage?.afterHeadline || "Ce qu'ils deviennent avec nous...",
+        bridgeHeadline: program?.landingPage?.bridgeHeadline || "Comment nous faisons le pont..."
+      }),
+      ...(newFunnel.framework === 'contrast' && {
+        comparisonRows: program?.landingPage?.comparisonRows || [
+          { id: Date.now().toString(), feature: "La méthode", us: "Pratique", them: "Théorique", usBetter: true }
+        ]
       })
     };
 

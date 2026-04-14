@@ -36,18 +36,20 @@ interface Pack {
 
 export const ThankYou: React.FC = () => {
   const { settings } = useSettings();
-  const { getProgram } = usePrograms();
+  const { getProgram, getFunnelBySlug } = usePrograms();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   
   const leadId = searchParams.get('leadId');
   const programId = searchParams.get('programId');
+  const slug = searchParams.get('slug');
   const type = (searchParams.get('type') || 'mission') as string;
   const childName = searchParams.get('childName') || 'votre enfant';
   const programTitle = searchParams.get('programTitle') || searchParams.get('title') || 'votre atelier';
   
   const program = useMemo(() => programId ? getProgram(programId) : null, [programId, getProgram]);
-  const config = program?.landingPage?.thankYou;
+  const funnel = useMemo(() => slug ? getFunnelBySlug(slug) : null, [slug, getFunnelBySlug]);
+  const config = funnel?.data?.thankYou || program?.landingPage?.thankYou;
 
   const isOrientation = type === 'orientation' || type === 'evaluation' || type === 'trial';
   const itemPrice = searchParams.get('itemPrice') || '';

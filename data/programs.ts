@@ -42,7 +42,18 @@ export const initialPrograms: Program[] = [
       showStationsInPAS: true,
       selectedStationIds: ['cs', 're', 'cd', 'ds', 'bb'],
       layoutVariant: 'modular',
-      ctaMode: 'lead'
+      framework: MarketingFramework.PAS,  // tells ProgramLanding which framework sections to render
+      ctaMode: 'lead',
+      // BAB Data
+      beforeHeadline: 'Avant : Accro aux écrans, il joue et consomme de la technologie passivement.',
+      afterHeadline: 'Après : Il crée ses propres jeux et construit des projets concrêtement.',
+      bridgeHeadline: 'StemQuest transforme les enfants de consommateurs de technologie en créateurs.',
+      // Contrast Data
+      comparisonRows: [
+        { id: 'sq-1', feature: "La Technologie", us: "Vraie tech (Python, IA, Fusion 360)", them: "Kits simplifiés (Lego, Jouets)", usBetter: true },
+        { id: 'sq-2', feature: "La Méthode", us: "Project-based learning", them: "Système scolaire théorique", usBetter: true },
+        { id: 'sq-3', feature: "Le Résultat", us: "Portfolio de projets & Autonomie", them: "Diplôme symbolique", usBetter: true }
+      ]
     }
   },
   {
@@ -73,7 +84,17 @@ export const initialPrograms: Program[] = [
       solutionHeadline: 'Make & Go : Le Print Shot d\'Innovation.',
       solutionBody: 'Choisissez votre mission thématique : Robotique, Tech Founder ou Game Creator. 3 Heures d\'immersion totale, un trophée tangible à la clé.',
       layoutVariant: 'classic',
-      ctaMode: 'booking'
+      framework: MarketingFramework.PAS,
+      ctaMode: 'booking',
+      // BAB Data
+      beforeHeadline: 'Avant : Du temps d\'écran passif sans développement de compétences.',
+      afterHeadline: 'Après : Fierté immédiate, l\'enfant prouve qu\'il peut créer rapidement.',
+      bridgeHeadline: '1 session – 3 heures – 1 projet concret. Découvrez son potentiel !',
+      // Contrast Data
+      comparisonRows: [
+        { id: 'mg-1', feature: "Engagement", us: "À la carte (1 session de 3h)", them: "Abonnement annuel lourd", usBetter: true },
+        { id: 'mg-2', feature: "Expérience", us: "Projet tangible ramené à la maison", them: "Maquettes démontées à la fin", usBetter: true }
+      ]
     }
   }
 ];

@@ -4,11 +4,13 @@
  * Handles the full server-side pipeline for a Make & Go lead:
  *   1. Write to Firestore (make-and-go-leads collection)
  *   2. Fire Meta CAPI Lead event (if META_PIXEL_ID + META_ACCESS_TOKEN set)
- *   3. Send WhatsApp notification to Noufissa via CallMeBot (HOT/WARM only)
+ *   3a. Send WhatsApp notification via CallMeBot → Noufissa personal number (HOT/WARM)
+ *   3b. Send WhatsApp notification via TextMeBot → MakerLab platform number (HOT/WARM)
  *   4. Return { tier, redirect_url } to client
  *
+ * Both notification channels run in parallel via Promise.allSettled.
  * Gracefully degrades — the lead is ALWAYS saved to Firestore first.
- * CAPI and WA are non-blocking; their failures never block the response.
+ * CAPI and WA failures are non-blocking and never block the response.
  */
 
 import crypto from 'crypto';
@@ -21,8 +23,14 @@ const COLLECTION         = 'make-and-go-leads';
 
 const META_PIXEL_ID     = process.env.META_PIXEL_ID     || '';
 const META_ACCESS_TOKEN = process.env.META_ACCESS_TOKEN || '';
+
+// CallMeBot — Noufissa personal number
 const WA_INTERNAL_NUM   = process.env.WA_INTERNAL_NUMBER || '';
-const WA_API_KEY        = process.env.WA_API_KEY        || '';
+const WA_API_KEY        = process.env.WA_API_KEY         || '';
+
+// TextMeBot — MakerLab platform number (platform.makerlab@gmail.com)
+const TEXTMEBOT_API_KEY = process.env.TEXTMEBOT_API_KEY || '';
+const TEXTMEBOT_PHONE   = process.env.TEXTMEBOT_PHONE   || '212782076917';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -179,15 +187,12 @@ async function fireMetaCapi(payload, docId) {
   return ok;
 }
 
-// ── Step 3: WhatsApp notification via CallMeBot ───────────────────────────────
-async function sendWaNotification(payload, docId) {
+// ── Step 3a: WhatsApp notification via CallMeBot (Noufissa personal number) ──
+async function sendCallMeBotNotification(payload) {
   if (!WA_INTERNAL_NUM || !WA_API_KEY) return false;
-
-  // COLD leads → log only, no WA
   if (payload.lead_tier === 'Tier_3_Cold') return false;
 
   const tierPrefix = payload.lead_tier === 'Tier_1_Hot' ? '*** 🔥 HOT ***' : '>> ⚡ WARM';
-
   const message = [
     `${tierPrefix} NOUVEAU LEAD — Make & Go`,
     `Enfant : ${payload.child_name} | ${payload.age_tag}`,
@@ -200,26 +205,41 @@ async function sendWaNotification(payload, docId) {
     `Prix : ${payload.price_tag}`,
   ].join('\n');
 
-  const encoded = encodeURIComponent(message);
+  const encoded  = encodeURIComponent(message);
   const cleanNum = WA_INTERNAL_NUM.replace(/^\+/, '').replace(/\s+/g, '');
 
   const res = await fetch(
     `https://api.callmebot.com/whatsapp.php?phone=${cleanNum}&text=${encoded}&apikey=${WA_API_KEY}`
   );
+  return res.ok;
+}
 
-  const ok = res.ok;
+// ── Step 3b: WhatsApp notification via TextMeBot (MakerLab platform number) ──
+async function sendTextMeBotNotification(payload) {
+  if (!TEXTMEBOT_API_KEY) return false;
+  if (payload.lead_tier === 'Tier_3_Cold') return false;
 
-  if (ok && docId) {
-    try {
-      await fetch(firestoreUpdateUrl(docId), {
-        method:  'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ fields: { wa_sent: { booleanValue: true } } }),
-      });
-    } catch { /* ignore */ }
-  }
+  const tierEmoji  = payload.lead_tier === 'Tier_1_Hot' ? '🔥 HOT' : '⚡ WARM';
+  const message = [
+    `${tierEmoji} NEW LEAD — Make & Go`,
+    `Enfant : ${payload.child_name} | ${payload.age_tag}`,
+    `Parent : ${payload.parent_name}`,
+    `WA : ${payload.phone}`,
+    `Track : ${trackLabel(payload.track)}`,
+    `Score : ${payload.lead_score}/12`,
+    `Motivation : ${motivationLabel(payload.motivation_tag)}`,
+    `Urgency : ${urgencyLabel(payload.urgency_tag)}`,
+    `Prix : ${payload.price_tag}`,
+  ].join('\n');
 
-  return ok;
+  const encoded   = encodeURIComponent(message);
+  const cleanNum  = TEXTMEBOT_PHONE.replace(/^\+/, '').replace(/\s+/g, '');
+
+  // TextMeBot API: GET https://api.textmebot.com/send.php?recipient=PHONE&apikey=KEY&text=MSG
+  const res = await fetch(
+    `https://api.textmebot.com/send.php?recipient=${cleanNum}&apikey=${TEXTMEBOT_API_KEY}&text=${encoded}`
+  );
+  return res.ok;
 }
 
 // ── Main handler ──────────────────────────────────────────────────────────────
@@ -273,12 +293,33 @@ export default async function handler(req, res) {
     console.warn('[make-and-go-lead] CAPI failed (non-blocking):', err.message);
   }
 
-  // 3. WhatsApp notification (non-blocking)
+  // 3. Both WA channels fire in parallel — wa_sent = true if either succeeds
   try {
-    const waOk = await sendWaNotification(payload, docId);
-    if (waOk) console.log(`[make-and-go-lead] WA notification sent for ${docId}`);
+    const [callmebotResult, textmebotResult] = await Promise.allSettled([
+      sendCallMeBotNotification(payload),
+      sendTextMeBotNotification(payload),
+    ]);
+
+    const callmebotOk = callmebotResult.status === 'fulfilled' && callmebotResult.value;
+    const textmebotOk = textmebotResult.status === 'fulfilled' && textmebotResult.value;
+    const waSent      = callmebotOk || textmebotOk;
+
+    console.log(
+      `[make-and-go-lead] WA | CallMeBot: ${callmebotOk ? '✅' : '❌'} | TextMeBot: ${textmebotOk ? '✅' : '❌'}`
+    );
+
+    // Update Firestore wa_sent flag if at least one channel succeeded
+    if (waSent && docId) {
+      try {
+        await fetch(firestoreUpdateUrl(docId), {
+          method:  'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ fields: { wa_sent: { booleanValue: true } } }),
+        });
+      } catch { /* ignore update failure */ }
+    }
   } catch (err) {
-    console.warn('[make-and-go-lead] WA notification failed (non-blocking):', err.message);
+    console.warn('[make-and-go-lead] WA notifications failed (non-blocking):', err.message);
   }
 
   // ── Respond ─────────────────────────────────────────────────────────────────

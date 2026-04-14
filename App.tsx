@@ -235,7 +235,6 @@ const App: React.FC = () => {
                           <Route path="periods" element={<PeriodManager />} />
                           <Route path="offers" element={<Offers />} />
                           <Route path="offer/:id" element={<OfferEditor />} />
-                          <Route path="landing-pages" element={<AdminLandingPages />} />
                           <Route path="landing/:id" element={<AdminLandingEditor />} />
                         </Route>
 

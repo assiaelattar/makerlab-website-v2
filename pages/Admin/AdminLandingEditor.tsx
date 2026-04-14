@@ -95,7 +95,8 @@ export const AdminLandingEditor: React.FC = () => {
   }, [id, funnels]);
 
   const program = programs.find(p => p.id === funnel?.programId);
-  const programMissions = missions.filter(m => m.programId === program?.id);
+  // Allow selecting from all active missions in the gallery since missions are now cross-program entity
+  const programMissions = missions.filter(m => m.active);
   const programStations = program?.stations || [];
 
   const setField = <K extends keyof LandingPageData>(key: K, value: LandingPageData[K]) => {

@@ -89,6 +89,12 @@ export const ProgramProvider: React.FC<{ children: ReactNode }> = ({ children })
         id: doc.id,
       } as Funnel));
       setFunnels(data);
+      funnelsLoaded = true;   // ← was missing: caused isLoading to never become false
+      checkLoading();
+    }, (error) => {
+      console.error("Firebase Funnels sync error:", error);
+      funnelsLoaded = true;
+      checkLoading();
     });
 
     return () => {

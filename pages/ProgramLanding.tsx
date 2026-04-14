@@ -160,28 +160,28 @@ const PASSection: React.FC<{ lp: any; theme: any; programStations: StationPole[]
   return (
     <div className="space-y-0">
       {/* P - Problem */}
-      <section className="py-32 px-6 bg-[#0c0c0c] relative overflow-hidden">
+      <section className="py-20 md:py-32 px-6 bg-[#0c0c0c] relative overflow-hidden">
         <div className="max-w-4xl mx-auto">
           <Reveal>
-            <div className="text-center mb-20">
+            <div className="text-center mb-10 md:mb-20">
               <span className="inline-block px-4 py-1 bg-red-500 text-white font-black text-[10px] uppercase tracking-[0.3em] rounded-full mb-6 italic rotate-[-2deg]">1. IDENTIFICATION</span>
-              <h2 className="font-black text-5xl md:text-7xl mb-8 uppercase text-white shimmer-text italic leading-none">{lp.problemHeadline || "Le Problème."}</h2>
-              <p className="text-2xl text-gray-400 font-bold max-w-2xl mx-auto italic leading-relaxed">{lp.problemBody}</p>
+              <h2 className="font-black text-4xl md:text-7xl mb-6 md:mb-8 uppercase text-white shimmer-text italic leading-none">{lp.problemHeadline || "Le Problème."}</h2>
+              <p className="text-lg md:text-2xl text-gray-400 font-bold max-w-2xl mx-auto italic leading-relaxed">{lp.problemBody}</p>
             </div>
           </Reveal>
         </div>
       </section>
 
       {/* A - Agitation */}
-      <section className="py-32 px-6 bg-red-600 relative overflow-hidden border-y-[10px] border-black">
+      <section className="py-20 md:py-32 px-6 bg-red-600 relative overflow-hidden border-y-[6px] md:border-y-[10px] border-black">
         <div className="max-w-4xl mx-auto">
           <Reveal>
-            <div className="p-12 md:p-20 relative overflow-hidden">
-               <div className="absolute top-0 right-0 p-8 opacity-20 rotate-12"><AlertTriangle size={240} className="text-black" /></div>
-               <h3 className="font-black text-4xl md:text-7xl uppercase text-black mb-8 italic leading-none tracking-tighter">
+            <div className="p-8 md:p-20 relative overflow-hidden">
+               <div className="absolute top-0 right-0 p-4 md:p-8 opacity-20 rotate-12"><AlertTriangle className="text-black w-32 h-32 md:w-60 md:h-60" /></div>
+               <h3 className="font-black text-3xl md:text-7xl uppercase text-black mb-6 md:mb-8 italic leading-none tracking-tighter">
                  {lp.agitationHeadline || "L'Avenir est à risque."}
                </h3>
-               <p className="text-black font-black text-2xl leading-relaxed max-w-3xl italic">{lp.agitationBody}</p>
+               <p className="text-black font-black text-lg md:text-2xl leading-relaxed max-w-3xl italic relative z-10">{lp.agitationBody}</p>
                <div className="mt-12 flex items-center gap-4">
                   <div className="h-4 w-full bg-black/20 rounded-full overflow-hidden border-2 border-black">
                      <div className="h-full bg-black animate-pulse" style={{ width: '85%' }} />
@@ -194,13 +194,13 @@ const PASSection: React.FC<{ lp: any; theme: any; programStations: StationPole[]
       </section>
 
       {/* S - Solution (The Revelation) */}
-      <section className="py-32 px-6 bg-[#0a0a0a] relative overflow-hidden">
+      <section className="py-20 md:py-32 px-6 bg-[#0a0a0a] relative overflow-hidden">
         <div className="max-w-6xl mx-auto">
           <Reveal>
-            <div className="text-center mb-20">
+            <div className="text-center mb-12 md:mb-20">
               <span className="inline-block px-4 py-1 bg-green-500 text-black font-black text-[10px] uppercase tracking-[0.3em] rounded-full mb-6 italic rotate-[2deg]">2. LA RÉVÉLATION</span>
-              <h2 className="font-black text-5xl md:text-7xl mb-8 uppercase text-white shimmer-text italic leading-[0.9] tracking-tighter">{lp.solutionHeadline || "Entrez dans l'Incubateur."}</h2>
-              <p className="text-2xl text-gray-400 font-bold max-w-3xl mx-auto italic leading-relaxed">{lp.solutionBody}</p>
+              <h2 className="font-black text-4xl md:text-7xl mb-6 md:mb-8 uppercase text-white shimmer-text italic leading-none tracking-tighter">{lp.solutionHeadline || "Entrez dans l'Incubateur."}</h2>
+              <p className="text-lg md:text-2xl text-gray-400 font-bold max-w-3xl mx-auto italic leading-relaxed">{lp.solutionBody}</p>
             </div>
           </Reveal>
           
@@ -253,23 +253,23 @@ const PASSection: React.FC<{ lp: any; theme: any; programStations: StationPole[]
 };
 
 const BABSection: React.FC<{ lp: any; theme: any }> = ({ lp, theme }) => (
-  <section className="py-32 px-6 bg-[#0a0a0a] relative overflow-hidden">
-     <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+  <section className="py-20 md:py-32 px-6 bg-[#0a0a0a] relative overflow-hidden">
+     <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center">
         <Reveal>
-           <div className="p-10 bg-white/5 border-4 border-dashed border-gray-800 rounded-[3rem] opacity-40 grayscale translate-x-4 rotate-2">
-              <span className="text-xs font-black uppercase text-gray-500 mb-4 block tracking-widest">AVANT (SITUATION ACTUELLE)</span>
-              <h3 className="font-black text-3xl mb-6 italic text-gray-300">"{lp.beforeHeadline}"</h3>
-              <p className="text-gray-500 font-bold text-lg">{lp.beforeBody || "Passivité, consommation, manque de but."}</p>
+           <div className="p-8 md:p-10 bg-white/5 border-4 border-dashed border-gray-800 rounded-3xl md:rounded-[3rem] opacity-60 md:opacity-40 grayscale translate-x-0 md:translate-x-4 rotate-0 md:rotate-2">
+              <span className="text-[10px] md:text-xs font-black uppercase text-gray-500 mb-4 block tracking-widest">AVANT (SITUATION ACTUELLE)</span>
+              <h3 className="font-black text-2xl md:text-3xl mb-4 md:mb-6 italic text-gray-300">"{lp.beforeHeadline}"</h3>
+              <p className="text-gray-500 font-bold text-sm md:text-lg">{lp.beforeBody || "Passivité, consommation, manque de but."}</p>
            </div>
         </Reveal>
         <Reveal delay={300}>
-           <div className="p-12 border-8 border-black rounded-[4rem] bg-blue-500 shadow-[20px_20px_0_0_#000] -rotate-2 relative z-10 scale-110">
-              <div className="absolute -top-10 -right-4 w-24 h-24 bg-white rounded-full flex items-center justify-center border-6 border-black rotate-12 shadow-xl">
-                 <Zap size={48} className="text-orange-500" fill="currentColor" />
+           <div className="p-8 md:p-12 border-4 md:border-8 border-black rounded-3xl md:rounded-[4rem] bg-blue-500 shadow-[10px_10px_0_0_#000] md:shadow-[20px_20px_0_0_#000] rotate-0 md:-rotate-2 relative z-10 scale-100 md:scale-110">
+              <div className="absolute -top-6 md:-top-10 -right-2 md:-right-4 w-16 h-16 md:w-24 md:h-24 bg-white rounded-full flex items-center justify-center border-4 md:border-6 border-black rotate-12 shadow-xl">
+                 <Zap className="text-orange-500 w-8 h-8 md:w-12 md:h-12" fill="currentColor" />
               </div>
-              <span className="text-xs font-black uppercase text-black/60 mb-4 block tracking-widest">APRÈS (TRANSFORMATION MAKER)</span>
-              <h3 className="font-black text-4xl mb-6 text-black italic">"{lp.afterHeadline}"</h3>
-              <p className="text-black font-black text-xl mb-8 leading-tight">{lp.bridgeHeadline}</p>
+              <span className="text-[10px] md:text-xs font-black uppercase text-black/60 mb-4 block tracking-widest">APRÈS (TRANSFORMATION MAKER)</span>
+              <h3 className="font-black text-3xl md:text-4xl mb-4 md:mb-6 text-black italic">"{lp.afterHeadline}"</h3>
+              <p className="text-black font-black text-lg md:text-xl mb-6 md:mb-8 leading-tight">{lp.bridgeHeadline}</p>
               <div className="flex gap-2">
                  {[1,2,3,4,5].map(i => <Star key={i} size={24} className="text-white" fill="currentColor" />)}
               </div>
@@ -280,12 +280,12 @@ const BABSection: React.FC<{ lp: any; theme: any }> = ({ lp, theme }) => (
 );
 
 const ContrastSection: React.FC<{ lp: any; theme: any }> = ({ lp, theme }) => (
-  <section className="py-32 px-6 bg-white relative overflow-hidden noise-bg">
+  <section className="py-20 md:py-32 px-6 bg-white relative overflow-hidden noise-bg">
      <div className="max-w-4xl mx-auto relative z-10">
         <Reveal>
-           <div className="text-center mb-20">
-              <h2 className="font-black text-6xl md:text-8xl uppercase text-black italic leading-none tracking-tighter mb-4">LE CHOIX.<br/><span className="text-orange-500">EST CLAIR.</span></h2>
-              <p className="text-gray-400 font-bold text-xl uppercase tracking-widest">Ne comparez pas l'incomparable.</p>
+           <div className="text-center mb-10 md:mb-20">
+              <h2 className="font-black text-5xl md:text-8xl uppercase text-black italic leading-none tracking-tighter mb-4">LE CHOIX.<br/><span className="text-orange-500">EST CLAIR.</span></h2>
+              <p className="text-gray-400 font-bold text-sm md:text-xl uppercase tracking-widest">Ne comparez pas l'incomparable.</p>
            </div>
         </Reveal>
         <Reveal delay={200}>
@@ -359,9 +359,14 @@ const DrawerCheckout: React.FC<{
       }
       
       const docRef = await addDoc(collection(db, 'website-landing-leads'), lead);
-      navigate(`/thanks?leadId=${docRef.id}&programTitle=${encodeURIComponent(programTitle)}&slug=${funnel?.slug || ''}`);
-    } catch (_) {}
-    setLoading(false); setDone(true);
+      setLoading(false); 
+      setDone(true);
+      navigate(`/thanks?leadId=${docRef.id}&programTitle=${encodeURIComponent(programTitle)}&slug=${funnel?.slug || ''}&childName=${encodeURIComponent(form.childName)}`);
+    } catch (e) {
+      console.error("Submission error", e);
+      setLoading(false);
+      alert("Une erreur est survenue, veuillez réessayer.");
+    }
   };
 
   return (
@@ -528,7 +533,7 @@ export const ProgramLanding: React.FC = () => {
     return <div className="min-h-screen bg-black flex items-center justify-center animate-pulse"><div className="text-white font-black text-xl italic uppercase">Génération du Funnel...</div></div>;
   }
 
-  if (!program || !lp || (lp && !lp.enabled && !funnel)) {
+  if (!program || !lp || (!funnel && lp && !lp.enabled)) {
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white text-center p-6">
         <h1 className="text-4xl font-black mb-4 uppercase italic tracking-tighter">404 - Funnel Perdu</h1>
@@ -592,14 +597,14 @@ export const ProgramLanding: React.FC = () => {
               </div>
            </Reveal>
            <Reveal delay={100}>
-              <p className="text-orange-500 font-black text-xs md:text-sm uppercase tracking-[0.4em] mb-6 italic">{t('heroPreHeadline')}</p>
-              <h1 className="font-black text-6xl md:text-8xl lg:text-9xl leading-[0.8] mb-10 shimmer-text italic tracking-tighter uppercase">{lp.heroHeadline || t('heroHeadline')}</h1>
-              <p className="text-xl md:text-3xl text-gray-400 font-black max-w-4xl mx-auto mb-16 leading-tight italic uppercase">{lp.heroSubHeadline || t('heroSubHeadline')}</p>
+              <p className="text-orange-500 font-black text-xs md:text-sm uppercase tracking-[0.4em] mb-4 md:mb-6 italic">{t('heroPreHeadline')}</p>
+              <h1 className="font-black text-5xl md:text-8xl lg:text-9xl leading-[0.8] mb-6 md:mb-10 shimmer-text italic tracking-tighter uppercase">{lp.heroHeadline || t('heroHeadline')}</h1>
+              <p className="text-lg md:text-3xl text-gray-400 font-black max-w-4xl mx-auto mb-10 md:mb-16 leading-tight italic uppercase">{lp.heroSubHeadline || t('heroSubHeadline')}</p>
            </Reveal>
            <Reveal delay={300}>
               <button 
                 onClick={() => missionsRef.current?.scrollIntoView({ behavior: 'smooth' })} 
-                className="cta-pulse px-16 py-8 bg-white text-black font-black text-3xl uppercase tracking-widest border-8 border-black rounded-[3rem] shadow-[12px_12px_0_0_#000] hover:translate-x-2 hover:translate-y-2 hover:shadow-none transition-all active:scale-95"
+                className="cta-pulse w-full md:w-auto px-6 py-6 md:px-16 md:py-8 bg-white text-black font-black text-xl md:text-3xl uppercase tracking-widest border-4 md:border-8 border-black rounded-3xl md:rounded-[3rem] shadow-[8px_8px_0_0_#000] md:shadow-[12px_12px_0_0_#000] hover:translate-x-2 hover:translate-y-2 hover:shadow-none transition-all active:scale-95"
               >
                  {lp.heroCtaText || "REJOINDRE LA MISSION"}
               </button>
@@ -608,9 +613,16 @@ export const ProgramLanding: React.FC = () => {
         </section>
 
         {/* ══ FRAMEWORK SECTIONS ══ */}
-        {funnel?.framework === MarketingFramework.PAS && <PASSection lp={lp} theme={theme} programStations={programStations} />}
-        {funnel?.framework === MarketingFramework.BAB && <BABSection lp={lp} theme={theme} />}
-        {funnel?.framework === MarketingFramework.CONTRAST && <ContrastSection lp={lp} theme={theme} />}
+        {(() => {
+          const fw = funnel?.framework ?? lp.framework ?? (lp as any).layoutVariant;
+          return (
+            <>
+              {(fw === MarketingFramework.PAS || fw === 'pas') && <PASSection lp={lp} theme={theme} programStations={programStations} />}
+              {(fw === MarketingFramework.BAB || fw === 'bab') && <BABSection lp={lp} theme={theme} />}
+              {(fw === MarketingFramework.CONTRAST || fw === 'contrast') && <ContrastSection lp={lp} theme={theme} />}
+            </>
+          );
+        })()}
 
         {/* ══ STATIONS SECTION (MODULAR) ══ */}
         {lp.layoutVariant === 'modular' && selectedStations.length > 0 && !lp.showStationsInPAS && (
@@ -626,33 +638,60 @@ export const ProgramLanding: React.FC = () => {
         )}
 
         {/* ══ MISSIONS ══ */}
-        <section ref={missionsRef} className="py-32 px-6 bg-[#0c0c0c]">
+        <section ref={missionsRef} className="py-20 md:py-32 px-6 bg-[#0c0c0c]">
            <div className="max-w-5xl mx-auto">
-              <div className="text-center mb-24 relative">
-                 <h2 className="font-black text-6xl md:text-8xl uppercase italic text-orange-500 mb-6 leading-none tracking-tighter">{lp.missionsHeadline || "SESSIONS OUVERTES."}</h2>
-                 <p className="text-gray-500 font-black text-xl uppercase tracking-widest">{lp.missionsSubHeadline || "Sélectionnez votre créneau de déploiement."}</p>
+              <div className="text-center mb-16 md:mb-24 relative z-10">
+                 <h2 className="font-black text-5xl md:text-8xl uppercase italic text-orange-500 mb-4 md:mb-6 leading-none tracking-tighter">{lp.missionsHeadline || "SESSIONS OUVERTES."}</h2>
+                 <p className="text-gray-500 font-black text-sm md:text-xl uppercase tracking-widest">{lp.missionsSubHeadline || "Sélectionnez votre créneau de déploiement."}</p>
                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[15vw] font-black opacity-[0.03] pointer-events-none select-none italic uppercase">CALENDAR</div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                 {visibleMissions.map((m, i) => (
+                 {visibleMissions.length === 0 ? (
+                   <div className="col-span-2 py-20 text-center border-4 border-dashed border-gray-800 rounded-[3rem]">
+                     <p className="font-black text-3xl text-gray-500 uppercase italic mb-4">Sessions à venir...</p>
+                     <p className="text-gray-600 font-bold max-w-md mx-auto">Les prochaines sessions seront bientôt annoncées. Inscrivez-vous pour être alerté(e) en premier.</p>
+                     <button
+                       onClick={() => setSelectedTarget({ title: program!.title, price: program!.price, date: 'À confirmer' })}
+                       className="mt-8 px-8 py-4 bg-orange-500 text-black font-black rounded-[1.5rem] uppercase text-xs tracking-widest italic border-4 border-black shadow-[6px_6px_0_0_#000] hover:shadow-none transition-all"
+                     >
+                       M'alerter des prochaines sessions →
+                     </button>
+                   </div>
+                 ) : visibleMissions.map((m, i) => (
                    <Reveal key={m.id} delay={i * 100}>
-                      <div className="card-neobrutal p-8 bg-white text-black rounded-[3rem] h-full flex flex-col justify-between group">
-                         <div>
-                            <div className="flex items-center justify-between mb-8">
-                               <div className="px-4 py-1.5 bg-black text-white font-black text-[9px] uppercase tracking-widest rounded-full italic">{m.date}</div>
-                               <div className="p-3 bg-gray-50 rounded-2xl border-3 border-black group-hover:bg-orange-500 transition-colors"><TrendingUp size={24}/></div>
+                      <div className="card-neobrutal bg-white text-black rounded-3xl md:rounded-[3rem] overflow-hidden flex flex-col h-full group">
+                         {m.coverImage && (
+                            <div className="aspect-video bg-gray-200 border-b-4 border-black relative overflow-hidden shrink-0">
+                               <img src={m.coverImage} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt={m.title} />
+                               <div className="absolute top-4 left-4 px-4 py-1.5 bg-black text-white font-black text-[9px] uppercase tracking-widest rounded-full italic shadow-neo-sm z-10">{m.date}</div>
                             </div>
-                            <h3 className="font-black text-3xl mb-4 italic leading-tight uppercase group-hover:text-orange-500 transition-colors">{m.title || m.theme}</h3>
-                            <p className="text-gray-500 font-bold text-sm leading-relaxed mb-8">{m.description || "Projet d'ingénierie avancée, modélisation 3D et programmation."}</p>
-                         </div>
-                         <div className="flex items-center justify-between pt-8 border-t-3 border-black">
-                            <span className="font-black text-4xl italic tracking-tighter">{m.price}</span>
-                            <button 
-                              onClick={() => setSelectedTarget(m)}
-                              className="px-8 py-4 bg-orange-500 text-black font-black rounded-[1.5rem] uppercase text-xs tracking-widest italic border-4 border-black shadow-[6px_6px_0_0_#000] hover:shadow-none translate-y-[-2px] hover:translate-y-0 transition-all font-sans"
-                            >
-                               RÉSERVER →
-                            </button>
+                         )}
+                         <div className="p-6 md:p-8 flex-1 flex flex-col justify-between">
+                            <div>
+                               {!m.coverImage && (
+                                  <div className="flex items-center justify-between mb-8">
+                                     <div className="px-4 py-1.5 bg-black text-white font-black text-[9px] uppercase tracking-widest rounded-full italic">{m.date}</div>
+                                     <div className="p-3 bg-gray-50 rounded-2xl border-3 border-black group-hover:bg-orange-500 transition-colors"><TrendingUp size={24}/></div>
+                                  </div>
+                               )}
+                               {m.coverImage && (
+                                  <div className="flex items-center justify-between mb-4">
+                                    <span className="font-black text-[10px] text-gray-400 uppercase tracking-widest bg-gray-100 px-3 py-1 rounded-full">{m.category || 'Mission'}</span>
+                                    <div className="p-2 bg-gray-50 rounded-xl border-1 border-black group-hover:bg-orange-500 transition-colors"><TrendingUp size={16}/></div>
+                                  </div>
+                               )}
+                               <h3 className="font-black text-2xl md:text-3xl mb-4 italic leading-tight uppercase group-hover:text-orange-500 transition-colors">{m.title || m.theme}</h3>
+                               <p className="text-gray-500 font-bold text-sm leading-relaxed mb-6 md:mb-8">{m.description || "Projet d'ingénierie avancée, modélisation 3D et programmation."}</p>
+                            </div>
+                            <div className="flex flex-col md:flex-row items-start md:items-center justify-between pt-6 md:pt-8 border-t-3 border-black gap-4 mt-auto">
+                               <span className="font-black text-3xl md:text-4xl italic tracking-tighter">{m.price}</span>
+                               <button 
+                                 onClick={() => setSelectedTarget(m)}
+                                 className="w-full md:w-auto text-center px-8 py-4 bg-orange-500 text-black font-black rounded-2xl md:rounded-[1.5rem] uppercase text-[10px] md:text-xs tracking-widest italic border-4 border-black shadow-[6px_6px_0_0_#000] hover:shadow-none translate-y-[-2px] hover:translate-y-0 transition-all font-sans shrink-0"
+                               >
+                                  RÉSERVER →
+                               </button>
+                            </div>
                          </div>
                       </div>
                    </Reveal>
@@ -661,20 +700,43 @@ export const ProgramLanding: React.FC = () => {
            </div>
         </section>
 
+        {/* ══ GALLERY / SOCIAL PROOF ══ */}
+        {lp.galleryImages && lp.galleryImages.length > 0 && (
+          <section className="py-24 px-6 bg-white border-y-4 border-black">
+            <div className="max-w-6xl mx-auto">
+              <div className="text-center mb-16">
+                 <Reveal>
+                   <h2 className="font-black text-4xl md:text-6xl uppercase italic text-black mb-4">Makers en Action</h2>
+                   <p className="font-bold text-gray-500 uppercase tracking-widest text-sm">Dans les coulisses de nos programmes</p>
+                 </Reveal>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+                {lp.galleryImages.map((src, idx) => (
+                  <Reveal key={idx} delay={idx * 100}>
+                    <div className="aspect-[4/5] md:aspect-square bg-gray-100 rounded-3xl border-4 border-black overflow-hidden group hover:-translate-y-2 hover:shadow-[8px_8px_0_0_#000] transition-all duration-300">
+                      <img src={src} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt={`Galerie MakerLab ${idx}`} />
+                    </div>
+                  </Reveal>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
         {lp.faqEnabled && <FAQSection items={lp.faqItems || []} theme={theme} />}
 
         {/* ══ FINAL BLOCK ══ */}
-        <section className="py-40 px-6 text-center noise-bg relative" style={{ background: theme.gradient }}>
-           <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none"><Rocket size={500} strokeWidth={0.5}/></div>
+        <section className="py-24 md:py-40 px-6 text-center noise-bg relative overflow-hidden" style={{ background: theme.gradient }}>
+           <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none"><Rocket className="w-96 h-96 md:w-[500px] md:h-[500px]" strokeWidth={0.5}/></div>
            <Reveal>
-              <h2 className="font-black text-5xl md:text-8xl mb-12 uppercase italic shimmer-text leading-none">{lp.finalCtaHeadline || "DEVENIR UN MAKEMAKER."}</h2>
+              <h2 className="font-black text-4xl md:text-8xl mb-8 md:mb-12 uppercase italic shimmer-text leading-none relative z-10">{lp.finalCtaHeadline || "DEVENIR UN MAKEMAKER."}</h2>
               <button 
                 onClick={() => missionsRef.current?.scrollIntoView({ behavior: 'smooth' })} 
-                className="px-16 py-8 bg-orange-500 text-black font-black text-4xl italic uppercase tracking-widest border-8 border-black rounded-[3.5rem] shadow-[15px_15px_0_0_#000] hover:translate-x-3 hover:translate-y-3 hover:shadow-none transition-all scale-110 active:scale-95"
+                className="w-full md:w-auto px-6 py-6 md:px-16 md:py-8 bg-orange-500 text-black font-black text-2xl md:text-4xl italic uppercase tracking-widest border-4 md:border-8 border-black rounded-3xl md:rounded-[3.5rem] shadow-[8px_8px_0_0_#000] md:shadow-[15px_15px_0_0_#000] hover:translate-x-1 hover:translate-y-1 md:hover:translate-x-3 md:hover:translate-y-3 hover:shadow-none transition-all scale-100 md:scale-110 active:scale-95 relative z-10"
               >
                   LANCER LA SESSION
               </button>
-              <p className="mt-12 text-gray-500 font-black text-xs md:text-sm uppercase tracking-[0.5em] italic">{lp.finalCtaBody || "Ne laissez pas le futur s'écrire sans eux."}</p>
+              <p className="mt-8 md:mt-12 text-gray-500 font-black text-[10px] md:text-sm uppercase tracking-[0.2em] md:tracking-[0.5em] italic relative z-10">{lp.finalCtaBody || "Ne laissez pas le futur s'écrire sans eux."}</p>
            </Reveal>
         </section>
 
