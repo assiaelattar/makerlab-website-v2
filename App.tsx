@@ -53,6 +53,7 @@ import { MakeAndGo } from './pages/MakeAndGo';
 import { PriorityBooking } from './pages/PriorityBooking';
 import { MerciPage } from './pages/MerciPage';
 import { DecouvrirPage } from './pages/DecouvrirPage';
+import { AdminLaunchCenter } from './pages/Admin/AdminLaunchCenter';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -215,6 +216,7 @@ const App: React.FC = () => {
                         <Route path="/admin" element={<AdminLogin />} />
                         <Route path="/admin" element={<AdminLayout />}>
                           <Route path="dashboard" element={<AdminDashboard />} />
+                          <Route path="setup" element={<AdminLaunchCenter />} />
                           <Route path="content" element={<AdminContent />} />
                           <Route path="programs" element={<AdminDashboard />} />
                           <Route path="bookings" element={<AdminBookings />} />

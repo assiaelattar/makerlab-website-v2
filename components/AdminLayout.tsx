@@ -122,6 +122,7 @@ export const AdminLayout: React.FC = () => {
   };
 
   const navItems = [
+    { label: '🚀 Centre de Lancement', path: '/admin/setup',           icon: Rocket },
     { label: 'Tableau de Bord',    path: '/admin/dashboard',       icon: LayoutDashboard },
     { label: 'Calendrier',          path: '/admin/calendar',         icon: CalendarDays },
     { label: 'Contenu du Site',     path: '/admin/content',          icon: FileText },
