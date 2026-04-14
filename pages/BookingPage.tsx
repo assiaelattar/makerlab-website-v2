@@ -1,32 +1,54 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { usePrograms } from '../contexts/ProgramContext';
 import { useMissions } from '../contexts/MissionContext';
 import { Button } from '../components/Button';
-import { ArrowLeft, CheckCircle2, Calendar, User, Phone, Mail, Baby, Info, Zap } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, Calendar as CalendarIcon, User, Phone, Mail, Baby, Info, Zap } from 'lucide-react';
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
+import { generateUpcomingInstances } from '../utils/slotUtils';
+import { BookingCalendar } from '../components/BookingCalendar';
 
 export const BookingPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const { getProgram } = usePrograms();
-    const { missions, tracks } = useMissions();
-    const type = searchParams.get('type') || 'workshop'; // 'workshop' or 'trial'
+    const { missions, tracks, demoSlots, recurrentSlots, leads, updateDemoSlot } = useMissions();
+    
+    // 🧠 Dynamic Slot Generation
+    const availableSlots = useMemo(() => {
+        if (!recurrentSlots || !demoSlots || !leads) return [];
+        return generateUpcomingInstances(recurrentSlots, demoSlots, leads, 4);
+    }, [recurrentSlots, demoSlots, leads]);
+
+    const type = searchParams.get('type') || 'workshop'; // 'workshop', 'trial', or 'annual'
     const missionId = searchParams.get('missionId');
     const trackId = searchParams.get('trackId');
 
     const program = getProgram(id || '');
     
+    // 🛡️ Fallback for General Trial Link (/booking/trial?type=trial)
+    const isGeneralTrial = !program && id === 'trial';
+    const activeProgram = program || (isGeneralTrial ? {
+        id: 'trial',
+        title: 'Atelier d\'Essai MakerLab',
+        description: 'Découvrez l\'univers MakerLab lors d\'une session de démonstration gratuite. Robotique, Codage et Impression 3D !',
+        image: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=800',
+        ageGroup: '7-14 ans',
+        format: 'Présentiel',
+        price: 'GRATUIT',
+        category: 'DÉCOUVRE'
+    } : null);
+
     // Find specific mission or track if applicable
     const selectedMission = missionId ? missions.find(m => m.id === missionId) : null;
     const selectedTrack = trackId ? tracks.find(t => t.id === trackId) : null;
 
     // Determine booking details (override program values if specific mission/track)
-    const bookingTitle = selectedMission?.title || selectedTrack?.title || program?.title || 'Réservation';
-    const bookingPrice = selectedMission?.price || selectedTrack?.price || program?.price || '';
-    const bookingDesc = selectedMission?.description || selectedTrack?.description || program?.description || '';
+    const bookingTitle = selectedMission?.title || selectedTrack?.title || activeProgram?.title || 'Réservation';
+    const bookingPrice = selectedMission?.price || selectedTrack?.price || activeProgram?.price || '';
+    const bookingDesc = selectedMission?.description || selectedTrack?.description || activeProgram?.description || '';
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
@@ -38,16 +60,17 @@ export const BookingPage: React.FC = () => {
         childName: '',
         childAge: '',
         preferredDate: '',
+        demoSlotId: '',
         notes: ''
     });
 
     useEffect(() => {
-        if (program?.schedule && program.schedule.length > 0 && !formData.preferredDate) {
-            setFormData(prev => ({ ...prev, preferredDate: program.schedule[0] }));
+        if (activeProgram?.schedule && activeProgram.schedule.length > 0 && !formData.preferredDate) {
+            setFormData(prev => ({ ...prev, preferredDate: activeProgram.schedule[0] }));
         }
-    }, [program]);
+    }, [activeProgram]);
 
-    if (!program) {
+    if (!activeProgram) {
         return (
             <div className="min-h-screen flex items-center justify-center p-4">
                 <div className="text-center bg-white border-4 border-black p-10 shadow-neo">
@@ -64,17 +87,26 @@ export const BookingPage: React.FC = () => {
         try {
             await addDoc(collection(db, 'website-bookings'), {
                 ...formData,
-                programId: program.id,
-                programTitle: program.title,
+                programId: activeProgram.id,
+                programTitle: activeProgram.title,
                 missionId: missionId || null,
                 trackId: trackId || null,
                 itemTitle: bookingTitle,
                 itemPrice: bookingPrice,
                 bookingType: type,
+                demoSlotId: formData.demoSlotId || null,
                 createdAt: new Date().toISOString(),
                 status: 'pending'
             });
-            navigate(`/thanks?programId=${program.id}&title=${encodeURIComponent(bookingTitle)}&itemPrice=${encodeURIComponent(bookingPrice)}&missionId=${missionId || ''}&trackId=${trackId || ''}`);
+
+            // Decrement spots if it was a specific demo slot
+            if (type === 'trial' && formData.demoSlotId) {
+                const slot = demoSlots.find(s => s.id === formData.demoSlotId);
+                if (slot) {
+                    await updateDemoSlot(slot.id, { spotsLeft: Math.max(0, slot.spotsLeft - 1) });
+                }
+            }
+            setIsSuccess(true);
         } catch (error) {
             console.error("Booking error:", error);
             alert("Une erreur est survenue lors de la réservation. Veuillez réessayer.");
@@ -94,6 +126,8 @@ export const BookingPage: React.FC = () => {
                     <p className="text-xl font-bold mb-8 leading-relaxed">
                         {type === 'trial' 
                             ? `Votre demande d'atelier d'essai pour "${bookingTitle}" a bien été reçue. Notre équipe vous recontactera très vite pour confirmer la date.`
+                            : type === 'annual'
+                            ? `Votre demande d'inscription au Programme Annuel "${bookingTitle}" a bien été enregistrée. Un conseiller pédagogique vous appellera pour finaliser le dossier.`
                             : `Votre réservation pour "${bookingTitle}" est en cours. Un conseiller MakerLab vous appellera pour finaliser l'inscription.`
                         }
                     </p>
@@ -106,105 +140,155 @@ export const BookingPage: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen pt-32 pb-20 px-4 bg-gray-50 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
-            <div className="max-w-4xl mx-auto">
-                <button onClick={() => navigate(-1)} className="flex items-center gap-2 font-black uppercase tracking-widest text-sm mb-8 hover:translate-x-1 transition-transform">
-                    <ArrowLeft size={18} strokeWidth={3} /> Retour
+        <div className="min-h-screen pt-32 pb-20 px-4 bg-[#fcfaf7] relative overflow-hidden">
+            {/* Subtle Texture/Paper Effect */}
+            <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/natural-paper.png")' }}></div>
+            
+            <div className="max-w-6xl mx-auto relative z-10">
+                <button onClick={() => navigate(-1)} className="group flex items-center gap-3 font-black uppercase tracking-[0.2em] text-[10px] mb-12 text-black/40 hover:text-black transition-colors">
+                    <div className="bg-white border-2 border-black/10 p-2 rounded-xl group-hover:scale-110 transition-transform"><ArrowLeft size={14} strokeWidth={4} /></div> 
+                    Retour
                 </button>
 
-                <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
                     {/* Left: Info Card */}
-                    <div className="lg:col-span-2 space-y-6 px-2 md:px-0">
-                        <div className={`p-6 md:p-8 border-4 border-black rounded-3xl shadow-neo ${type === 'trial' ? 'bg-brand-blue' : 'bg-brand-red text-white'}`}>
-                            <div className="mb-4 inline-block bg-white text-black px-3 py-1 border-2 border-black font-black text-[10px] uppercase tracking-widest">
-                                {type === 'trial' ? '🎁 Atelier Offert' : (selectedTrack ? '📦 Pack Parcours' : '📅 Réservation')}
-                            </div>
-                            <h2 className="font-display font-black text-3xl md:text-4xl mb-4 leading-tight uppercase">{bookingTitle}</h2>
-                            <p className="font-bold opacity-90 mb-6 text-sm md:text-base">{bookingDesc.substring(0, 150) + (bookingDesc.length > 150 ? '...' : '')}</p>
+                    <div className="lg:col-span-4 space-y-8 sticky top-32">
+                        <div className={`p-10 border-2 border-black/5 rounded-[3rem] shadow-2xl relative overflow-hidden transition-all ${type === 'trial' ? 'bg-brand-blue text-white' : 'bg-brand-red text-white'}`}>
+                            {/* Decorative Glow */}
+                            <div className="absolute -top-20 -right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
                             
-                            <div className="space-y-3 pt-6 border-t-2 border-black/20 text-sm">
-                                <div className="flex items-center gap-3">
-                                    <Baby size={18} strokeWidth={3} />
-                                    <span className="font-black">Age: {program.ageGroup}</span>
+                            <div className="relative z-10">
+                                <div className="mb-6 inline-block bg-white/20 backdrop-blur-md text-white px-4 py-1.5 rounded-full font-black text-[10px] uppercase tracking-[0.2em]">
+                                    {type === 'trial' ? '🎁 Session Offerte' : type === 'annual' ? '🏆 Parcours Annuel' : (selectedTrack ? '📦 Pack Maker' : '📅 Workshop')}
                                 </div>
-                                <div className="flex items-center gap-3">
-                                    <Zap size={18} strokeWidth={3} />
-                                    <span className="font-black">Format: {program.format}</span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <Info size={18} strokeWidth={3} />
-                                    <span className="font-black">Total: {type === 'trial' ? 'GRATUIT' : bookingPrice}</span>
-                                </div>
-                                {program.spotsAvailable && (
-                                    <div className="flex items-center gap-3 text-brand-orange font-black animate-pulse">
-                                        <Zap size={18} fill="currentColor" />
-                                        <span>Plus que {program.spotsAvailable} places !</span>
+                                <h2 className="font-display font-black text-4xl md:text-5xl mb-6 leading-[0.9] uppercase italic tracking-tighter">{bookingTitle}</h2>
+                                <p className="font-bold opacity-80 mb-10 text-lg leading-relaxed italic">{bookingDesc.substring(0, 160)}...</p>
+                                
+                                <div className="space-y-4 pt-8 border-t border-white/10 text-sm">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center"><Baby size={20} strokeWidth={3} /></div>
+                                        <div>
+                                            <p className="text-[10px] uppercase tracking-widest opacity-60">Âge requis</p>
+                                            <p className="font-black text-base">{selectedMission ? '7-12 ans' : (selectedTrack ? '7-17 ans' : activeProgram.ageGroup)}</p>
+                                        </div>
                                     </div>
-                                )}
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center"><Zap size={20} strokeWidth={3} /></div>
+                                        <div>
+                                            <p className="text-[10px] uppercase tracking-widest opacity-60">Format</p>
+                                            <p className="font-black text-base">{selectedMission || selectedTrack ? 'Session Maker' : activeProgram.format}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center"><Info size={20} strokeWidth={3} /></div>
+                                        <div>
+                                            <p className="text-[10px] uppercase tracking-widest opacity-60">Tarif</p>
+                                            <p className="font-black text-2xl italic">{type === 'trial' ? 'GRATUIT' : bookingPrice}</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="bg-white p-6 border-4 border-black rounded-3xl shadow-neo-sm italic font-bold text-sm text-gray-500">
+                        <div className="bg-white p-8 border-2 border-black/5 rounded-[2.5rem] shadow-xl italic font-bold text-base text-black/50 leading-relaxed text-center">
                              "La technologie ne doit pas être juste consommée, elle doit être créée. Rejoins l'aventure MakerLab !"
                         </div>
                     </div>
 
                     {/* Right: Form */}
-                    <div className="lg:col-span-3 px-2 md:px-0">
-                        <form onSubmit={handleSubmit} className="bg-white border-4 border-black rounded-[2.5rem] shadow-neo-xl p-6 md:p-10 space-y-6">
-                            <h3 className="font-display font-black text-2xl md:text-3xl uppercase tracking-wider mb-2 text-center md:text-left">
-                                {type === 'trial' ? "L'aventure commence ici" : "Réserver ma place"}
-                            </h3>
+                    <div className="lg:col-span-8">
+                        <form onSubmit={handleSubmit} className="bg-white border-2 border-black/5 rounded-[4rem] shadow-2xl p-8 md:p-16 space-y-12">
+                            <div className="text-center md:text-left">
+                                <h3 className="font-display font-black text-4xl md:text-6xl uppercase tracking-tighter mb-4 text-black italic leading-none">
+                                    {type === 'trial' ? "L'AVENTURE COMMENCE." : type === 'annual' ? "PRÊT POUR L'ANNÉE ?" : "REJOINDRE LA MISSION"}
+                                </h3>
+                                <p className="text-black/40 font-black text-xs uppercase tracking-[0.4em]">Complétez les informations ci-dessous</p>
+                            </div>
                             
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <label className="flex items-center gap-2 font-black text-xs uppercase opacity-60"><User size={14} /> Nom du Parent / Tuteur</label>
-                                    <input required type="text" value={formData.parentName} onChange={e => setFormData({...formData, parentName: e.target.value})} className="w-full border-4 border-black p-3 font-bold focus:shadow-neo-sm outline-none transition-all rounded-xl" />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+                                <div className="space-y-3">
+                                    <label className="block pl-2 font-black text-[10px] uppercase tracking-widest text-black/40">Nom du Parent</label>
+                                    <input required type="text" value={formData.parentName} onChange={e => setFormData({...formData, parentName: e.target.value})} placeholder="Fatima Zahra" className="w-full bg-gray-50/50 border-2 border-black/5 p-5 font-bold focus:bg-white focus:border-brand-blue outline-none transition-all rounded-2xl" />
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="flex items-center gap-2 font-black text-xs uppercase opacity-60"><Baby size={14} /> Prénom de l'enfant</label>
-                                    <input required type="text" value={formData.childName} onChange={e => setFormData({...formData, childName: e.target.value})} className="w-full border-4 border-black p-3 font-bold focus:shadow-neo-sm outline-none transition-all rounded-xl" />
+                                <div className="space-y-3">
+                                    <label className="block pl-2 font-black text-[10px] uppercase tracking-widest text-black/40">Prénom de l'enfant</label>
+                                    <input required type="text" value={formData.childName} onChange={e => setFormData({...formData, childName: e.target.value})} placeholder="Youssef" className="w-full bg-gray-50/50 border-2 border-black/5 p-5 font-bold focus:bg-white focus:border-brand-blue outline-none transition-all rounded-2xl" />
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="flex items-center gap-2 font-black text-xs uppercase opacity-60"><Mail size={14} /> Email</label>
-                                    <input required type="email" value={formData.parentEmail} onChange={e => setFormData({...formData, parentEmail: e.target.value})} className="w-full border-4 border-black p-3 font-bold focus:shadow-neo-sm outline-none transition-all rounded-xl" />
+                                <div className="space-y-3">
+                                    <label className="block pl-2 font-black text-[10px] uppercase tracking-widest text-black/40">Email de contact</label>
+                                    <input required type="email" value={formData.parentEmail} onChange={e => setFormData({...formData, parentEmail: e.target.value})} placeholder="parent@email.com" className="w-full bg-gray-50/50 border-2 border-black/5 p-5 font-bold focus:bg-white focus:border-brand-blue outline-none transition-all rounded-2xl" />
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="flex items-center gap-2 font-black text-xs uppercase opacity-60"><Phone size={14} /> Téléphone</label>
-                                    <input required type="tel" value={formData.parentPhone} onChange={e => setFormData({...formData, parentPhone: e.target.value})} className="w-full border-4 border-black p-3 font-bold focus:shadow-neo-sm outline-none transition-all rounded-xl" />
+                                <div className="space-y-3">
+                                    <label className="block pl-2 font-black text-[10px] uppercase tracking-widest text-black/40">WhatsApp</label>
+                                    <input required type="tel" value={formData.parentPhone} onChange={e => setFormData({...formData, parentPhone: e.target.value})} placeholder="06..." className="w-full bg-gray-50/50 border-2 border-black/5 p-5 font-bold focus:bg-white focus:border-brand-blue outline-none transition-all rounded-2xl" />
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="flex items-center gap-2 font-black text-xs uppercase opacity-60"><Calendar size={14} /> Date souhaitée</label>
-                                    <select required value={formData.preferredDate} onChange={e => setFormData({...formData, preferredDate: e.target.value})} className="w-full border-4 border-black p-3 font-bold focus:shadow-neo-sm outline-none transition-all rounded-xl bg-white">
-                                        {program.schedule?.map(date => (
-                                            <option key={date} value={date}>{date}</option>
-                                        ))}
-                                        {(!program.schedule || program.schedule.length === 0) && <option value="a-convenir">À convenir avec l'équipe</option>}
-                                    </select>
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="flex items-center gap-2 font-black text-xs uppercase opacity-60">Age de l'enfant</label>
-                                    <input required type="text" value={formData.childAge} onChange={e => setFormData({...formData, childAge: e.target.value})} className="w-full border-4 border-black p-3 font-bold focus:shadow-neo-sm outline-none transition-all rounded-xl" placeholder="ex: 9 ans" />
+
+                                {type === 'trial' ? (
+                                    <div className="md:col-span-2 space-y-6 pt-8 border-t border-black/5">
+                                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                            <div>
+                                                <h4 className="font-black text-xl uppercase italic tracking-tighter">Choisissez votre session</h4>
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-black/30">Places limitées par atelier</p>
+                                            </div>
+                                            <div className="inline-flex items-center gap-2 bg-brand-green/10 text-brand-green px-4 py-2 rounded-full font-black text-[10px] uppercase tracking-widest border border-brand-green/20">
+                                                <Zap size={14} fill="currentColor"/> Session Gratuite
+                                            </div>
+                                        </div>
+                                        
+                                        <BookingCalendar 
+                                          availableSlots={availableSlots}
+                                          selectedSlotId={formData.demoSlotId}
+                                          onSelect={(slot) => setFormData({
+                                            ...formData, 
+                                            demoSlotId: slot.id, 
+                                            preferredDate: slot.isoDate, 
+                                            notes: `${formData.notes}\nSlot Time: ${slot.startTime}`
+                                          })}
+                                        />
+
+                                        {availableSlots.length === 0 && (
+                                            <div className="p-16 border-4 border-dashed border-gray-100 rounded-[3rem] text-center text-gray-300 font-display font-black text-2xl uppercase italic">
+                                                Aucun créneau <br/> disponible
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        <label className="block pl-2 font-black text-[10px] uppercase tracking-widest text-black/40">Date souhaitée</label>
+                                        <select required value={formData.preferredDate} onChange={e => setFormData({...formData, preferredDate: e.target.value})} className="w-full bg-gray-50/50 border-2 border-black/5 p-5 font-bold focus:bg-white focus:border-brand-blue outline-none transition-all rounded-2xl bg-white">
+                                            {activeProgram.schedule?.map(date => (
+                                                <option key={date} value={date}>{date}</option>
+                                            ))}
+                                            {(!activeProgram.schedule || activeProgram.schedule.length === 0) && <option value="a-convenir">À convenir avec l'équipe</option>}
+                                        </select>
+                                    </div>
+                                )}
+                                
+                                <div className="space-y-3 md:col-span-2 lg:col-span-1">
+                                    <label className="block pl-2 font-black text-[10px] uppercase tracking-widest text-black/40">Âge de l'enfant</label>
+                                    <input required type="text" value={formData.childAge} onChange={e => setFormData({...formData, childAge: e.target.value})} placeholder="ex: 11 ans" className="w-full bg-gray-50/50 border-2 border-black/5 p-5 font-bold focus:bg-white focus:border-brand-blue outline-none transition-all rounded-2xl" />
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <label className="flex items-center gap-2 font-black text-xs uppercase opacity-60">Message / Questions (optionnel)</label>
-                                <textarea placeholder="Un besoin spécifique ?" value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} className="w-full border-4 border-black p-3 font-bold focus:shadow-neo-sm outline-none transition-all rounded-xl min-h-[100px]" />
+                            <div className="space-y-3 pt-8 border-t border-black/5">
+                                <label className="block pl-2 font-black text-[10px] uppercase tracking-widest text-black/40">Message / Questions (optionnel)</label>
+                                <textarea placeholder="Un besoin spécifique ? Une passion particulière ?" value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} className="w-full bg-gray-50/50 border-2 border-black/5 p-8 font-bold focus:bg-white focus:border-brand-blue outline-none transition-all rounded-[2.5rem] min-h-[150px]" />
                             </div>
 
-                            <button
-                                type="submit"
-                                disabled={isSubmitting}
-                                className="w-full bg-brand-orange text-black py-5 md:py-6 rounded-none border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all font-black uppercase text-lg md:text-xl tracking-widest flex items-center justify-center gap-2 mt-4 disabled:opacity-50"
-                            >
-                                {isSubmitting ? 'Traitement...' : (type === 'trial' ? "REJOINDRE L'ESSAI" : "RÉSERVER MA PLACE")}
-                                <Zap size={24} className="fill-black shrink-0" strokeWidth={3} />
-                            </button>
-                            
-                            <p className="text-[10px] text-center font-bold opacity-40 uppercase tracking-widest mt-4">
-                                En cliquant sur envoyer, vous acceptez nos conditions de réservation.
-                            </p>
+                            <div className="pt-8">
+                                <button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    className="w-full bg-brand-orange text-black py-8 rounded-[2.5rem] border-4 border-black shadow-[12px_12px_0_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-2 hover:translate-y-2 transition-all font-black uppercase text-2xl italic tracking-widest flex items-center justify-center gap-4 disabled:opacity-50"
+                                >
+                                    {isSubmitting ? 'TRAITEMENT...' : (type === 'trial' ? "REJOINDRE L'AVENTURE" : "CONFIRMER L'INSCRIPTION")}
+                                    <ArrowRight size={32} strokeWidth={3} />
+                                </button>
+                                
+                                <p className="text-[10px] text-center font-black opacity-20 uppercase tracking-[0.3em] mt-8">
+                                    En cliquant sur envoyer, vous acceptez nos conditions de réservation.
+                                </p>
+                            </div>
                         </form>
                     </div>
                 </div>

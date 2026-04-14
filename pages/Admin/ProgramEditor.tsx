@@ -459,6 +459,63 @@ export const ProgramEditor: React.FC = () => {
               </div>
             </div>
 
+            {/* Stations Master Editor */}
+            <div className="p-6 bg-brand-blue/5 border-4 border-black rounded-3xl">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="font-display font-bold text-xl">Innovation Stations (Pôles)</h3>
+                  <p className="text-xs text-gray-500 font-medium">Définissez ici les pôles fixes de ce programme. Ils seront sélectionnables dans les Funnels.</p>
+                </div>
+                <Button type="button" size="sm" onClick={() => setFormData(p => ({ ...p, stations: [...(p.stations || []), { id: Date.now().toString(), title: '', description: '', icon: 'Zap' }] }))} className="bg-brand-blue text-white"><Plus size={18} /> Ajouter un pôle</Button>
+              </div>
+              
+              <div className="space-y-4">
+                {(formData.stations || []).map((station, idx) => (
+                  <div key={station.id} className="p-4 bg-white border-2 border-black rounded-xl space-y-3 relative group">
+                    <button type="button" onClick={() => setFormData(p => ({ ...p, stations: p.stations?.filter((_, i) => i !== idx) }))} className="absolute top-2 right-2 text-gray-400 hover:text-red-500"><Trash2 size={16}/></button>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[10px] font-black uppercase text-gray-400 mb-1">Titre du Pôle</label>
+                        <input value={station.title} onChange={e => {
+                          const next = [...(formData.stations || [])];
+                          next[idx].title = e.target.value;
+                          setFormData(p => ({ ...p, stations: next }));
+                        }} className="w-full p-2 border-2 border-black rounded-lg text-sm font-bold" placeholder="ex: Computer Science" />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-black uppercase text-gray-400 mb-1">Icône (Nom Lucide)</label>
+                        <select value={station.icon} onChange={e => {
+                          const next = [...(formData.stations || [])];
+                          next[idx].icon = e.target.value;
+                          setFormData(p => ({ ...p, stations: next }));
+                        }} className="w-full p-2 border-2 border-black rounded-lg text-sm bg-white">
+                          <option value="Cpu">Cpu (Tech)</option>
+                          <option value="Code2">Code (Dev)</option>
+                          <option value="Settings">Settings (Robotic)</option>
+                          <option value="Zap">Zap (Elec)</option>
+                          <option value="PenTool">PenTool (Design)</option>
+                          <option value="Globe">Globe (Web)</option>
+                          <option value="Rocket">Rocket (Launch)</option>
+                          <option value="Video">Video (Digital Art)</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black uppercase text-gray-400 mb-1">Description</label>
+                      <textarea value={station.description} onChange={e => {
+                        const next = [...(formData.stations || [])];
+                        next[idx].description = e.target.value;
+                        setFormData(p => ({ ...p, stations: next }));
+                      }} className="w-full p-2 border-2 border-black rounded-lg text-xs" rows={1} placeholder="Brève explication de ce qu'ils font à cette station..." />
+                    </div>
+                  </div>
+                ))}
+                {(!formData.stations || formData.stations.length === 0) && (
+                  <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-xl text-gray-400 font-bold italic">Aucune station définie pour ce programme.</div>
+                )}
+              </div>
+            </div>
+
             <hr className="border-t-2 border-gray-200" />
             <Button type="submit" size="lg" className="w-full justify-center text-xl py-4 shadow-neo-lg"><Save className="mr-2" /> Enregistrer le Workshop</Button>
           </form>

@@ -1,20 +1,43 @@
 import React, { useState } from 'react';
 import { useMissions } from '../../contexts/MissionContext';
-import { Target, Package, Layers, Plus, Calendar, Settings, Image as ImageIcon, Users, X, Save, Compass } from 'lucide-react';
+import { Target, Package, Layers, Plus, Calendar, Settings, Image as ImageIcon, Users, X, Save, Compass, Clock, Rocket } from 'lucide-react';
 import { Button } from '../../components/Button';
-import { Mission, Track } from '../../types';
+import { Mission, Track, DemoSlot, RecurrentSlot } from '../../types';
 import { MediaPickerModal } from '../../components/MediaPickerModal';
 
 export const AdminMissions: React.FC = () => {
-  const { missions, tracks, leads, orientationLeads, loading, addMission, addTrack, deleteMission, deleteTrack } = useMissions();
-  const [activeTab, setActiveTab] = useState<'missions' | 'tracks' | 'leads' | 'orientation'>('missions');
+  const { missions, tracks, leads, orientationLeads, demoSlots, recurrentSlots, loading, addMission, addTrack, deleteMission, deleteTrack, addDemoSlot, updateDemoSlot, deleteDemoSlot, addRecurrentSlot, updateRecurrentSlot, deleteRecurrentSlot } = useMissions();
+  const [activeTab, setActiveTab] = useState<'missions' | 'tracks' | 'leads' | 'orientation' | 'demos'>('missions');
   const [editingMission, setEditingMission] = useState<Partial<Mission> | null>(null);
+  const [editingDemoSlot, setEditingDemoSlot] = useState<Partial<DemoSlot> | null>(null);
+  const [editingRecurrentSlot, setEditingRecurrentSlot] = useState<Partial<RecurrentSlot> | null>(null);
   const [editingTrack, setEditingTrack] = useState<Partial<Track> | null>(null);
   const [isMediaPickerOpen, setIsMediaPickerOpen] = useState<'mission' | 'track' | null>(null);
+
+  const checkConflict = (isoDate: string, start: string, end: string, excludeId?: string) => {
+    // Check missions
+    const missionConflict = missions.find(m => 
+      m.id !== excludeId && 
+      m.isoDate === isoDate && 
+      ((start >= m.startTime! && start < m.endTime!) || (end > m.startTime! && end <= m.endTime!) || (start <= m.startTime! && end >= m.endTime!))
+    );
+    if (missionConflict) return `Conflit avec la mission: ${missionConflict.title}`;
+
+    // Check demo slots
+    const demoConflict = demoSlots.find(d => 
+      d.id !== excludeId &&
+      d.isoDate === isoDate &&
+      ((start >= d.startTime && start < d.endTime) || (end > d.startTime && end <= d.endTime) || (start <= d.startTime && end >= d.endTime))
+    );
+    if (demoConflict) return `Conflit avec l'atelier démo: ${demoConflict.title}`;
+
+    return null;
+  };
 
   const tabs = [
     { id: 'missions', label: 'Sessions Uniques', icon: Target },
     { id: 'tracks', label: 'Parcours (Packs)', icon: Layers },
+    { id: 'demos', label: 'Ateliers Démo', icon: Calendar },
     { id: 'leads', label: 'Inscriptions', icon: Users },
     { id: 'orientation', label: 'Demandes Conseil', icon: Compass },
   ];
@@ -33,7 +56,13 @@ export const AdminMissions: React.FC = () => {
         </div>
         <div className="flex gap-3">
           {activeTab === 'missions' && (
-            <Button onClick={() => setEditingMission({ status: 'open', spotsTotal: 20, spotsLeft: 20, active: true })} variant="primary" className="shadow-neo bg-orange-500 border-black text-black font-black uppercase"><Plus size={20} /> Nouvelle Mission</Button>
+            <Button onClick={() => setEditingMission({ status: 'open', spotsTotal: 20, spotsLeft: 20, active: true, isoDate: new Date().toISOString().split('T')[0], startTime: '14:30', endTime: '17:30' })} variant="primary" className="shadow-neo bg-orange-500 border-black text-black font-black uppercase"><Plus size={20} /> Nouvelle Mission</Button>
+          )}
+          {activeTab === 'demos' && (
+            <div className="flex gap-2">
+              <Button onClick={() => setEditingRecurrentSlot({ active: true, maxSpots: 10, dayOfWeek: 6, startTime: '10:00', endTime: '11:00' })} variant="outline" className="shadow-neo border-black text-black font-black uppercase"><Plus size={20} /> Nouveau Modèle Récurrent</Button>
+              <Button onClick={() => setEditingDemoSlot({ active: true, spotsTotal: 10, spotsLeft: 10, isoDate: new Date().toISOString().split('T')[0], startTime: '10:00', endTime: '11:00' })} variant="primary" className="shadow-neo bg-purple-500 border-black text-white font-black uppercase"><Plus size={20} /> Nouvelle Date Spécifique</Button>
+            </div>
           )}
           {activeTab === 'tracks' && (
             <Button onClick={() => setEditingTrack({ benefits: ['', '', ''], active: true })} variant="primary" className="shadow-neo bg-blue-500 border-black text-white font-black uppercase"><Plus size={20} /> Nouveau Parcours</Button>
@@ -48,7 +77,7 @@ export const AdminMissions: React.FC = () => {
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as 'missions' | 'tracks' | 'leads' | 'orientation')}
+              onClick={() => setActiveTab(tab.id as any)}
               className={`flex items-center gap-2 px-6 py-3 font-black uppercase text-sm rounded-xl border-4 transition-all ${
                 isActive 
                   ? 'bg-black text-white border-black shadow-[4px_4px_0px_0px_rgba(255,165,0,1)] -translate-y-1' 
@@ -210,6 +239,103 @@ export const AdminMissions: React.FC = () => {
             </div>
           )}
 
+          {/* TAB: DEMOS */}
+          {activeTab === 'demos' && (
+            <div className="space-y-12">
+               {/* 1. Recurrent Templates */}
+               <section>
+                 <h3 className="font-black text-xl mb-4 flex items-center gap-2 uppercase tracking-widest"><Clock className="text-purple-600" /> Modèles de Sessions Récurrentes</h3>
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {recurrentSlots.map(slot => (
+                      <div key={slot.id} className={`p-6 border-4 border-black rounded-2xl bg-white hover:shadow-neo transition-all relative ${!slot.active ? 'opacity-50 grayscale' : ''}`}>
+                         <div className="flex justify-between items-start mb-4">
+                            <div className="flex flex-wrap gap-1">
+                                {(slot.daysOfWeek || []).sort((a,b) => (a===0 ? 7 : a) - (b===0 ? 7 : b)).map(day => (
+                                  <span key={day} className="bg-black text-white px-2 py-1 text-[8px] font-black uppercase rounded">
+                                    {['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'][day]}
+                                  </span>
+                                ))}
+                             </div>
+                            <div className="flex gap-2">
+                                <button 
+                                  onClick={() => {
+                                    const url = `${window.location.origin}/booking/trial?type=trial`;
+                                    navigator.clipboard.writeText(url);
+                                    alert('Lien de réservation copié !');
+                                  }} 
+                                  title="Copier le lien public"
+                                  className="p-1 hover:bg-brand-blue hover:text-white rounded border border-transparent hover:border-black transition-all"
+                                >
+                                  <Rocket size={14}/>
+                                </button>
+                               <button onClick={() => setEditingRecurrentSlot(slot)} className="p-1 hover:bg-gray-100 rounded border border-transparent hover:border-black transition-all"><Settings size={14}/></button>
+                               <button onClick={() => { if(window.confirm('Supprimer ce modèle ?')) deleteRecurrentSlot(slot.id); }} className="p-1 hover:bg-red-500 hover:text-white rounded border border-transparent hover:border-black transition-all"><X size={14}/></button>
+                            </div>
+                         </div>
+                         <h4 className="font-black text-lg mb-1">{slot.title}</h4>
+                         <div className="flex flex-wrap gap-2 mt-2">
+                           {(slot.timeSlots || []).map((t, ti) => (
+                             <span key={ti} className="text-[10px] font-black bg-purple-100 text-purple-700 px-2 py-0.5 border border-purple-200 rounded uppercase">
+                               {t.start} - {t.end}
+                             </span>
+                           ))}
+                         </div>
+                         <div className="flex justify-between items-center text-[10px] font-bold text-gray-400 border-t-2 border-gray-100 pt-3 mt-4">
+                            <span>Capacité: {slot.maxSpots} places</span>
+                            <span className="text-purple-600">Auto-Généré</span>
+                         </div>
+                      </div>
+                    ))}
+                    {recurrentSlots.length === 0 && (
+                      <div className="col-span-full py-12 border-4 border-dashed border-gray-100 rounded-2xl text-center text-gray-400 font-bold italic">
+                        Aucun modèle récurrent défini.
+                      </div>
+                    )}
+                     <button 
+                       onClick={() => setEditingRecurrentSlot({ title: '', daysOfWeek: [], timeSlots: [{start: '10:00', end: '11:00'}], maxSpots: 10, active: true } as any)}
+                       className="group flex flex-col items-center justify-center p-6 border-4 border-dashed border-gray-200 rounded-2xl hover:border-black hover:bg-gray-50 transition-all gap-3"
+                     >
+                        <div className="w-12 h-12 bg-white border-2 border-black rounded-full flex items-center justify-center shadow-neo-sm group-hover:-translate-y-1 transition-transform">
+                          <Plus size={24} />
+                        </div>
+                        <span className="font-black text-xs uppercase tracking-widest text-gray-400 group-hover:text-black text-center">Nouveau Modèle</span>
+                     </button>
+                 </div>
+               </section>
+
+               {/* 2. Specific Dates */}
+               <section>
+                 <h3 className="font-black text-xl mb-4 flex items-center gap-2 uppercase tracking-widest"><Calendar className="text-orange-600" /> Dates Spécifiques (One-offs)</h3>
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {demoSlots.map(slot => (
+                      <div key={slot.id} className={`p-4 border-4 border-black rounded-2xl bg-purple-50 hover:shadow-neo transition-all group ${!slot.active ? 'opacity-60 grayscale' : ''}`}>
+                        <div className="flex justify-between items-start mb-3">
+                          <div className="bg-purple-600 text-white px-2 py-1 text-[10px] font-black uppercase rounded">Session Démo</div>
+                          <div className="flex gap-2">
+                            <button onClick={() => setEditingDemoSlot(slot)} className="p-1 hover:bg-white rounded border border-transparent hover:border-black transition-all"><Settings size={14}/></button>
+                            <button onClick={() => { if(window.confirm('Supprimer ?')) deleteDemoSlot(slot.id); }} className="p-1 hover:bg-red-500 hover:text-white rounded border border-transparent hover:border-black transition-all"><X size={14}/></button>
+                          </div>
+                        </div>
+                        <h4 className="font-black text-lg mb-1">{slot.title}</h4>
+                        <div className="flex items-center gap-2 text-xs font-bold text-gray-600 mb-3">
+                          <Calendar size={14} className="text-purple-600" />
+                          {new Date(slot.isoDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+                        </div>
+                        <div className="flex items-center gap-2 text-xs font-bold text-gray-600 mb-4">
+                          <Clock size={14} className="text-purple-600" />
+                          {slot.startTime} - {slot.endTime}
+                        </div>
+                        <div className="flex items-center justify-between pt-3 border-t-2 border-purple-100">
+                          <span className="text-[10px] font-black uppercase tracking-widest text-purple-600">Disponibilité</span>
+                          <span className="text-xs font-black">{slot.spotsTotal - slot.spotsLeft}/{slot.spotsTotal} rés.</span>
+                        </div>
+                      </div>
+                    ))}
+                 </div>
+               </section>
+            </div>
+          )}
+
           {/* TAB: LEADS */}
           {activeTab === 'leads' && (
             <div>
@@ -285,10 +411,36 @@ export const AdminMissions: React.FC = () => {
                   <input type="text" value={editingMission.category || ''} onChange={e => setEditingMission({ ...editingMission, category: e.target.value })} className="w-full p-3 border-2 border-black rounded-xl font-bold" placeholder="Hardware, Digital..." />
                 </div>
                 <div>
-                  <label className="block text-xs font-black uppercase mb-1">Date & Heure</label>
-                  <input type="text" value={editingMission.date || ''} onChange={e => setEditingMission({ ...editingMission, date: e.target.value })} className="w-full p-3 border-2 border-black rounded-xl font-bold" placeholder="Ce Samedi 14h30 - 17h30" />
+                  <label className="block text-xs font-black uppercase mb-1">Status</label>
+                  <select value={editingMission.status || 'open'} onChange={e => setEditingMission({ ...editingMission, status: e.target.value as any })} className="w-full p-3 border-2 border-black rounded-xl font-bold">
+                    <option value="open">Ouvert</option>
+                    <option value="limited">Presque Complet</option>
+                    <option value="full">Complet</option>
+                  </select>
                 </div>
               </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-black uppercase mb-1 flex items-center gap-1 text-orange-600"><Plus size={10}/> Date Précise (Système)</label>
+                  <input required type="date" value={editingMission.isoDate || ''} onChange={e => setEditingMission({ ...editingMission, isoDate: e.target.value })} className="w-full p-3 border-2 border-black rounded-xl font-bold bg-orange-50" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black uppercase mb-1 flex items-center gap-1 text-gray-400"><ImageIcon size={10}/> Date Affichage (Public)</label>
+                  <input type="text" value={editingMission.date || ''} onChange={e => setEditingMission({ ...editingMission, date: e.target.value })} className="w-full p-3 border-2 border-black rounded-xl font-bold" placeholder="Ce Samedi 14h30..." />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-black uppercase mb-1">Heure de Début</label>
+                  <input required type="time" value={editingMission.startTime || ''} onChange={e => setEditingMission({ ...editingMission, startTime: e.target.value })} className="w-full p-3 border-2 border-black rounded-xl font-bold" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black uppercase mb-1">Heure de Fin</label>
+                  <input required type="time" value={editingMission.endTime || ''} onChange={e => setEditingMission({ ...editingMission, endTime: e.target.value })} className="w-full p-3 border-2 border-black rounded-xl font-bold" />
+                </div>
+              </div>
+              
               <div>
                 <label className="block text-xs font-black uppercase mb-1">Description</label>
                 <textarea rows={3} value={editingMission.description || ''} onChange={e => setEditingMission({ ...editingMission, description: e.target.value })} className="w-full p-3 border-2 border-black rounded-xl font-medium" />
@@ -343,7 +495,9 @@ export const AdminMissions: React.FC = () => {
             <div className="mt-8 pt-4 border-t-4 border-black flex justify-between">
               {editingMission.id && <button onClick={() => { if(window.confirm('Supprimer ?')) { deleteMission(editingMission.id); setEditingMission(null); } }} className="text-red-500 font-bold hover:underline">Supprimer Mission</button>}
               <Button onClick={() => {
-                if(!editingMission.title || !editingMission.date) return alert('Titre et Date requis');
+                if(!editingMission.title || !editingMission.isoDate || !editingMission.startTime || !editingMission.endTime) return alert('Tous les champs obligatoires (Titre, Date ISO, Heures) sont requis');
+                const conflict = checkConflict(editingMission.isoDate, editingMission.startTime, editingMission.endTime, editingMission.id);
+                if (conflict && !window.confirm(`${conflict}\nVoulez-vous quand même enregistrer ?`)) return;
                 addMission({ ...editingMission as Mission, id: editingMission.id || Date.now().toString() });
                 setEditingMission(null);
               }} variant="primary" className="shadow-neo bg-green-400 border-black text-black ml-auto"><Save size={18} /> Enregistrer</Button>
@@ -423,6 +577,169 @@ export const AdminMissions: React.FC = () => {
                 addTrack({ ...editingTrack as Track, id: editingTrack.id || Date.now().toString() });
                 setEditingTrack(null);
               }} variant="primary" className="shadow-neo bg-green-400 border-black text-black ml-auto"><Save size={18} /> Enregistrer</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DEMO SLOT MODAL */}
+      {editingDemoSlot && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="bg-white rounded-3xl border-4 border-black shadow-[10px_10px_0_0_black] w-full max-w-xl p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="font-black text-2xl uppercase">{editingDemoSlot.id ? 'Éditer Démo' : 'Nouvelle Démo'}</h2>
+              <button onClick={() => setEditingDemoSlot(null)} className="w-10 h-10 border-2 border-black rounded-full flex items-center justify-center hover:bg-gray-100"><X size={20} /></button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-black uppercase mb-1">Titre de l'Atelier</label>
+                <input type="text" value={editingDemoSlot.title || ''} onChange={e => setEditingDemoSlot({ ...editingDemoSlot, title: e.target.value })} className="w-full p-3 border-2 border-black rounded-xl font-bold" placeholder="Atelier Démo Robotique" />
+              </div>
+              
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <label className="block text-xs font-black uppercase mb-1">Date</label>
+                  <input type="date" value={editingDemoSlot.isoDate || ''} onChange={e => setEditingDemoSlot({ ...editingDemoSlot, isoDate: e.target.value })} className="w-full p-3 border-2 border-black rounded-xl font-bold bg-purple-50" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-black uppercase mb-1">Début</label>
+                  <input type="time" value={editingDemoSlot.startTime || ''} onChange={e => setEditingDemoSlot({ ...editingDemoSlot, startTime: e.target.value })} className="w-full p-3 border-2 border-black rounded-xl font-bold" />
+                </div>
+                <div>
+                  <label className="block text-xs font-black uppercase mb-1">Fin</label>
+                  <input type="time" value={editingDemoSlot.endTime || ''} onChange={e => setEditingDemoSlot({ ...editingDemoSlot, endTime: e.target.value })} className="w-full p-3 border-2 border-black rounded-xl font-bold" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-black uppercase mb-1">Places Max</label>
+                  <input type="number" value={editingDemoSlot.spotsTotal || 0} onChange={e => setEditingDemoSlot({ ...editingDemoSlot, spotsTotal: parseInt(e.target.value), spotsLeft: parseInt(e.target.value) })} className="w-full p-3 border-2 border-black rounded-xl font-bold" />
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="flex-1">
+                    <h4 className="font-black text-xs uppercase">Actif</h4>
+                  </div>
+                  <input type="checkbox" checked={editingDemoSlot.active ?? true} onChange={e => setEditingDemoSlot({ ...editingDemoSlot, active: e.target.checked })} className="w-8 h-8 rounded border-4 border-black accent-purple-500" />
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 pt-4 border-t-4 border-black flex justify-between">
+              {editingDemoSlot.id && <button onClick={() => { if(window.confirm('Supprimer ?')) { deleteDemoSlot(editingDemoSlot.id!); setEditingDemoSlot(null); } }} className="text-red-500 font-bold hover:underline">Supprimer</button>}
+              <Button onClick={() => {
+                if(!editingDemoSlot.title || !editingDemoSlot.isoDate || !editingDemoSlot.startTime || !editingDemoSlot.endTime) return alert('Tous les champs sont requis');
+                const conflict = checkConflict(editingDemoSlot.isoDate, editingDemoSlot.startTime, editingDemoSlot.endTime, editingDemoSlot.id);
+                if (conflict && !window.confirm(`${conflict}\nVoulez-vous quand même enregistrer ?`)) return;
+                addDemoSlot({ ...editingDemoSlot as DemoSlot, id: editingDemoSlot.id || Date.now().toString() });
+                setEditingDemoSlot(null);
+              }} variant="primary" className="shadow-neo bg-purple-500 border-black text-white ml-auto"><Save size={18} /> Enregistrer</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* RECURRENT SLOT MODAL */}
+      {editingRecurrentSlot && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="bg-white rounded-3xl border-4 border-black shadow-[10px_10px_0_0_black] w-full max-w-xl p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="font-black text-2xl uppercase">{editingRecurrentSlot.id ? 'Éditer Modèle' : 'Nouveau Modèle'}</h2>
+              <button onClick={() => setEditingRecurrentSlot(null)} className="w-10 h-10 border-2 border-black rounded-full flex items-center justify-center hover:bg-gray-100"><X size={20} /></button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-black uppercase mb-1">Nom du Modèle</label>
+                <input type="text" value={editingRecurrentSlot.title || ''} onChange={e => setEditingRecurrentSlot({ ...editingRecurrentSlot, title: e.target.value })} className="w-full p-3 border-2 border-black rounded-xl font-bold" placeholder="ex: Atelier Démo Mercredi" />
+              </div>
+              
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <label className="block text-xs font-black uppercase mb-3">Jours de la Semaine</label>
+                  <div className="flex gap-2">
+                    {[1, 2, 3, 4, 5, 6, 0].map(day => {
+                      const labels: Record<number, string> = { 1: 'L', 2: 'M', 3: 'M', 4: 'J', 5: 'V', 6: 'S', 0: 'D' };
+                      const isSelected = (editingRecurrentSlot.daysOfWeek || []).includes(day);
+                      return (
+                        <button
+                          key={day}
+                          onClick={() => {
+                            const current = editingRecurrentSlot.daysOfWeek || [];
+                            const next = isSelected 
+                              ? current.filter(d => d !== day)
+                              : [...current, day];
+                            setEditingRecurrentSlot({...editingRecurrentSlot, daysOfWeek: next});
+                          }}
+                          className={`flex-1 aspect-square border-4 border-black rounded-xl font-black transition-all flex items-center justify-center ${isSelected ? 'bg-brand-blue shadow-neo-sm -translate-y-1' : 'bg-gray-50 hover:bg-gray-100'}`}
+                        >
+                          {labels[day]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <label className="block text-xs font-black uppercase mb-2">Créneaux Horaires (Prévus pour ce jour)</label>
+                  <div className="space-y-3">
+                    {(editingRecurrentSlot.timeSlots || []).map((slot, idx) => (
+                      <div key={idx} className="flex items-center gap-3 bg-gray-50 p-3 border-2 border-black rounded-xl">
+                        <div className="flex-1 grid grid-cols-2 gap-2">
+                          <input type="time" value={slot.start} onChange={e => {
+                            const newSlots = [...(editingRecurrentSlot.timeSlots || [])];
+                            newSlots[idx].start = e.target.value;
+                            setEditingRecurrentSlot({...editingRecurrentSlot, timeSlots: newSlots});
+                          }} className="p-2 border-2 border-black rounded-lg text-xs font-bold" />
+                          <input type="time" value={slot.end} onChange={e => {
+                            const newSlots = [...(editingRecurrentSlot.timeSlots || [])];
+                            newSlots[idx].end = e.target.value;
+                            setEditingRecurrentSlot({...editingRecurrentSlot, timeSlots: newSlots});
+                          }} className="p-2 border-2 border-black rounded-lg text-xs font-bold" />
+                        </div>
+                        <button onClick={() => {
+                          const newSlots = (editingRecurrentSlot.timeSlots || []).filter((_, i) => i !== idx);
+                          setEditingRecurrentSlot({...editingRecurrentSlot, timeSlots: newSlots});
+                        }} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"><X size={16} /></button>
+                      </div>
+                    ))}
+                    <button 
+                      onClick={() => setEditingRecurrentSlot({...editingRecurrentSlot, timeSlots: [...(editingRecurrentSlot.timeSlots || []), {start: '10:00', end: '11:00'}]})}
+                      className="w-full py-3 border-2 border-dashed border-black rounded-xl font-black text-xs uppercase hover:bg-black hover:text-white transition-all"
+                    >
+                      + Ajouter un créneau
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-black uppercase mb-1">Places Max (par session)</label>
+                  <input type="number" value={editingRecurrentSlot.maxSpots || 10} onChange={e => setEditingRecurrentSlot({ ...editingRecurrentSlot, maxSpots: parseInt(e.target.value) })} className="w-full p-3 border-2 border-black rounded-xl font-bold" />
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="flex-1">
+                    <h4 className="font-black text-xs uppercase">Actif</h4>
+                  </div>
+                  <input type="checkbox" checked={editingRecurrentSlot.active ?? true} onChange={e => setEditingRecurrentSlot({ ...editingRecurrentSlot, active: e.target.checked })} className="w-8 h-8 rounded border-4 border-black accent-purple-500" />
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 pt-4 border-t-4 border-black flex justify-between">
+              {editingRecurrentSlot.id && <button onClick={() => { if(window.confirm('Supprimer ce modèle ?')) { deleteRecurrentSlot(editingRecurrentSlot.id!); setEditingRecurrentSlot(null); } }} className="text-red-500 font-bold hover:underline">Supprimer</button>}
+              <Button onClick={() => {
+                if(!editingRecurrentSlot.title || !editingRecurrentSlot.timeSlots?.length) return alert('Le titre et au moins un créneau sont requis');
+                addRecurrentSlot({ ...editingRecurrentSlot as RecurrentSlot, id: editingRecurrentSlot.id || Date.now().toString() });
+                setEditingRecurrentSlot(null);
+              }} variant="primary" className="shadow-neo bg-purple-500 border-black text-white ml-auto"><Save size={18} /> Enregistrer le Modèle</Button>
             </div>
           </div>
         </div>

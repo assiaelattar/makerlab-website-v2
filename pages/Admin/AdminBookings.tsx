@@ -17,6 +17,10 @@ interface Booking {
     notes?: string;
     status: 'pending' | 'confirmed' | 'cancelled';
     selectedPack?: string;
+    itemTitle?: string;
+    itemPrice?: string;
+    missionId?: string;
+    trackId?: string;
     createdAt: string;
 }
 
@@ -97,7 +101,12 @@ export const AdminBookings: React.FC = () => {
                             <div className="flex flex-col lg:flex-row gap-8">
                                 {/* Program & Child */}
                                 <div className="lg:w-1/3">
-                                    <h3 className="font-display font-black text-xl uppercase mb-4 leading-tight">{booking.programTitle}</h3>
+                                    <h3 className="font-display font-black text-xl uppercase mb-1 leading-tight">{booking.programTitle}</h3>
+                                    {booking.itemTitle && booking.itemTitle !== booking.programTitle && (
+                                        <div className="bg-brand-orange/20 border-2 border-brand-orange text-black px-3 py-1 text-[10px] font-black uppercase mb-4 inline-block rounded-md">
+                                            🎯 {booking.itemTitle}
+                                        </div>
+                                    )}
                                     <div className="space-y-2">
                                         <div className="flex items-center gap-2 font-bold text-sm">
                                             <Baby size={16} className="text-brand-red" />
@@ -158,6 +167,11 @@ export const AdminBookings: React.FC = () => {
                                         {booking.selectedPack && (
                                             <div className="bg-black text-white px-3 py-1 border-2 border-black font-black text-[10px] uppercase rounded-lg shadow-neo-sm">
                                                 Formule: {booking.selectedPack}
+                                            </div>
+                                        )}
+                                        {booking.itemPrice && (
+                                            <div className="bg-white text-black px-3 py-1 border-2 border-black font-black text-[10px] uppercase rounded-lg shadow-neo-sm">
+                                                Payé: {booking.itemPrice}
                                             </div>
                                         )}
                                     </div>

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '../components/Button';
-import { Rocket, Award, MessageCircle, ArrowRight, Star, Heart, Terminal, Cpu, Clock, Zap, CheckCircle, Smartphone, Gamepad } from 'lucide-react';
+import { Rocket, Award, MessageCircle, ArrowRight, Star, Heart, Terminal, Cpu, Clock, Zap, CheckCircle, Smartphone, Gamepad, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ScrollReveal } from '../components/ScrollReveal';
 import { VideoSection } from '../components/VideoSection';
@@ -93,14 +93,14 @@ export const Home: React.FC = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-              <Link to="/programs" className="w-full sm:w-auto">
-                <Button size="lg" variant="primary" className="w-full text-xl py-5 uppercase tracking-wider">
-                  Voir les Missions <ArrowRight className="ml-2" strokeWidth={3} />
+              <Link to="/quiz" className="w-full sm:w-auto">
+                <Button size="lg" variant="primary" className="w-full text-xl py-5 uppercase tracking-wider bg-brand-orange text-black border-black hover:bg-brand-orange/90 flex items-center gap-2">
+                  <Sparkles className="shrink-0 animate-pulse" strokeWidth={3} size={22} /> Trouver ma mission
                 </Button>
               </Link>
-              <Link to="/register" className="w-full sm:w-auto">
-                <Button size="lg" variant="outline" className="w-full text-xl py-5 bg-white hover:bg-black hover:text-white border-4 border-black uppercase tracking-wider">
-                  S'inscrire (400 DHS)
+              <Link to="/programs" className="w-full sm:w-auto">
+                <Button size="lg" variant="outline" className="w-full text-xl py-5 bg-white hover:bg-gray-100 border-4 border-black uppercase tracking-wider">
+                  Voir les Missions <ArrowRight className="ml-2" strokeWidth={3} />
                 </Button>
               </Link>
             </div>
@@ -326,9 +326,15 @@ export const Home: React.FC = () => {
                   Prêt à impressionner <br /> tes amis ?
                 </h2>
                 <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+                  <Link to="/quiz" className="w-full sm:w-auto">
+                    <button className="w-full sm:w-auto px-12 py-6 bg-brand-orange text-black border-4 border-black rounded-2xl font-bold text-xl md:text-2xl shadow-[8px_8px_0px_0px_black] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center justify-center gap-3">
+                      <Sparkles size={32} strokeWidth={3} className="animate-pulse" />
+                      ✨ Trouver ma mission
+                    </button>
+                  </Link>
                   <Link to="/programs" className="w-full sm:w-auto">
-                    <button className="w-full sm:w-auto px-12 py-6 bg-brand-red text-white border-4 border-black rounded-2xl font-bold text-xl md:text-2xl shadow-[8px_8px_0px_0px_black] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center justify-center gap-3">
-                      <Rocket size={32} strokeWidth={3} />
+                    <button className="w-full sm:w-auto px-10 py-5 bg-white text-black border-4 border-black/40 rounded-2xl font-bold text-xl md:text-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all flex items-center justify-center gap-3">
+                      <Rocket size={26} strokeWidth={3} />
                       Voir les ateliers
                     </button>
                   </Link>

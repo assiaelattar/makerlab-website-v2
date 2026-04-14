@@ -9,12 +9,23 @@ import schoolSeoHandler from './api/school-seo.js';
 import homeSeoHandler from './api/home-seo.js';
 import sitemapHandler from './api/sitemap-handler.js';
 import robotsHandler from './api/robots-handler.js';
+import makeAndGoLeadHandler from './api/make-and-go-lead.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// JSON body parser (needed for POST /api/*)
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// ─────────────────────────────────────────────────────────────
+// API Routes — lead endpoints
+// ─────────────────────────────────────────────────────────────
+app.options('/api/make-and-go-lead', (req, res) => res.status(200).end());
+app.post('/api/make-and-go-lead', (req, res) => makeAndGoLeadHandler(req, res));
 
 // ─────────────────────────────────────────────────────────────
 // SEO Routes — these MUST come before the static file middleware

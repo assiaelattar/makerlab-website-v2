@@ -1,3 +1,10 @@
+export enum MarketingFramework {
+  CLASSIC = 'classic',
+  PAS = 'pas',
+  BAB = 'bab',
+  CONTRAST = 'contrast'
+}
+
 export interface MissionBox {
   id: string;
   date: string;       // e.g. "Ce Samedi (14h30 - 17h30)"
@@ -18,6 +25,14 @@ export interface StationPole {
 export interface PerkItem {
   id: string;
   text: string;
+}
+
+export interface ProjectItem {
+  id: string;
+  title: string;
+  description: string;
+  image?: string;
+  category?: string; // e.g. "Robotique", "Art Digital"
 }
 
 export interface LandingPageData {
@@ -43,6 +58,9 @@ export interface LandingPageData {
   agitatorHeadline?: string;
   agitatorBody?: string;
 
+  // Selected Stations (Dynamic from Program)
+  selectedStationIds?: string[];
+
   // Modular Blocks (Alternative to Missions)
   stationsHeadline?: string;
   stationsSubHeadline?: string;
@@ -51,6 +69,17 @@ export interface LandingPageData {
   perksHeadline?: string;
   perksSubHeadline?: string;
   perks?: PerkItem[];
+
+  // Timeline & Projects (New)
+  showStationsAsTimeline?: boolean;
+  stationsTimelineHeadline?: string;
+  showProjectsSection?: boolean;
+  projectsHeadline?: string;
+  projectsSubHeadline?: string;
+  projects?: ProjectItem[];
+
+  // Demo Slot Reference
+  featuredDemoSlotId?: string;
 
   // Gallery
   galleryImages?: string[];
@@ -64,10 +93,45 @@ export interface LandingPageData {
 
   // Block 5 FAQ
   faqEnabled?: boolean;
+  faqItems?: { id: string; question: string; answer: string; }[];
 
   // Block 6 Final CTA
   finalCtaHeadline?: string;
   finalCtaBody?: string;
+
+  // Marketing Framework Content (New)
+  framework?: MarketingFramework;
+  
+  // PAS (Problem-Agitation-Solution)
+  problemHeadline?: string;
+  problemBody?: string;
+  agitationHeadline?: string;
+  agitationBody?: string;
+
+  // BAB (Before-After-Bridge)
+  beforeHeadline?: string;
+  beforeBody?: string;
+  afterHeadline?: string;
+  afterBody?: string;
+  bridgeHeadline?: string;
+  bridgeBody?: string;
+
+  // Contrast (Us vs Them)
+  comparisonRows?: ComparisonRow[];
+
+  // Premium PAS Components
+  heroSurTitre?: string;
+  solutionHeadline?: string;
+  solutionBody?: string;
+  logisticsHeadline?: string;
+  logisticsBody?: string;
+  showStationsInPAS?: boolean;
+
+  // Pricing Tiers (Funnel Hierarchy)
+  showAnnualOffer?: boolean;
+  annualPrice?: string;   // e.g. "7500 DHS"
+  monthlyPrice?: string;  // e.g. "750 DHS"
+  sessionPrice?: string;  // e.g. "400 DHS"
 
   // Thank You Page Configuration
   thankYou?: {
@@ -79,6 +143,29 @@ export interface LandingPageData {
     showTrustPillars?: boolean;
     showPacks?: boolean;
   };
+}
+
+export interface ComparisonRow {
+  id: string;
+  feature: string;
+  us: string;
+  them: string;
+  usBetter: boolean;
+}
+
+export interface Funnel {
+  id: string;
+  programId: string;
+  slug: string; // The URL slug: makerlab.ma/lp/this-slug
+  name: string; // Internal name for the admin (e.g., "StemQuest - BAB Campaign")
+  framework: MarketingFramework;
+  active: boolean;
+  data: LandingPageData; // The existing configuration structure
+  stats?: {
+    visits: number;
+    leads: number;
+  };
+  createdAt: string;
 }
 
 export interface LandingLead {
@@ -100,9 +187,54 @@ export interface LandingLead {
   childAge: string;
   whatsapp: string;
   createdAt: string;
+  notes?: string; // New: capture extra lead info
+
+  // Funnel Attribution
+  funnelId?: string;
+  funnelSlug?: string;
 
   selectedPack?: string;
   paymentStatus?: 'Deposit' | 'Full Bundle' | 'Pending';
+  demoSlotId?: string; // New: link to specific demo slot
+  type?: string;       // New: type of lead (trial, mission, etc)
+
+  // Profile Discovery (New)
+  digitalHabits?: string;   // phone / games
+  tinkeringHabits?: string; // bricolage
+  artisticHabits?: string;  // dessin
+}
+
+export interface LeadMagnetLead {
+  id?: string;
+  childAge:     '7-9' | '10-12' | '13-14' | '15+';
+  track:        'ROBOT' | 'FOUNDER' | 'GAME' | 'MAKER';
+  experience:   'none' | 'coding' | 'robotics' | 'other';
+  availability: 'this-week' | '2-weeks' | '1-month' | 'unsure';
+  childName:    string;
+  parentName:   string;
+  whatsapp:     string;
+  score:        number;   // 0–5
+  tier:         'HOT' | 'WARM' | 'COLD';
+  source:       'lead_magnet_quiz';
+  createdAt:    string;
+}
+
+export interface MakeAndGoLead {
+  id?:             string;
+  child_name:      string;
+  parent_name:     string;
+  phone:           string;
+  track:           'TRACK_ROBOT' | 'TRACK_FOUNDER' | 'TRACK_GAME' | 'TRACK_MAKER';
+  age_tag:         'AGE_YOUNG' | 'AGE_CORE';
+  motivation_tag:  'MOTIVATION_MAKER' | 'MOTIVATION_SCREENS' | 'MOTIVATION_TECH';
+  urgency_tag:     'URGENCY_NOW' | 'URGENCY_SOON' | 'URGENCY_LATER' | 'URGENCY_COLD';
+  price_tag:       'PRICE_OK' | 'PRICE_MAYBE' | 'PRICE_NO';
+  lead_score:      number;   // 0–12
+  lead_tier:       'Tier_1_Hot' | 'Tier_2_Warm' | 'Tier_3_Cold';
+  submitted_at:    string;   // ISO timestamp
+  source:          'make_and_go_quiz';
+  wa_sent:         boolean;
+  capi_sent:       boolean;
 }
 
 export interface OrientationLead {
@@ -132,6 +264,38 @@ export interface Mission {
   status: 'open' | 'limited' | 'full';
   trackId?: string; // Links this mission directly to a bundle
   active: boolean;
+  
+  // High-Precision Scheduling (New)
+  isoDate?: string;  // e.g. "2024-04-15"
+  startTime?: string; // e.g. "14:30"
+  endTime?: string;   // e.g. "17:30"
+}
+
+export interface DemoSlot {
+  id: string;
+  title: string;
+  description?: string;
+  isoDate: string;
+  startTime: string;
+  endTime: string;
+  spotsTotal: number;
+  spotsLeft: number;
+  active: boolean;
+}
+
+export interface TimeSlot {
+  start: string;
+  end: string;
+}
+
+export interface RecurrentSlot {
+  id: string;
+  title: string;
+  daysOfWeek: number[]; // Array of days: 1 (Mon) - 7 (Sun)
+  timeSlots: TimeSlot[]; // Array of times for this day
+  maxSpots: number;
+  active: boolean;
+  programId?: string;
 }
 
 export interface Track {
@@ -172,6 +336,7 @@ export interface Program {
   trialAvailable?: boolean;
   landingPage?: LandingPageData;
   themeColor?: 'orange' | 'blue' | 'green' | 'red';
+  stations?: StationPole[];
 }
 
 export interface BlogPost {
@@ -261,5 +426,6 @@ export interface Enrollment {
   parentPhone: string;
   status: 'Pending' | 'Confirmed' | 'Paid';
   selectedPack?: string;
+  type?: 'annual' | 'session' | 'trial';
   createdAt: string;
 }

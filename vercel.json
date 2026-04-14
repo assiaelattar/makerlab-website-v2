@@ -2,6 +2,7 @@
     "buildCommand": "npm run build",
     "outputDirectory": "dist",
     "rewrites": [
+        { "source": "/api/make-and-go-lead", "destination": "/api/make-and-go-lead" },
         { "source": "/s/:slug", "destination": "/api/school-seo" },
         { "source": "/programs/:id", "destination": "/api/program-seo" },
         { "source": "/lp/:id", "destination": "/api/program-seo" },

@@ -8,6 +8,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 
 import { ScrollReveal } from '../components/ScrollReveal';
 import { useSettings } from '../contexts/SettingsContext';
 import { AiImage } from '../components/AiImage';
+import { QualificationModal } from '../components/QualificationModal';
 
 export const ProgramDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -17,6 +18,8 @@ export const ProgramDetail: React.FC = () => {
   const program = getProgram(id || '');
   const DEFAULT_MISSION_IMG = 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=800';
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [isQualModalOpen, setIsQualModalOpen] = useState(false);
+  const isStemQuest = program?.id === 'kids-1' || program?.title?.toLowerCase().includes('stemquest');
 
   if (!program) {
     return (
@@ -99,6 +102,55 @@ export const ProgramDetail: React.FC = () => {
                   ))}
                 </div>
 
+                {/* ─── Timeline (Modular/Annual) ─── */}
+                {program.landingPage?.showStationsAsTimeline && program.landingPage.stations && (
+                  <div className="mb-16">
+                    <h3 className="font-display font-black text-3xl md:text-4xl mb-12 flex items-center gap-4 uppercase tracking-tight">
+                      <span className="bg-brand-blue text-white w-12 h-12 flex items-center justify-center rounded-xl border-4 border-black text-2xl shadow-neo-sm">3</span>
+                      {program.landingPage.stationsTimelineHeadline || 'Votre Parcours Innovation'}
+                    </h3>
+                    <div className="relative pl-8 border-l-4 border-black space-y-12 ml-4">
+                      {program.landingPage.stations.map((station, idx) => (
+                        <div key={station.id} className="relative">
+                          <div className="absolute -left-[2.75rem] top-0 w-10 h-10 bg-white border-4 border-black rounded-xl flex items-center justify-center font-black shadow-neo-sm">
+                            {idx + 1}
+                          </div>
+                          <div className="bg-white p-6 rounded-3xl border-4 border-black shadow-neo-sm hover:-translate-y-1 transition-transform">
+                            <h4 className="font-black text-2xl mb-2 uppercase italic">{station.title}</h4>
+                            <p className="text-gray-600 font-medium leading-relaxed">{station.description}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* ─── Projects Showcase (New) ─── */}
+                {program.landingPage?.showProjectsSection && program.landingPage.projects && (
+                  <div className="mb-16">
+                    <h3 className="font-display font-black text-3xl md:text-4xl mb-12 flex items-center gap-4 uppercase tracking-tight">
+                      <span className="bg-brand-orange text-white w-12 h-12 flex items-center justify-center rounded-xl border-4 border-black text-2xl shadow-neo-sm">4</span>
+                      {program.landingPage.projectsHeadline || 'Ce qu\'ils construisent réellement'}
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {program.landingPage.projects.map((project) => (
+                        <div key={project.id} className="group bg-white rounded-3xl border-4 border-black overflow-hidden shadow-neo-sm hover:shadow-neo transition-all">
+                          {project.image && (
+                            <div className="h-56 overflow-hidden border-b-4 border-black">
+                              <img src={project.image} alt={project.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                            </div>
+                          )}
+                          <div className="p-6">
+                            <span className="inline-block px-3 py-1 bg-gray-100 border-2 border-black rounded-lg text-[10px] font-black uppercase mb-3">{project.category || 'PROJET'}</span>
+                            <h4 className="font-black text-xl mb-2 uppercase">{project.title}</h4>
+                            <p className="text-gray-600 text-sm font-medium leading-relaxed">{project.description}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Skills Chart */}
                 <div className="bg-brand-dark text-white p-8 rounded-3xl border-4 border-black shadow-neo relative overflow-hidden">
                   <div className="absolute top-0 right-0 p-32 bg-brand-red opacity-20 blur-3xl rounded-full"></div>
@@ -129,10 +181,22 @@ export const ProgramDetail: React.FC = () => {
               <div className="lg:col-span-1 bg-brand-blue p-8 md:p-12 flex flex-col justify-between border-black">
                 <div>
                   <div className="bg-white p-8 rounded-3xl border-4 border-black shadow-neo mb-8 transform rotate-1 hover:rotate-0 transition-transform">
-                    <p className="text-gray-500 font-bold uppercase tracking-wider text-sm mb-2">Prix par atelier</p>
-                    <div className="flex items-baseline gap-2 mb-6">
-                      <span className="text-6xl font-display font-bold text-brand-red drop-shadow-sm">{program.price}</span>
-                    </div>
+                    {program.programType === 'annual' ? (
+                      <>
+                        <p className="text-gray-500 font-bold uppercase tracking-wider text-sm mb-2">Inscription Annuelle</p>
+                        <div className="flex items-baseline gap-2 mb-6">
+                          <span className="text-5xl md:text-6xl font-display font-bold text-brand-red drop-shadow-sm">{program.price}</span>
+                          <span className="text-gray-400 font-bold text-sm uppercase">/ an</span>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-gray-500 font-bold uppercase tracking-wider text-sm mb-2">Prix par atelier</p>
+                        <div className="flex items-baseline gap-2 mb-6">
+                          <span className="text-6xl font-display font-bold text-brand-red drop-shadow-sm">{program.price}</span>
+                        </div>
+                      </>
+                    )}
 
                     <div className="space-y-4 mb-8">
                       <div className="flex items-start gap-3 text-gray-900 font-bold">
@@ -154,11 +218,32 @@ export const ProgramDetail: React.FC = () => {
                       </div>
                     </div>
 
-                    <Link to="/register" className="block">
-                      <Button variant="primary" className="w-full justify-center text-xl py-4 shadow-neo hover:shadow-none hover:translate-x-1 hover:translate-y-1 bg-brand-red text-white">
-                        Réserver ma place
-                      </Button>
-                    </Link>
+                    <div className="space-y-3">
+                      {isStemQuest ? (
+                        <Button 
+                          onClick={() => setIsQualModalOpen(true)}
+                          variant="primary" 
+                          className="w-full justify-center text-xl py-6 shadow-neo hover:shadow-none hover:translate-x-1 hover:translate-y-1 bg-brand-orange text-black border-4 border-black uppercase tracking-widest font-black flex items-center gap-3 group"
+                        >
+                          <Rocket size={24} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" strokeWidth={3} />
+                          VÉRIFIER MON ÉLIGIBILITÉ
+                        </Button>
+                      ) : (
+                        <Link to={`/booking/${program.id}?type=${program.programType === 'annual' ? 'annual' : 'workshop'}`} className="block">
+                          <Button variant="primary" className="w-full justify-center text-xl py-4 shadow-neo hover:shadow-none hover:translate-x-1 hover:translate-y-1 bg-brand-red text-white uppercase tracking-widest font-black">
+                            {program.programType === 'annual' ? "S'inscrire à l'année" : "Réserver ma place"}
+                          </Button>
+                        </Link>
+                      )}
+
+                      {program.programType === 'annual' && !isStemQuest && (
+                        <Link to={`/booking/${program.id}?type=trial`} className="block">
+                          <Button variant="outline" className="w-full justify-center text-lg py-4 border-4 border-black bg-white hover:bg-gray-50 transition-colors uppercase tracking-widest font-black">
+                            🎁 Essai Gratuit
+                          </Button>
+                        </Link>
+                      )}
+                    </div>
                   </div>
 
                   <div className="text-center">
@@ -408,11 +493,21 @@ export const ProgramDetail: React.FC = () => {
             <h2 className="font-display font-black text-4xl md:text-6xl text-white mb-4 drop-shadow-md">Prêt à rejoindre l'aventure ?</h2>
             <p className="text-white/80 font-bold text-xl mb-8 max-w-xl mx-auto">Places limitées à 10 par session. Ne tardez pas !</p>
             <div className="flex justify-center">
-              <Link to="/register">
-                <Button variant="outline" className="text-2xl py-5 px-12 border-4 border-black shadow-[6px_6px_0px_0px_black] hover:shadow-none hover:translate-x-1 hover:translate-y-1">
-                  <Rocket size={24} strokeWidth={3} className="mr-2" /> Réserver ma place — {program.price}
+              {isStemQuest ? (
+                <Button 
+                  onClick={() => setIsQualModalOpen(true)}
+                  variant="outline" 
+                  className="text-2xl py-5 px-12 border-4 border-black shadow-[6px_6px_0px_0px_black] hover:shadow-none hover:translate-x-1 hover:translate-y-1 bg-white text-black uppercase font-black"
+                >
+                  <Rocket size={24} strokeWidth={3} className="mr-2" /> VÉRIFIER MON ÉLIGIBILITÉ
                 </Button>
-              </Link>
+              ) : (
+                <Link to="/register">
+                  <Button variant="outline" className="text-2xl py-5 px-12 border-4 border-black shadow-[6px_6px_0px_0px_black] hover:shadow-none hover:translate-x-1 hover:translate-y-1">
+                    <Rocket size={24} strokeWidth={3} className="mr-2" /> Réserver ma place — {program.price}
+                  </Button>
+                </Link>
+              )}
             </div>
           </section>
         </ScrollReveal>

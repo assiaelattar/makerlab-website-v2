@@ -2,14 +2,31 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useParams, Navigate, useNavigate } from 'react-router-dom';
 import { usePrograms } from '../contexts/ProgramContext';
 import { useMissions } from '../contexts/MissionContext';
-import { LandingLead, Mission, Track, MissionBox } from '../types';
+import { LandingLead, Mission, Track, MissionBox, Funnel, MarketingFramework, StationPole } from '../types';
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import {
   Zap, Clock, Cpu, Code2, ChevronDown, CheckCircle2,
-  X, Rocket, Shield, Star, ArrowRight, AlertTriangle, Phone,
-  Quote, ChevronLeft, ChevronRight, MessageCircle, Target
+  X, Rocket, Shield, Star, ArrowRight, AlertTriangle, Phone, Sparkles,
+  Quote, ChevronLeft, ChevronRight, MessageCircle, Target, Calendar, Users,
+  ArrowDownCircle, HelpCircle, Gamepad2, PenTool, Lightbulb, TrendingUp,
+  Globe, Briefcase, Video
 } from 'lucide-react';
+
+/* ─── Icons Helper ────────────────────────────────────────────────────────── */
+const StationIcon: React.FC<{ name?: string; size?: number; className?: string }> = ({ name, size = 24, className }) => {
+  switch (name) {
+    case 'Cpu': return <Cpu size={size} className={className} />;
+    case 'Code2': return <Code2 size={size} className={className} />;
+    case 'Zap': return <Zap size={size} className={className} />;
+    case 'PenTool': return <PenTool size={size} className={className} />;
+    case 'Video': return <Video size={size} className={className} />;
+    case 'Globe': return <Globe size={size} className={className} />;
+    case 'Rocket': return <Rocket size={size} className={className} />;
+    case 'Briefcase': return <Briefcase size={size} className={className} />;
+    default: return <Zap size={size} className={className} />;
+  }
+};
 
 /* ─── CSS -------------------------------------------------------------------- */
 const STYLES = `
@@ -18,8 +35,8 @@ const STYLES = `
     to   { opacity:1; transform:translateY(0)   scale(1); }
   }
   @keyframes pulse-cta {
-    0%,100%{ box-shadow:0 0 0 0 var(--theme-pulse),5px 5px 0 0 #000; }
-    50%    { box-shadow:0 0 0 18px rgba(0,0,0,0),5px 5px 0 0 #000; }
+    0%,100%{ box-shadow:0 0 0 0 var(--theme-pulse),8px 8px 0 0 #000; }
+    50%    { box-shadow:0 0 0 20px rgba(0,0,0,0),8px 8px 0 0 #000; }
   }
   .cta-pulse{ animation:pulse-cta 2s infinite; }
   @keyframes float-y{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
@@ -28,380 +45,385 @@ const STYLES = `
   .count-in{ animation:count-in .5s ease forwards; }
   @keyframes reveal-up{from{opacity:0;transform:translateY(32px);}to{opacity:1;transform:none;}}
   .reveal{ opacity:0; }
-  .revealed{ animation:reveal-up .6s cubic-bezier(.22,1,.36,1) forwards; }
-  @keyframes shimmer{0%{background-position:-200% 0;}100%{background-position:200% 0;}}
+  .revealed{ animation:reveal-up .8s cubic-bezier(.22,1,.36,1) forwards; }
+  @keyframes shimmer {0%{background-position:-200% 0;}100%{background-position:200% 0;}}
   .shimmer-text{
     background: var(--theme-shimmer);
     background-size:200% auto;
     -webkit-background-clip:text; background-clip:text;
     -webkit-text-fill-color:transparent;
-    animation:shimmer 4s linear infinite;
+    animation:shimmer 5s linear infinite;
   }
   .wa-btn{ animation:wa-bounce 2.5s ease-in-out infinite; }
   .noise-bg::before{
     content:''; position:absolute; inset:0; pointer-events:none; z-index:0;
     background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
-    opacity:.06;
+    opacity:.1;
+  }
+  .timeline-line {
+    position: absolute;
+    left: 20px;
+    top: 40px;
+    bottom: 40px;
+    width: 6px;
+    background: linear-gradient(to bottom, var(--theme-primary), transparent);
+  }
+  @media (min-width: 768px) {
+    .timeline-line { left: 50%; transform: translateX(-50%); }
   }
   @keyframes ticker{from{transform:translateX(0);}to{transform:translateX(-50%);}}
-  .ticker-inner{ display:flex; animation:ticker 20s linear infinite; white-space:nowrap; }
-  .hover-theme:hover { background-color: var(--theme-primary-hover) !important; transform: translateY(-2px); }
-  .card-theme:hover { border-color: var(--theme-primary) !important; transform: translateY(-8px); }
+  .ticker-inner{ display:flex; animation:ticker 25s linear infinite; white-space:nowrap; }
+  .card-neobrutal {
+    border: 4px solid black;
+    box-shadow: 8px 8px 0 0 black;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .card-neobrutal:hover { transform: translate(-2px, -2px); box-shadow: 12px 12px 0 0 black; }
+  .card-neobrutal:active { transform: translate(4px, 4px); box-shadow: 2px 2px 0 0 black; }
 `;
 
-/* ─── Defaults --------------------------------------------------------------- */
+/* ─── Defaults & Themes ----------------------------------------------------- */
 const THEMES = {
-  orange: {
-    primary: '#f97316',
-    primaryRGB: '249,115,22',
-    primaryHover: '#fb923c',
-    text: 'text-orange-400',
-    bg: 'bg-orange-500',
-    glow: 'rgba(249,115,22,.22)',
-    gradient: 'linear-gradient(135deg,#060606 0%,#1a0800 45%,#060606 100%)',
-    shimmer: 'linear-gradient(90deg,#f97316 0%,#fff 40%,#f97316 60%,#fff 100%)',
-    accent: '#ffedd5', 
-  },
-  blue: {
-    primary: '#3b82f6',
-    primaryRGB: '59,130,246',
-    primaryHover: '#60a5fa',
-    text: 'text-blue-400',
-    bg: 'bg-blue-500',
-    glow: 'rgba(37,99,168,.22)',
-    gradient: 'linear-gradient(135deg,#060606 0%,#000a1a 45%,#060606 100%)',
-    shimmer: 'linear-gradient(90deg,#3b82f6 0%,#fff 40%,#3b82f6 60%,#fff 100%)',
-    accent: '#dbeafe',
-  },
-  green: {
-    primary: '#16a34a',
-    primaryRGB: '22,163,74',
-    primaryHover: '#22c55e',
-    text: 'text-green-400',
-    bg: 'bg-green-600',
-    glow: 'rgba(39,160,96,.22)',
-    gradient: 'linear-gradient(135deg,#060606 0%,#001a0a 45%,#060606 100%)',
-    shimmer: 'linear-gradient(90deg,#22c55e 0%,#fff 40%,#22c55e 60%,#fff 100%)',
-    accent: '#dcfce7',
-  },
-  red: {
-    primary: '#dc2626',
-    primaryRGB: '220,38,38',
-    primaryHover: '#ef4444',
-    text: 'text-red-400',
-    bg: 'bg-red-600',
-    glow: 'rgba(192,39,45,.22)',
-    gradient: 'linear-gradient(135deg,#060606 0%,#1a0000 45%,#060606 100%)',
-    shimmer: 'linear-gradient(90deg,#ef4444 0%,#fff 40%,#ef4444 60%,#fff 100%)',
-    accent: '#fee2e2',
-  }
+  orange: { primary: '#f97316', primaryRGB: '249,115,22', primaryHover: '#fb923c', text: 'text-orange-400', bg: 'bg-orange-500', glow: 'rgba(249,115,22,.15)', gradient: 'linear-gradient(135deg,#060606 0%,#1a0800 45%,#060606 100%)', shimmer: 'linear-gradient(90deg,#f97316 0%,#fff 40%,#f97316 60%,#fff 100%)', accent: '#ffedd5' },
+  blue: { primary: '#3b82f6', primaryRGB: '59,130,246', primaryHover: '#60a5fa', text: 'text-blue-400', bg: 'bg-blue-500', glow: 'rgba(37,99,168,.15)', gradient: 'linear-gradient(135deg,#060606 0%,#000a1a 45%,#060606 100%)', shimmer: 'linear-gradient(90deg,#3b82f6 0%,#fff 40%,#3b82f6 60%,#fff 100%)', accent: '#dbeafe' },
+  green: { primary: '#16a34a', primaryRGB: '22,163,74', primaryHover: '#22c55e', text: 'text-green-400', bg: 'bg-green-600', glow: 'rgba(39,160,96,.15)', gradient: 'linear-gradient(135deg,#060606 0%,#001a0a 45%,#060606 100%)', shimmer: 'linear-gradient(90deg,#22c55e 0%,#fff 40%,#22c55e 60%,#fff 100%)', accent: '#dcfce7' },
+  red: { primary: '#dc2626', primaryRGB: '220,38,38', primaryHover: '#ef4444', text: 'text-red-400', bg: 'bg-red-600', glow: 'rgba(192,39,45,.15)', gradient: 'linear-gradient(135deg,#060606 0%,#1a0000 45%,#060606 100%)', shimmer: 'linear-gradient(90deg,#ef4444 0%,#fff 40%,#ef4444 60%,#fff 100%)', accent: '#fee2e2' }
 };
 
 const D = {
   heroPreHeadline: 'ATTENTION PARENTS DE CASABLANCA (ENFANTS 8-14 ANS)',
   heroHeadline: "Transformez Son Temps d'Écran en Compétences d'Ingénieur en Seulement 3 Heures.",
   heroSubHeadline: "Pas de jouets en plastique. Pas de Lego. Vos enfants utiliseront de vrais outils, du vrai code et ramèneront chez eux un projet technologique qu'ils ont construit de leurs propres mains.",
-  heroCtaText: 'RÉSERVER UNE MISSION POUR CE WEEK-END',
+  heroCtaText: 'RÉSERVER UNE MISSION MAINTENANT',
   heroScarcityText: '⏳ Places limitées à 20 Makers par session.',
-  agitatorHeadline: "La plupart des enfants consomment la technologie. Les nôtres la construisent.",
-  agitatorBody: "Le système classique donne à votre enfant une boîte de pièces préfabriquées et un manuel d'instructions. Ce n'est pas de l'ingénierie. C'est du simple assemblage.\n\nChez Makerlab, notre philosophie est stricte : BUILT NOT BOUGHT (Construit, pas acheté). Nous mettons de vrais logiciels de CAO, des imprimantes 3D et des fers à souder entre les mains de vos enfants. Nous ne les traitons pas comme des enfants, nous les traitons comme des innovateurs.",
-  missionsHeadline: 'Choisissez La Mission de Votre Enfant',
-  missionsSubHeadline: "Chaque week-end est un nouveau défi. Sélectionnez une date ci-dessous. Attention : les portes se ferment dès que les 20 places sont réservées.",
-  finalCtaHeadline: "Le Moment Où Tout S'allume.",
-  finalCtaBody: "Ne laissez pas passer un autre week-end devant les écrans. Donnez-leur les compétences de demain, aujourd'hui.",
 };
 
-
-const TESTIMONIALS = [
-  { name: 'Fatima Z.', role: 'Maman de Youssef, 11 ans', text: "J'ai déposé mon fils en hésitant. 3 heures plus tard, il tenait dans ses mains un robot qu'il avait lui-même programmé. Son sourire valait tout l'or du monde.", stars: 5, initial: 'F' },
-  { name: 'Karim B.', role: 'Papa de Lina, 9 ans', text: "Ma fille ne parlait que de ça pendant une semaine. Elle a appris la modélisation 3D en une après-midi. Les profs de Makerlab sont incroyables, vraiment.", stars: 5, initial: 'K' },
-  { name: 'Sara M.', role: 'Maman de Adam, 13 ans', text: "Mon ado était accro aux écrans. Maintenant il code ses propres projets et m'explique comment fonctionne l'Arduino. Makerlab a tout changé pour lui.", stars: 5, initial: 'S' },
-];
-
-/* ─── useCountUp ------------------------------------------------------------- */
-const useCountUp = (target: number, inView: boolean, duration = 1800) => {
-  const [val, setVal] = useState(0);
-  useEffect(() => {
-    if (!inView) return;
-    let start = 0; const step = target / (duration / 16);
-    const t = setInterval(() => {
-      start += step;
-      if (start >= target) { setVal(target); clearInterval(t); }
-      else setVal(Math.floor(start));
-    }, 16);
-    return () => clearInterval(t);
-  }, [inView, target, duration]);
-  return val;
-};
-
-/* ─── useInView -------------------------------------------------------------- */
-const useInView = (threshold = 0.2): [React.RefObject<HTMLDivElement>, boolean] => {
+/* ─── Shared Logic Hooks ---------------------------------------------------- */
+const useInView = (threshold = 0.15): [React.RefObject<HTMLDivElement>, boolean] => {
   const ref = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
   useEffect(() => {
-    // Fallback: reveal after 600ms even if observer doesn't fire
-    const timer = setTimeout(() => setInView(true), 600);
-    const obs = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting) { setInView(true); clearTimeout(timer); }
-    }, { threshold });
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setInView(true); }, { threshold });
     if (ref.current) obs.observe(ref.current);
-    return () => { obs.disconnect(); clearTimeout(timer); };
+    return () => obs.disconnect();
   }, [threshold]);
   return [ref, inView];
 };
 
-/* ─── Reveal wrapper --------------------------------------------------------- */
 const Reveal: React.FC<{ children: React.ReactNode; delay?: number }> = ({ children, delay = 0 }) => {
-  const [ref, inView] = useInView(0.15);
-  return (
-    <div ref={ref} className={inView ? 'revealed' : 'reveal'} style={{ animationDelay: `${delay}ms` }}>
-      {children}
-    </div>
-  );
+  const [ref, inView] = useInView();
+  return <div ref={ref} className={inView ? 'revealed' : 'reveal'} style={{ animationDelay: `${delay}ms` }}>{children}</div>;
 };
 
-/* ─── Animated stat counter -------------------------------------------------- */
-const StatCounter: React.FC<{ value: number; suffix?: string; label: string; inView: boolean; theme: any; delay?: number }> = ({ value, suffix = '', label, inView, theme, delay = 0 }) => {
-  const count = useCountUp(value, inView);
-  return (
-    <div className="text-center" style={{ animationDelay: `${delay}ms` }}>
-      <div className={`font-black text-5xl md:text-6xl tabular-nums leading-none`} style={{ color: theme.primary }}>
-        {count}{suffix}
-      </div>
-      <div className="text-gray-400 font-bold text-sm mt-2 uppercase tracking-wider">{label}</div>
-    </div>
-  );
-};
-
-/* ─── Countdown Timer -------------------------------------------------------- */
-const useCountdown = () => {
-  const [time, setTime] = useState({ h: 47, m: 59, s: 59 });
+const Countdown: React.FC<{ theme: any }> = ({ theme }) => {
+  const [time, setTime] = useState({ h: 2, m: 47, s: 12 });
   useEffect(() => {
     const t = setInterval(() => setTime(prev => {
       let { h, m, s } = prev;
       if (s > 0) return { h, m, s: s - 1 };
       if (m > 0) return { h, m: m - 1, s: 59 };
       if (h > 0) return { h: h - 1, m: 59, s: 59 };
-      return { h: 47, m: 59, s: 59 };
+      return prev;
     }), 1000);
     return () => clearInterval(t);
   }, []);
-  return time;
-};
-
-const Countdown: React.FC<{ theme: any }> = ({ theme }) => {
-  const { h, m, s } = useCountdown();
   const pad = (n: number) => String(n).padStart(2, '0');
   return (
-    <div className="inline-flex items-center gap-1 border rounded-xl px-3 py-2" style={{ backgroundColor: `rgba(${theme.primaryRGB}, 0.1)`, borderColor: `rgba(${theme.primaryRGB}, 0.5)` }}>
-      <span className="font-black text-xs uppercase tracking-widest mr-1" style={{ color: theme.primary }}>Ferme dans</span>
-      {[pad(h), pad(m), pad(s)].map((v, i) => (
-        <React.Fragment key={i}>
-          <span className="font-black text-white text-lg tabular-nums px-2 py-0.5 rounded-lg" style={{ backgroundColor: `rgba(${theme.primaryRGB}, 0.6)` }}>{v}</span>
-          {i < 2 && <span className="font-black" style={{ color: theme.primary }}>:</span>}
-        </React.Fragment>
-      ))}
+    <div className="inline-flex items-center gap-2 border-3 border-black rounded-xl px-4 py-2 bg-white text-black shadow-[4px_4px_0_0_#000]">
+      <span className="font-black text-[10px] uppercase tracking-widest mr-2">Fermeture :</span>
+      <span className="font-black tabular-nums">{pad(time.h)}:{pad(time.m)}:{pad(time.s)}</span>
     </div>
   );
 };
 
-/* ─── Testimonials carousel -------------------------------------------------- */
-const TestimonialsSection: React.FC<{ theme: any }> = ({ theme }) => {
-  const [idx, setIdx] = useState(0);
-  const prev = () => setIdx(i => (i - 1 + TESTIMONIALS.length) % TESTIMONIALS.length);
-  const next = useCallback(() => setIdx(i => (i + 1) % TESTIMONIALS.length), []);
-  useEffect(() => { const t = setInterval(next, 5000); return () => clearInterval(t); }, [next]);
-  const t = TESTIMONIALS[idx];
-  return (
-    <section className="py-20 px-6 relative overflow-hidden" style={{ background: 'linear-gradient(180deg,#0d0d0d 0%,#0d0d0d 100%)' }}>
-      <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse 60% 40% at 50% 50%,${theme.glow} 0%,transparent 70%)` }} />
-      <div className="max-w-2xl mx-auto relative z-10">
-        <Reveal>
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full mb-3" style={{ borderColor: theme.glow.replace('.22', '.3') }}>
-              <Star size={14} fill="currentColor" style={{ color: theme.primary }} />
-              <span className="text-xs font-black uppercase tracking-widest" style={{ color: theme.primary }}>Ils témoignent</span>
-            </div>
-            <h2 className="font-black text-3xl md:text-4xl">Ce que disent les parents</h2>
+/* ─── Dynamic Sections ────────────────────────────────────────────────────── */
+const StationsGrid: React.FC<{ stations: StationPole[]; theme: any }> = ({ stations, theme }) => (
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {stations.map((s, i) => (
+      <Reveal key={s.id} delay={i * 100}>
+        <div className="card-neobrutal p-8 bg-black border-white/10 text-white rounded-[2.5rem] h-full flex flex-col items-center text-center group hover:bg-white hover:text-black transition-all">
+          <div className="w-16 h-16 bg-white/5 group-hover:bg-black group-hover:text-white rounded-2xl flex items-center justify-center mb-6 border-2 border-white/10 transition-all">
+             <StationIcon name={s.icon} size={32} />
           </div>
-        </Reveal>
-        <div className="relative">
-          <div className={`p-8 md:p-10 rounded-3xl border-2 bg-white/3 backdrop-blur-sm`} style={{ borderColor: theme.glow.replace('.22', '.3'), minHeight: 220 }}>
-            <Quote size={32} className="mb-4 opacity-30" style={{ color: theme.primary }} />
-            <p className="text-lg md:text-xl text-gray-200 font-medium leading-relaxed italic mb-6">"{t.text}"</p>
-            <div className="flex items-center gap-4">
-              <div className={`w-12 h-12 rounded-full border-2 border-black flex items-center justify-center font-black text-black text-xl`} style={{ background: theme.primary }}>{t.initial}</div>
-              <div>
-                <p className="font-black text-white">{t.name}</p>
-                <p className="text-sm text-gray-400 font-medium">{t.role}</p>
-              </div>
-              <div className="ml-auto flex gap-0.5">{Array(t.stars).fill(0).map((_,i) => <Star key={i} size={16} className="text-yellow-400" fill="currentColor" />)}</div>
-            </div>
-          </div>
-          <div className="flex items-center justify-center gap-4 mt-6">
-            <button onClick={prev} className={`w-10 h-10 flex items-center justify-center rounded-full border-2 border-white/20 transition-all hover:bg-white/5 active:scale-95`} style={{ borderColor: theme.glow.replace('.22', '.3') }}><ChevronLeft size={18} /></button>
-            <div className="flex gap-2">
-              {TESTIMONIALS.map((_,i) => <div key={i} onClick={() => setIdx(i)} className={`w-2 h-2 rounded-full cursor-pointer transition-all ${i===idx ? `w-6` : 'bg-white/20'}`} style={{ backgroundColor: i===idx ? theme.primary : undefined }} />)}
-            </div>
-            <button onClick={next} className={`w-10 h-10 flex items-center justify-center rounded-full border-2 border-white/20 transition-all hover:bg-white/5 active:scale-95`} style={{ borderColor: theme.glow.replace('.22', '.3') }}><ChevronRight size={18} /></button>
-          </div>
+          <h3 className="font-black text-xl uppercase italic mb-4">{s.title}</h3>
+          <p className="text-gray-400 group-hover:text-black/70 font-bold text-sm leading-relaxed">{s.description}</p>
         </div>
-      </div>
-    </section>
+      </Reveal>
+    ))}
+  </div>
+);
+
+/* ─── Framework Blocks ────────────────────────────────────────────────────── */
+const PASSection: React.FC<{ lp: any; theme: any; programStations: StationPole[] }> = ({ lp, theme, programStations }) => {
+  const selectedStations = programStations.filter(s => (lp.selectedStationIds || []).includes(s.id));
+
+  return (
+    <div className="space-y-0">
+      {/* P - Problem */}
+      <section className="py-32 px-6 bg-[#0c0c0c] relative overflow-hidden">
+        <div className="max-w-4xl mx-auto">
+          <Reveal>
+            <div className="text-center mb-20">
+              <span className="inline-block px-4 py-1 bg-red-500 text-white font-black text-[10px] uppercase tracking-[0.3em] rounded-full mb-6 italic rotate-[-2deg]">1. IDENTIFICATION</span>
+              <h2 className="font-black text-5xl md:text-7xl mb-8 uppercase text-white shimmer-text italic leading-none">{lp.problemHeadline || "Le Problème."}</h2>
+              <p className="text-2xl text-gray-400 font-bold max-w-2xl mx-auto italic leading-relaxed">{lp.problemBody}</p>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* A - Agitation */}
+      <section className="py-32 px-6 bg-red-600 relative overflow-hidden border-y-[10px] border-black">
+        <div className="max-w-4xl mx-auto">
+          <Reveal>
+            <div className="p-12 md:p-20 relative overflow-hidden">
+               <div className="absolute top-0 right-0 p-8 opacity-20 rotate-12"><AlertTriangle size={240} className="text-black" /></div>
+               <h3 className="font-black text-4xl md:text-7xl uppercase text-black mb-8 italic leading-none tracking-tighter">
+                 {lp.agitationHeadline || "L'Avenir est à risque."}
+               </h3>
+               <p className="text-black font-black text-2xl leading-relaxed max-w-3xl italic">{lp.agitationBody}</p>
+               <div className="mt-12 flex items-center gap-4">
+                  <div className="h-4 w-full bg-black/20 rounded-full overflow-hidden border-2 border-black">
+                     <div className="h-full bg-black animate-pulse" style={{ width: '85%' }} />
+                  </div>
+                  <span className="text-black font-black text-xs uppercase tracking-widest shrink-0">Alerte obsolescence</span>
+               </div>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* S - Solution (The Revelation) */}
+      <section className="py-32 px-6 bg-[#0a0a0a] relative overflow-hidden">
+        <div className="max-w-6xl mx-auto">
+          <Reveal>
+            <div className="text-center mb-20">
+              <span className="inline-block px-4 py-1 bg-green-500 text-black font-black text-[10px] uppercase tracking-[0.3em] rounded-full mb-6 italic rotate-[2deg]">2. LA RÉVÉLATION</span>
+              <h2 className="font-black text-5xl md:text-7xl mb-8 uppercase text-white shimmer-text italic leading-[0.9] tracking-tighter">{lp.solutionHeadline || "Entrez dans l'Incubateur."}</h2>
+              <p className="text-2xl text-gray-400 font-bold max-w-3xl mx-auto italic leading-relaxed">{lp.solutionBody}</p>
+            </div>
+          </Reveal>
+          
+          {lp.showStationsInPAS && (
+            <div className="mt-20">
+              <StationsGrid stations={selectedStations} theme={theme} />
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Zero Friction / Logistics */}
+      {lp.logisticsHeadline && (
+        <section className="py-32 px-6 bg-white text-black noise-bg border-y-[10px] border-black">
+          <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+             <Reveal>
+                <div className="space-y-6">
+                   <h2 className="font-black text-5xl uppercase italic leading-none tracking-tighter">{lp.logisticsHeadline}</h2>
+                   <p className="text-xl font-bold text-gray-500 leading-relaxed italic">{lp.logisticsBody}</p>
+                   <div className="flex gap-4 pt-4">
+                      <div className="flex flex-col items-center">
+                         <div className="w-12 h-12 bg-black text-white rounded-xl flex items-center justify-center font-black mb-2 shadow-neo-sm">01</div>
+                         <span className="text-[10px] font-black uppercase">Individuel</span>
+                      </div>
+                      <div className="w-px h-12 bg-black/10 mt-2"></div>
+                      <div className="flex flex-col items-center">
+                         <div className="w-12 h-12 bg-black text-white rounded-xl flex items-center justify-center font-black mb-2 shadow-neo-sm">02</div>
+                         <span className="text-[10px] font-black uppercase">Pratique</span>
+                      </div>
+                      <div className="w-px h-12 bg-black/10 mt-2"></div>
+                      <div className="flex flex-col items-center">
+                         <div className="w-12 h-12 bg-black text-white rounded-xl flex items-center justify-center font-black mb-2 shadow-neo-sm">03</div>
+                         <span className="text-[10px] font-black uppercase">Certifié</span>
+                      </div>
+                   </div>
+                </div>
+             </Reveal>
+             <Reveal delay={200}>
+                <div className="bg-gray-100 p-8 border-4 border-black rounded-[3rem] shadow-[15px_15px_0_0_#000]">
+                   <Shield size={40} className="mb-6 text-orange-500" />
+                   <h4 className="font-black text-xl uppercase mb-4 italic">Zéro Friction Mobilière</h4>
+                   <p className="font-bold text-gray-500 italic">"L'innovation n'a pas de date de rentrée. Votre enfant n'apporte que sa curiosité. Nous fournissons tout le reste."</p>
+                </div>
+             </Reveal>
+          </div>
+        </section>
+      )}
+    </div>
   );
 };
 
-/* ─── Drawer Checkout -------------------------------------------------------- */
-const DrawerCheckout: React.FC<{ selection: Mission | Track | MissionBox | null; programId: string; programTitle: string; theme: any; onClose: () => void; ctaMode?: 'booking' | 'lead' }> = ({ selection, programId, programTitle, theme, onClose, ctaMode }) => {
+const BABSection: React.FC<{ lp: any; theme: any }> = ({ lp, theme }) => (
+  <section className="py-32 px-6 bg-[#0a0a0a] relative overflow-hidden">
+     <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+        <Reveal>
+           <div className="p-10 bg-white/5 border-4 border-dashed border-gray-800 rounded-[3rem] opacity-40 grayscale translate-x-4 rotate-2">
+              <span className="text-xs font-black uppercase text-gray-500 mb-4 block tracking-widest">AVANT (SITUATION ACTUELLE)</span>
+              <h3 className="font-black text-3xl mb-6 italic text-gray-300">"{lp.beforeHeadline}"</h3>
+              <p className="text-gray-500 font-bold text-lg">{lp.beforeBody || "Passivité, consommation, manque de but."}</p>
+           </div>
+        </Reveal>
+        <Reveal delay={300}>
+           <div className="p-12 border-8 border-black rounded-[4rem] bg-blue-500 shadow-[20px_20px_0_0_#000] -rotate-2 relative z-10 scale-110">
+              <div className="absolute -top-10 -right-4 w-24 h-24 bg-white rounded-full flex items-center justify-center border-6 border-black rotate-12 shadow-xl">
+                 <Zap size={48} className="text-orange-500" fill="currentColor" />
+              </div>
+              <span className="text-xs font-black uppercase text-black/60 mb-4 block tracking-widest">APRÈS (TRANSFORMATION MAKER)</span>
+              <h3 className="font-black text-4xl mb-6 text-black italic">"{lp.afterHeadline}"</h3>
+              <p className="text-black font-black text-xl mb-8 leading-tight">{lp.bridgeHeadline}</p>
+              <div className="flex gap-2">
+                 {[1,2,3,4,5].map(i => <Star key={i} size={24} className="text-white" fill="currentColor" />)}
+              </div>
+           </div>
+        </Reveal>
+     </div>
+  </section>
+);
+
+const ContrastSection: React.FC<{ lp: any; theme: any }> = ({ lp, theme }) => (
+  <section className="py-32 px-6 bg-white relative overflow-hidden noise-bg">
+     <div className="max-w-4xl mx-auto relative z-10">
+        <Reveal>
+           <div className="text-center mb-20">
+              <h2 className="font-black text-6xl md:text-8xl uppercase text-black italic leading-none tracking-tighter mb-4">LE CHOIX.<br/><span className="text-orange-500">EST CLAIR.</span></h2>
+              <p className="text-gray-400 font-bold text-xl uppercase tracking-widest">Ne comparez pas l'incomparable.</p>
+           </div>
+        </Reveal>
+        <Reveal delay={200}>
+           <div className="bg-black border-[10px] border-black rounded-[3.5rem] overflow-hidden shadow-[25px_25px_0_0_rgba(0,0,0,0.1)]">
+              <div className="grid grid-cols-12 bg-gray-900 border-b-6 border-black p-8">
+                 <div className="col-span-4 font-black text-[10px] text-gray-500 uppercase tracking-widest">CRITÈRE MAJEUR</div>
+                 <div className="col-span-4 font-black text-[12px] text-orange-500 uppercase tracking-widest text-center italic">MAKERLAB</div>
+                 <div className="col-span-4 font-black text-[10px] text-gray-700 uppercase tracking-widest text-center">AUTRES</div>
+              </div>
+              {(lp.comparisonRows || []).map((row: any, i: number) => (
+                <div key={row.id} className="grid grid-cols-12 p-8 border-b-4 border-white/5 last:border-0 hover:bg-white/5 transition-all group">
+                   <div className="col-span-4 font-black text-xs md:text-sm text-gray-400 uppercase italic group-hover:text-white transition-colors">{row.feature}</div>
+                   <div className="col-span-4 font-black text-sm md:text-lg text-white text-center flex items-center justify-center gap-3">
+                      <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center shrink-0 border-2 border-black"><CheckCircle2 size={14} className="text-black" strokeWidth={4} /></div>
+                      {row.us}
+                   </div>
+                   <div className="col-span-4 font-bold text-xs md:text-sm text-gray-600 text-center flex items-center justify-center gap-2 opacity-50">
+                      <X size={18} className="text-red-900" />
+                      {row.them}
+                   </div>
+                </div>
+              ))}
+           </div>
+        </Reveal>
+     </div>
+  </section>
+);
+
+/* ─── Drawer Checkout ─────────────────────────────────────────────────────── */
+const DrawerCheckout: React.FC<{ 
+  selection: any; 
+  funnel?: Funnel;
+  programId: string; 
+  programTitle: string; 
+  theme: any; 
+  onClose: () => void; 
+  ctaMode?: 'booking' | 'lead';
+}> = ({ selection, funnel, programId, programTitle, theme, onClose, ctaMode }) => {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ parentName: '', childName: '', childAge: '', whatsapp: '' });
+  const [form, setForm] = useState({ 
+    parentName: '', childName: '', childAge: '', whatsapp: '', 
+    digitalHabits: '', tinkeringHabits: '', artisticHabits: '', habits: '' 
+  });
   const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState(1);
   const [done, setDone] = useState(false);
-  const [paymentStatus, setPaymentStatus] = useState<'Deposit' | 'Full Bundle' | 'Pending'>('Pending');
-
-  const isTrack = !!(selection && 'benefits' in selection);
-  const isMissionBox = !!(selection && 'theme' in selection && !('title' in selection));
-  
-  const targetName = selection 
-    ? (isTrack ? (selection as Track).title : (isMissionBox ? (selection as MissionBox).theme : (selection as Mission).title)) 
-    : '';
-  const targetPrice = selection ? (selection as any).price : '';
-
-  const isLeadMode = ctaMode === 'lead';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (step === 1 && isTrack) { setStep(2); return; } // Tracks have a payment choice step
     setLoading(true);
     try {
       const lead: LandingLead = {
-        programId, programTitle, parentName: form.parentName, childName: form.childName,
-        childAge: form.childAge, whatsapp: form.whatsapp, createdAt: new Date().toISOString(),
-        paymentStatus: isLeadMode ? 'Pending' : paymentStatus // Leads are always pending
+        programId,
+        programTitle,
+        parentName: form.parentName,
+        childName: form.childName,
+        childAge: form.childAge,
+        whatsapp: form.whatsapp,
+        digitalHabits: form.digitalHabits,
+        tinkeringHabits: form.tinkeringHabits,
+        artisticHabits: form.artisticHabits,
+        createdAt: new Date().toISOString(),
+        paymentStatus: 'Pending',
+        funnelId: funnel?.id,
+        funnelSlug: funnel?.slug
       };
-      if (isTrack) { 
-        lead.trackId = selection.id; 
-        lead.trackTitle = targetName; 
-      } else { 
-        lead.missionId = selection.id; 
-        lead.missionTheme = targetName; 
-        lead.missionDate = (selection as any).date; 
+      
+      if (selection?.id) {
+        lead.missionId = selection.id;
+        lead.missionTheme = selection.title || selection.theme;
+        lead.missionDate = selection.date;
       }
       
       const docRef = await addDoc(collection(db, 'website-landing-leads'), lead);
-      
-      // Marketing redirect to Thank You page
-      const params = new URLSearchParams({
-        leadId: docRef.id,
-        programId: programId || '',
-        childName: form.childName,
-        programTitle: targetName || programTitle,
-        type: isTrack ? 'track' : (isLeadMode ? 'lead' : 'mission')
-      });
-      navigate(`/thanks?${params.toString()}`);
+      navigate(`/thanks?leadId=${docRef.id}&programTitle=${encodeURIComponent(programTitle)}&slug=${funnel?.slug || ''}`);
     } catch (_) {}
     setLoading(false); setDone(true);
   };
 
   return (
     <>
-      <div className={`fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] transition-opacity duration-300 ${selection ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={onClose} />
-      <div className={`fixed top-0 right-0 bottom-0 w-full md:w-[500px] bg-white border-l-8 border-black shadow-[-20px_0_50px_rgba(0,0,0,0.5)] z-[210] transition-transform duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] flex flex-col ${selection ? 'translate-x-0' : 'translate-x-full'}`}>
-        <div className="h-2 shrink-0" style={{ background: `linear-gradient(90deg, var(--theme-primary), var(--theme-accent), var(--theme-primary))` }} />
-        <div className="flex-1 overflow-y-auto p-8 relative">
-          <button onClick={onClose} className="absolute top-6 right-6 w-10 h-10 flex items-center justify-center rounded-full border-2 border-black hover:bg-red-500 hover:text-white transition-colors bg-gray-50"><X size={20} strokeWidth={3} /></button>
-          
+      <div className={`fixed inset-0 bg-black/90 backdrop-blur-md z-[500] transition-opacity duration-500 ${selection ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={onClose} />
+      <div className={`fixed top-0 right-0 bottom-0 w-full md:w-[600px] bg-white border-l-[12px] border-black z-[510] transition-transform duration-700 flex flex-col ${selection ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className="flex-1 overflow-y-auto p-12 relative scrollbar-hide">
+          <button onClick={onClose} className="absolute top-8 right-8 w-12 h-12 flex items-center justify-center rounded-full border-4 border-black bg-gray-100 hover:scale-110 active:scale-95 transition-all"><X size={24} className="text-black" /></button>
           {!done ? (
-            <>
-              <div className="mb-8 pr-12">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-3 border"
-                  style={{ backgroundColor: `rgba(${theme.primaryRGB}, 0.1)`, color: `var(--theme-primary)`, borderColor: `rgba(${theme.primaryRGB}, 0.2)` }}>
-                  <Rocket size={12} /> {isLeadMode ? 'Rencontre Découverte' : (isTrack ? 'Inscription Parcours' : 'Réservation Session')}
-                </div>
-                <h2 className="font-black text-2xl leading-tight mb-2">
-                  {isLeadMode ? 'Réservez votre visite au Lab' : 'Sécurisez votre place'}
-                </h2>
-                <div className="p-4 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50">
-                  <p className="font-black text-lg">{targetName}</p>
-                  {!isLeadMode && <p className="font-bold mt-1 text-sm" style={{ color: `var(--theme-primary)` }}>{targetPrice}</p>}
-                  {selection && !isTrack && <p className="text-xs text-gray-500 font-bold mt-1">{(selection as Mission).date}</p>}
-                  {isLeadMode && <p className="text-xs text-green-600 font-black mt-1 uppercase">✨ Rencontre Gratuite</p>}
-                </div>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-5">
-                {step === 1 && (
-                  <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
-                    {[
-                      { label: 'Votre Prénom (Parent)', key: 'parentName', placeholder: 'Ex: Fatima', type: 'text' },
-                      { label: "Prénom de l'enfant", key: 'childName', placeholder: 'Ex: Youssef', type: 'text' },
-                      { label: "Âge de l'enfant", key: 'childAge', placeholder: 'Ex: 10', type: 'number' },
-                      { label: 'Numéro WhatsApp', key: 'whatsapp', placeholder: '+212 6XX XXX XXX', type: 'tel' },
-                    ].map(f => (
-                      <div key={f.key}>
-                        <label className="block text-xs font-black uppercase tracking-widest mb-1.5 text-gray-600">{f.label}</label>
-                        <input required type={f.type} min={f.key==='childAge'?5:undefined} max={f.key==='childAge'?18:undefined} value={(form as any)[f.key]} onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))} className="w-full p-4 border-4 border-black rounded-xl font-bold focus:bg-white outline-none transition-colors shadow-[2px_2px_0_0_black]" 
-                          style={{ borderColor: `var(--theme-primary)` }}
-                          placeholder={f.placeholder} />
-                      </div>
-                    ))}
-                    <button type="submit" disabled={loading} className="w-full py-5 mt-4 text-black font-black text-lg uppercase tracking-widest border-4 border-black rounded-2xl hover:-translate-y-1 transition-all disabled:opacity-60 flex justify-center items-center gap-2"
-                      style={{ backgroundColor: `var(--theme-primary)`, boxShadow: '6px 6px 0 0 #000' }}>
-                       {isLeadMode ? (loading ? '⏳ Envoi...' : 'PRENDRE RENDEZ-VOUS') : (isTrack ? 'Suivant : Réservation →' : (loading ? '⏳ Envoi...' : ' CONFIRMER MA RÉSERVATION'))}
-                    </button>
+            <div className="space-y-12">
+               <div>
+                  <span className="inline-block bg-orange-100 text-orange-600 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-[0.2em] mb-4">🚀 SESSION INSCRIPTION</span>
+                  <h2 className="font-black text-4xl leading-none mb-6 uppercase italic">Demandez Votre Place.</h2>
+                  <div className="p-8 bg-black text-white border-4 border-black rounded-[2.5rem] shadow-[10px_10px_0_0_#f97316]">
+                     <p className="text-orange-500 font-black text-xs uppercase tracking-widest mb-2 flex items-center gap-2"><Target size={14}/> Mission Sélectionnée</p>
+                     <p className="font-black text-2xl uppercase italic leading-tight">{selection?.title || selection?.theme || programTitle}</p>
+                     <div className="flex items-center justify-between mt-6 pt-6 border-t border-white/10">
+                        <p className="text-gray-400 font-bold text-sm tracking-widest uppercase">{selection?.date || 'Date à confirmer'}</p>
+                        <p className="text-white font-black text-2xl italic">{selection?.price || "400 DHS"}</p>
+                     </div>
                   </div>
-                )}
+               </div>
 
-                {step === 2 && isTrack && (
-                  <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
-                    <h3 className="font-black text-lg">Choisissez votre formule :</h3>
-                    
-                    <label className={`block cursor-pointer p-5 border-4 rounded-2xl transition-all ${paymentStatus === 'Deposit' ? 'shadow-neo' : 'border-gray-200 hover:border-black'}`}
-                       style={{ borderColor: paymentStatus === 'Deposit' ? `var(--theme-primary)` : undefined, backgroundColor: paymentStatus === 'Deposit' ? `rgba(${theme.primaryRGB}, 0.1)` : undefined }}>
-                      <div className="flex items-center gap-3">
-                        <input type="radio" checked={paymentStatus === 'Deposit'} onChange={() => setPaymentStatus('Deposit')} className="w-5 h-5" style={{ accentColor: `var(--theme-primary)` }} />
-                        <div>
-                          <p className="font-black">Essai 1 Jour (400 DHS)</p>
-                          <p className="text-xs text-gray-500 font-bold mt-1 max-w-[250px]">Laissez votre enfant tester la 1ère session. Si ça lui plaît, on déduira ce montant du pack complet.</p>
-                        </div>
-                      </div>
-                    </label>
-
-                    <label className={`block cursor-pointer p-5 border-4 rounded-2xl transition-all ${paymentStatus === 'Full Bundle' ? 'border-green-500 bg-green-50 shadow-neo' : 'border-gray-200 hover:border-black'}`}>
-                      <div className="flex items-center gap-3">
-                        <input type="radio" checked={paymentStatus === 'Full Bundle'} onChange={() => setPaymentStatus('Full Bundle')} className="w-5 h-5 accent-green-600" />
-                        <div>
-                          <p className="font-black">Le Parcours Complet ({targetPrice})</p>
-                          <p className="text-xs text-gray-500 font-bold mt-1">Garantissez sa place pour les 3 semaines d'affilée avec accès prioritaire.</p>
-                        </div>
-                      </div>
-                    </label>
-
-                    <button type="submit" disabled={loading} className="w-full py-5 mt-4 text-black font-black text-lg uppercase tracking-widest border-4 border-black rounded-2xl hover:-translate-y-1 hover:shadow-[6px_6px_0_0_black] transition-all disabled:opacity-60 cta-pulse mt-8"
-                      style={{ backgroundColor: `var(--theme-primary)` }}>
-                       {loading ? '⏳ Sauvegarde...' : '🚀 SÉCURISER MA PLACE'}
-                    </button>
-                    <button type="button" onClick={() => setStep(1)} className="w-full py-3 text-xs font-bold text-gray-500 uppercase tracking-widest hover:text-black">← Retour aux infos</button>
+               <form onSubmit={handleSubmit} className="space-y-6 text-black">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FieldGroup label="Nom du Parent" value={form.parentName} onChange={v => setForm(p=>({...p, parentName: v}))} placeholder="Fatima Zahra" />
+                    <FieldGroup label="Nom de l'enfant" value={form.childName} onChange={v => setForm(p=>({...p, childName: v}))} placeholder="Youssef" />
                   </div>
-                )}
-                
-                <p className="text-center text-[10px] text-gray-400 font-black tracking-widest uppercase mt-6 pt-6 border-t border-gray-100">
-                  <Shield size={10} className="inline mr-1 -mt-0.5" />
-                  {isLeadMode ? 'Rencontre libre sans engagement. Données privées.' : 'Paiement sur place le jour j. Données 100% privées.'}
-                </p>
-              </form>
-            </>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FieldGroup label="Âge de l'enfant" type="number" value={form.childAge} onChange={v => setForm(p=>({...p, childAge: v}))} placeholder="11" />
+                    <FieldGroup label="WhatsApp" type="tel" value={form.whatsapp} onChange={v => setForm(p=>({...p, whatsapp: v}))} placeholder="06..." />
+                  </div>
+
+                  <div className="space-y-4 pt-6 border-t-4 border-black">
+                     <p className="font-black text-xs uppercase tracking-widest text-gray-400 flex items-center gap-2"><Sparkles size={14} className="text-orange-500"/> Profil Maker Discovery</p>
+                     <DiscoveryOption 
+                        icon={<Gamepad2/>} 
+                        label="Temps d'écran / Jeux vidéo ?" 
+                        value={form.digitalHabits} 
+                        onChange={v => setForm(p=>({...p, digitalHabits: v}))} 
+                        options={['Peu ( <1h )', 'Modéré ( 1-3h )', 'Beaucoup ( 3h+ )']} 
+                     />
+                     <DiscoveryOption 
+                        icon={<PenTool/>} 
+                        label="Intérêt pour le Bricolage / Art ?" 
+                        value={form.tinkeringHabits} 
+                        onChange={v => setForm(p=>({...p, tinkeringHabits: v}))} 
+                        options={['Curieux', 'Passionné', 'Déjà Pro']} 
+                     />
+                  </div>
+
+                  <button type="submit" disabled={loading} className="w-full py-6 bg-black text-white font-black text-2xl uppercase tracking-widest border-6 border-black rounded-[1.5rem] shadow-[10px_10px_0_0_#f97316] hover:translate-x-2 hover:translate-y-2 hover:shadow-none transition-all disabled:opacity-50">
+                    {loading ? 'ENVOI EN COURS...' : 'CONFIRMER ✨'}
+                  </button>
+               </form>
+            </div>
           ) : (
-            <div className="h-full flex flex-col items-center justify-center text-center -mt-10">
-              <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 border-4 border-black shadow-[4px_4px_0_0_black]"><CheckCircle2 size={48} className="text-green-600" strokeWidth={3} /></div>
-              <h2 className="font-black text-3xl mb-3">{isLeadMode ? 'Demande Envoyée ! 🚀' : 'Place Réservée ! 🎉'}</h2>
-              <p className="text-gray-600 font-medium mb-8 text-lg">
-                {isLeadMode 
-                  ? "Notre équipe vous contactera sur WhatsApp sous peu pour fixer l'heure de votre visite." 
-                  : "Notre équipe vous contactera sur WhatsApp sous peu pour finaliser."}
-              </p>
-              <button onClick={onClose} className="px-10 py-4 bg-black text-white font-black text-xs uppercase tracking-widest rounded-xl border-4 border-black hover:bg-gray-800 transition-colors w-full">Retour au site</button>
+            <div className="h-full flex flex-col items-center justify-center text-center">
+               <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center mb-8 border-4 border-black animate-bounce shadow-xl"><CheckCircle2 size={48} className="text-black" strokeWidth={4} /></div>
+               <h3 className="font-black text-5xl mb-6 uppercase italic tracking-tighter leading-none">C'est Partant ! 🚀</h3>
+               <p className="text-gray-500 font-bold text-xl mb-12 max-w-sm leading-relaxed italic">"Nous préparons les outils pour {form.childName}. On se parle sur WhatsApp dans quelques minutes !"</p>
+               <button onClick={onClose} className="px-12 py-5 bg-black text-white font-black rounded-3xl uppercase tracking-widest border-4 border-black shadow-[8px_8px_0_0_#f97316]">RETOUR AU LAB</button>
             </div>
           )}
         </div>
@@ -410,644 +432,277 @@ const DrawerCheckout: React.FC<{ selection: Mission | Track | MissionBox | null;
   );
 };
 
-/* ─── FAQ Item --------------------------------------------------------------- */
-const FaqItem: React.FC<{ question: string; answer: string; theme: any }> = ({ question, answer, theme }) => {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className={`border-2 rounded-2xl overflow-hidden transition-all duration-300 ${open ? 'bg-white/5' : 'border-white/10 bg-white/2'}`} style={{ borderColor: open ? theme.primary : undefined }}>
-      <button onClick={() => setOpen(!open)} className="w-full flex items-center justify-between gap-4 p-6 text-left hover:bg-white/5 transition-colors">
-        <span className="font-black text-base md:text-lg">{question}</span>
-        <ChevronDown size={20} className={`shrink-0 transition-transform duration-300 ${open ? 'rotate-180' : ''}`} style={{ color: theme.primary }} />
-      </button>
-      {open && <div className="px-6 pb-6 text-gray-400 font-medium leading-relaxed border-t border-white/5 pt-4">{answer}</div>}
-    </div>
-  );
-};
+const FieldGroup: React.FC<{ label: string; value: string; onChange: (v: string) => void; placeholder?: string; type?: string }> = ({ label, value, onChange, placeholder, type = 'text' }) => (
+  <div className="space-y-1.5">
+     <label className="block text-[10px] font-black uppercase text-gray-400 tracking-widest pl-2">{label}</label>
+     <input required type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} className="w-full p-4 border-4 border-black rounded-2xl font-black focus:bg-orange-50 outline-none transition-all" />
+  </div>
+);
 
-/* ─── Modular: Stations Grid ─────────────────────────────────────────────── */
-const StationsGrid: React.FC<{ stations: any[]; theme: any }> = ({ stations, theme }) => {
-  if (!stations || stations.length === 0) return null;
+const DiscoveryOption: React.FC<{ icon: any; label: string; value: string; onChange: (v: string) => void; options: string[] }> = ({ icon, label, value, onChange, options }) => (
+  <div className="space-y-2 mb-4">
+     <p className="text-[11px] font-black uppercase flex items-center gap-2">{icon} {label}</p>
+     <div className="flex flex-wrap gap-2">
+        {options.map(opt => (
+          <button 
+            key={opt} type="button" 
+            onClick={() => onChange(opt)}
+            className={`px-4 py-2 rounded-xl border-3 border-black text-[10px] font-black uppercase transition-all ${value === opt ? 'bg-black text-white' : 'bg-gray-50 hover:bg-gray-100'}`}
+          >
+            {opt}
+          </button>
+        ))}
+     </div>
+  </div>
+);
+
+const FAQSection: React.FC<{ items: any[]; theme: any }> = ({ items, theme }) => {
+  const [openedIndex, setOpenedIndex] = useState<number | null>(null);
+  if (!items || items.length === 0) return null;
+
   return (
-    <section className="py-24 px-6 relative overflow-hidden" style={{ background: '#0a0a0a' }}>
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-      <div className="max-w-6xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {stations.map((s: any, i: number) => (
-            <Reveal key={s.id} delay={i * 100}>
-              <div className="p-8 rounded-3xl border-2 border-white/5 bg-white/2 hover:border-white/20 transition-all group">
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl mb-6 bg-white/5 border border-white/10 group-hover:scale-110 transition-transform">
-                  {s.icon || '🚀'}
+    <section className="py-32 px-6 bg-[#0a0a0a]">
+       <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-16">
+             <h2 className="font-black text-4xl md:text-5xl uppercase italic text-white mb-4">Questions Fréquentes</h2>
+             <div className="w-20 h-2 bg-orange-500 mx-auto rounded-full" />
+          </div>
+          <div className="space-y-4">
+             {items.map((item, i) => (
+                <div key={item.id || i} className="bg-black border-4 border-white/10 rounded-3xl overflow-hidden shadow-2xl transition-all hover:border-white/20">
+                   <button onClick={() => setOpenedIndex(openedIndex === i ? null : i)} className="w-full text-left p-8 flex items-center justify-between gap-4">
+                      <h3 className="font-black text-lg md:text-xl text-white">{item.question}</h3>
+                      <div className={`p-2 rounded-xl transition-transform duration-300 ${openedIndex === i ? 'rotate-180 bg-orange-500 text-black' : 'bg-white/5 text-white/40'}`}>
+                         <ChevronDown size={20} />
+                      </div>
+                   </button>
+                   <div className={`transition-all duration-500 ease-in-out ${openedIndex === i ? 'max-h-96 opacity-100 p-8 pt-0' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+                      <p className="text-gray-400 font-medium text-lg border-t border-white/5 pt-6">{item.answer}</p>
+                   </div>
                 </div>
-                <h3 className="font-black text-xl mb-4 uppercase tracking-tight text-white">{s.title}</h3>
-                <p className="text-gray-400 font-medium leading-relaxed text-sm">{s.description}</p>
-              </div>
-            </Reveal>
-          ))}
-        </div>
-      </div>
+             ))}
+          </div>
+       </div>
     </section>
   );
 };
 
-/* ─── Modular: Perks List ────────────────────────────────────────────────── */
-const PerksList: React.FC<{ perks: any[]; theme: any }> = ({ perks, theme }) => {
-  if (!perks || perks.length === 0) return null;
-  return (
-    <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
-      {perks.map((p: any, i: number) => (
-        <Reveal key={p.id} delay={i * 50}>
-          <div className="flex items-center gap-3 p-4 rounded-2xl bg-white/5 border border-white/10">
-            <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0" style={{ background: theme.glow, color: theme.primary }}>
-              <CheckCircle2 size={14} strokeWidth={3} />
-            </div>
-            <span className="font-bold text-sm text-gray-200">{p.text}</span>
-          </div>
-        </Reveal>
-      ))}
-    </div>
-  );
-};
-
-/* ─── Main Page -------------------------------------------------------------- */
+/* ─── Main Landing Component ────────────────────────────────────────────── */
 export const ProgramLanding: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { getProgram, isLoading: isProgramLoading } = usePrograms();
-  const { missions, tracks, loading: isMissionsLoading } = useMissions();
-  const [selectedTarget, setSelectedTarget] = useState<Mission | Track | null>(null);
+  const { programs, funnels, getProgram, isLoading: isProgramsLoading } = usePrograms();
+  const { missions, loading: isMissionsLoading } = useMissions();
+  
+  const [selectedTarget, setSelectedTarget] = useState<any>(null);
   const [showStickyBar, setShowStickyBar] = useState(false);
   const missionsRef = useRef<HTMLDivElement>(null);
-  const [statsRef, statsInView] = useInView(0.3);
   const heroRef = useRef<HTMLElement>(null);
 
-  const program = id ? getProgram(id) : undefined;
-  const lp = program?.landingPage;
+  // 🛡️ Defensive Lookup
+  const funnel = Array.isArray(funnels) ? funnels.find(f => f.slug === id) : undefined;
+  
+  // Try to find program by funnel's programId, or by the ID/Slug itself as fallback
+  let program = funnel ? programs.find(p => p.id === funnel.programId) : undefined;
+  if (!program && id) {
+    program = programs.find(p => p.id === id || p.title.toLowerCase().replace(/\s+/g, '-') === id);
+  }
+  
+  // If still not found, try the context getter (which might check initialPrograms)
+  if (!program && id) {
+    program = getProgram(id);
+  }
 
-  const themeKey = lp?.themeColor || program?.themeColor || 'orange';
-  const theme = THEMES[themeKey as keyof typeof THEMES] || THEMES.orange;
+  const lp = funnel ? funnel.data : program?.landingPage;
 
   useEffect(() => {
-    document.title = program ? `${program.title} — Makerlab Academy` : 'Makerlab Academy';
+    if (program) document.title = `${program.title} | Makerlab Academy`;
   }, [program]);
 
-  // Show sticky bar after scrolling past hero
   useEffect(() => {
-    const fn = () => {
-      if (!heroRef.current) return;
-      const b = heroRef.current.getBoundingClientRect();
-      setShowStickyBar(b.bottom < 0);
-    };
+    const fn = () => { if (heroRef.current) setShowStickyBar(heroRef.current.getBoundingClientRect().bottom < 0); };
     window.addEventListener('scroll', fn);
     return () => window.removeEventListener('scroll', fn);
   }, []);
 
-  // Inject Meta Pixel script if configured for this landing page
-  useEffect(() => {
-    if (!lp?.metaPixel) return;
-    const container = document.createElement('div');
-    container.innerHTML = lp.metaPixel;
-    const scripts: HTMLScriptElement[] = [];
-    container.querySelectorAll('script').forEach(s => {
-      const script = document.createElement('script');
-      if (s.src) {
-        script.src = s.src;
-        script.async = true;
-      } else {
-        script.textContent = s.textContent;
-      }
-      script.setAttribute('data-lp-pixel', program?.id || '');
-      document.head.appendChild(script);
-      scripts.push(script);
-    });
-    return () => {
-      scripts.forEach(s => s.parentNode?.removeChild(s));
-    };
-  }, [lp?.metaPixel, program?.id]);
+  if (isProgramsLoading || isMissionsLoading) {
+    return <div className="min-h-screen bg-black flex items-center justify-center animate-pulse"><div className="text-white font-black text-xl italic uppercase">Génération du Funnel...</div></div>;
+  }
 
-  if (isProgramLoading || isMissionsLoading) return <div className="min-h-screen bg-black flex items-center justify-center"><div className="text-white font-black text-2xl animate-pulse">CHARGEMENT...</div></div>;
-  
-  if (!program) {
+  if (!program || !lp || (lp && !lp.enabled && !funnel)) {
     return (
-      <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white text-center px-6">
-        <div className="text-6xl mb-6">🔍</div>
-        <h1 className="font-black text-3xl mb-3">Oups ! Offre Introuvable</h1>
-        <p className="text-gray-400 font-medium max-w-sm">Cette offre n'existe plus ou le lien est expiré.</p>
-        <a href="/" className="mt-8 px-6 py-3 text-black font-black rounded-xl border-2 border-black transition-colors" style={{ backgroundColor: theme.primary }}>← Retour à l'accueil</a>
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white text-center p-6">
+        <h1 className="text-4xl font-black mb-4 uppercase italic tracking-tighter">404 - Funnel Perdu</h1>
+        <p className="text-gray-500 font-bold mb-8 italic">Nous n'avons pas trouvé de campagne active pour "{id}".</p>
+        <a href="/" className="px-10 py-4 bg-orange-500 text-black font-black rounded-3xl uppercase tracking-widest shadow-xl">Retour à la base</a>
       </div>
     );
   }
 
-  if (program.landingPage && !program.landingPage.enabled) {
-    return (
-      <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white text-center px-6">
-        <div className="text-6xl mb-6">🚀</div>
-        <h1 className="font-black text-3xl mb-3">Landing Page Désactivée</h1>
-        <p className="text-gray-400 font-medium max-w-sm">Activez-la depuis le panneau d'administration.</p>
-        <a href="/" className="mt-8 px-6 py-3 text-black font-black rounded-xl border-2 border-black transition-colors" style={{ backgroundColor: theme.primary }}>← Retour au site</a>
-      </div>
-    );
-  }
+  const theme = THEMES[lp.themeColor as keyof typeof THEMES] || THEMES.orange;
+  const t = (key: keyof typeof D): string => (lp as any)?.[key] || (D as any)[key] || '';
 
-  const gallery = (lp?.galleryImages && Array.isArray(lp.galleryImages) && lp.galleryImages.length > 0) ? lp.galleryImages : [];
-  const scrollToMissions = () => missionsRef.current?.scrollIntoView({ behavior: 'smooth' });
-  const t = (key: keyof typeof D): string => {
-    const val = (lp as any)?.[key];
-    if (typeof val === 'string' && val.trim() !== '') return val;
-    return (D as any)[key] || '';
-  };
+  // 🛡️ Defensive Array Logic
+  let visibleMissions: any[] = [];
+  const safeMissions = Array.isArray(missions) ? missions : [];
+  const missionIds = Array.isArray(lp.missionIds) ? lp.missionIds : [];
 
-  let visibleMissions: (Mission | MissionBox)[] = [];
-  if (lp?.missionIds && lp.missionIds.length > 0) {
-    visibleMissions = missions.filter(m => lp.missionIds!.includes(m.id) && m.active !== false);
-  } else if (lp?.missionBoxes && lp.missionBoxes.length > 0) {
-    visibleMissions = lp.missionBoxes;
+  if (missionIds.length > 0) {
+    visibleMissions = safeMissions.filter(m => missionIds.includes(m.id) && m.active !== false);
   } else {
-    visibleMissions = missions.filter(m => m.status !== 'full' && m.active !== false);
+    visibleMissions = safeMissions.filter(m => m.programId === program!.id && m.active !== false).slice(0, 4);
   }
+
+  const programStations = Array.isArray(program.stations) ? program.stations : [];
+  const selectedStationIds = Array.isArray(lp.selectedStationIds) ? lp.selectedStationIds : [];
+  const selectedStations = programStations.filter(s => selectedStationIds.includes(s.id));
 
   return (
     <>
       <style>{STYLES}</style>
-
       <div className="font-sans text-white bg-black overflow-x-hidden" style={{ 
-        '--theme-text': theme.primary,
-        '--theme-primary': theme.primary,
+        '--theme-primary': theme.primary, 
         '--theme-primary-rgb': theme.primaryRGB,
         '--theme-pulse': `rgba(${theme.primaryRGB}, 0.7)`,
-        '--theme-shimmer': theme.shimmer,
-        '--theme-primary-hover': theme.primaryHover,
-        '--theme-border': theme.glow.replace('.22', '.3'),
-        '--theme-glow': theme.glow,
-        '--theme-accent': theme.accent,
+        '--theme-shimmer': theme.shimmer
       } as React.CSSProperties}>
 
-        {/* ═══ ANNOUNCEMENT TICKER ══════════════════════════════════════════ */}
-        <div className={`${theme.bg} text-black py-2 overflow-hidden relative`}>
+        {/* ══ TICKER ══ */}
+        <div className={`${theme.bg} text-black py-3 overflow-hidden relative z-50 border-b-6 border-black shadow-xl`}>
           <div className="ticker-inner">
             {[...Array(2)].map((_, i) => (
-              <span key={i} className="flex items-center gap-8 px-8">
-                {['🔥 Places limitées à 20 Makers', '⚡ Projets 100% réels — Zéro Lego', '🏆 Built Not Bought — Philosophie Makerlab', '🚀 Votre enfant repart avec SON projet', '🔥 Places limitées à 20 Makers'].map((t, j) => (
-                  <span key={j} className="font-black text-sm uppercase tracking-widest whitespace-nowrap">{t}</span>
+              <span key={i} className="flex items-center gap-12 px-12">
+                {['⚡ PROJETS 100% RÉELS', '🏆 BUILT NOT BOUGHT', `🚀 PROGRAMME : ${program.title.toUpperCase()}`, '🔥 ÉLITE INNOVATION'].map((txt, j) => (
+                   <span key={j} className="font-black text-[12px] uppercase tracking-[0.2em]">{txt}</span>
                 ))}
               </span>
             ))}
           </div>
         </div>
 
-        {/* ═══ BLOCK 1 — HERO ══════════════════════════════════════════════ */}
-        <section ref={heroRef} className="relative min-h-screen flex flex-col justify-center noise-bg overflow-hidden" style={{ background: theme.gradient }}>
-          {/* Glow orbs */}
-          <div className="absolute top-[-15%] right-[-5%] w-[700px] h-[700px] rounded-full pointer-events-none" style={{ background: `radial-gradient(circle,${theme.glow} 0%,transparent 70%)` }} />
-          <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full pointer-events-none" style={{ background: `radial-gradient(circle,${theme.glow} 0%,transparent 70%)` }} />
-          {/* Floating grid dots */}
-          <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: `radial-gradient(${theme.glow} 1px,transparent 1px)`, backgroundSize: '40px 40px' }} />
-
-          <div className="relative z-10 max-w-5xl mx-auto px-6 py-24 text-center">
-            {/* Brand pill */}
-            <div className="inline-flex items-center gap-2 mb-8 px-4 py-2 bg-white/5 border border-white/10 rounded-full backdrop-blur-sm">
-              <Zap size={14} className={theme.text} fill="currentColor" />
-              <div className="flex items-center gap-4">
-                <span className={`text-xs font-black uppercase tracking-widest ${theme.text}`}>Makerlab Academy — Casablanca</span>
-                <Countdown theme={theme} />
+        {/* ══ HERO ══ */}
+        <section ref={heroRef} className="relative min-h-[90vh] flex flex-col justify-center noise-bg px-6 py-24 text-center overflow-hidden" style={{ background: theme.gradient }}>
+           <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 50% 50%, var(--theme-primary), transparent 70%)' }}></div>
+           <Reveal>
+              <div className="flex flex-col items-center gap-6 mb-12">
+                 {lp.heroSurTitre && <span className="font-black text-xs md:text-sm uppercase tracking-[0.6em] text-orange-500 italic rotate-[-1deg]">{lp.heroSurTitre}</span>}
+                 <div className="flex flex-col md:flex-row items-center gap-6">
+                    <div className="px-6 py-2 bg-orange-500 text-black font-black text-xs uppercase tracking-widest rounded-full border-3 border-black shadow-[4px_4px_0_0_black]">MAKERLAB ACADEMY</div>
+                    <Countdown theme={theme} />
+                 </div>
               </div>
-            </div>
-
-            {/* Pre-headline */}
-            <p className="text-red-400 font-black text-sm md:text-base uppercase tracking-widest mb-5">{t('heroPreHeadline')}</p>
-
-            {/* Headline with shimmer effect */}
-            <h1 className="font-black text-4xl md:text-6xl lg:text-7xl leading-[1.05] mb-6 shimmer-text" style={{ background: theme.shimmer, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{t('heroHeadline')}</h1>
-
-            {/* Sub-headline */}
-            <p className="text-lg md:text-xl text-gray-300 font-medium max-w-3xl mx-auto mb-10 leading-relaxed">{t('heroSubHeadline')}</p>
-
-            {/* CTA */}
-            <button onClick={scrollToMissions} className={`cta-pulse hover-theme inline-flex items-center gap-3 px-8 py-5 text-black font-black text-lg md:text-xl uppercase tracking-widest border-4 border-black rounded-2xl transition-all relative z-10`}
-              style={{ backgroundColor: theme.primary }}>
-              <Rocket size={24} strokeWidth={3} />{t('heroCtaText')}<ArrowRight size={24} strokeWidth={3} />
-            </button>
-            <p className="mt-4 text-sm text-gray-400 font-medium">{t('heroScarcityText')}</p>
-
-            {/* Quick stats pills */}
-            <div className="mt-10 flex flex-wrap justify-center gap-4">
-              {[
-                { icon: <Clock size={14} />, label: program.duration || '3 Heures' },
-                { icon: <Star size={14} />, label: `Âge ${program.ageGroup || '8-14 ans'}` },
-                { icon: <Cpu size={14} />, label: program.price || '400 DHS' },
-                { icon: <CheckCircle2 size={14} />, label: '100% Sans Lego' },
-              ].map((s, i) => (
-                <div key={i} className="float-y flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full text-sm font-bold text-gray-300" style={{ animationDelay: `${i * 0.3}s` }}>
-                  <span style={{ color: `var(--theme-primary)` }}>{s.icon}</span>{s.label}
-                </div>
-              ))}
-            </div>
-
-            {/* Program hero image — if available */}
-            {program.image && (
-              <div className="mt-12 max-w-2xl mx-auto relative">
-                <div className="absolute inset-0 rounded-3xl" style={{ background: 'linear-gradient(180deg,transparent 50%,#060606 100%)' }} />
-                <img src={program.image} alt={program.title} className="w-full rounded-3xl border-2 border-white/10 object-cover max-h-72" />
-                <div className="absolute bottom-4 left-4 right-4 flex justify-center">
-                  <div className="px-4 py-2 bg-black/70 backdrop-blur-sm border border-white/10 rounded-full text-xs font-black uppercase tracking-widest"
-                    style={{ color: `var(--theme-primary)` }}>
-                    {program.title}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div className="mt-12 flex justify-center">
-              <div className={`flex flex-col items-center gap-1 text-gray-600 cursor-pointer hover:${theme.text} transition-colors`} onClick={scrollToMissions}>
-                <span className="text-xs font-bold uppercase tracking-widest">Découvrir</span>
-                <ChevronDown size={20} className="animate-bounce" />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ═══ ANIMATED STATS BAND ══════════════════════════════════════════ */}
-        <div ref={statsRef} className="py-14 px-6 border-y-2" style={{ background: '#0d0d0d', borderColor: `rgba(${theme.primaryRGB}, 0.15)` }}>
-          <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
-            <StatCounter value={500} suffix="+" label="Makers Formés" inView={statsInView} theme={theme} delay={0} />
-            <StatCounter value={98} suffix="%" label="Parents Satisfaits" inView={statsInView} theme={theme} delay={150} />
-            <StatCounter value={3} suffix="H" label="Pour Créer un Projet Réel" inView={statsInView} theme={theme} delay={300} />
-            <StatCounter value={20} label="Makers Max / Session" inView={statsInView} theme={theme} delay={450} />
-          </div>
-        </div>
-
-        {/* ═══ MODULAR: INNOVATION POLES (STATIONS) ══════════════════════════ */}
-        {lp?.layoutVariant === 'modular' && lp.stations && lp.stations.length > 0 && (
-          <div className="bg-[#0a0a0a] pt-24 -mb-24 relative z-10">
-            <div className="max-w-4xl mx-auto px-6 text-center mb-12">
-               <h2 className="font-black text-4xl md:text-5xl uppercase mb-4 text-white">{lp.stationsHeadline || 'Les Pôles d\'Innovation'}</h2>
-            </div>
-            <StationsGrid stations={lp.stations} theme={theme} />
-          </div>
-        )}
-
-        {/* ═══ BLOCK 2 — AGITATOR ══════════════════════════════════════════ */}
-        <section className="relative py-24 px-6" style={{ background: '#111' }}>
-          <div className="max-w-5xl mx-auto">
-            <Reveal>
-              <div className="flex items-center gap-4 mb-14">
-                <div className="flex-grow h-px bg-white/10" /><div className="w-3 h-3 rotate-45" style={{ backgroundColor: `var(--theme-primary)` }} /><div className="flex-grow h-px bg-white/10" />
-              </div>
-            </Reveal>
-
-            {/* Big side-by-side comparison */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-14">
-              <Reveal delay={0}>
-                <div className="h-full p-7 border-2 border-white/10 rounded-3xl bg-white/2 relative group overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-red-950/30 to-transparent" />
-                  <div className="relative z-10">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-red-900/40 border border-red-800/50 rounded-full text-xs font-black text-red-400 uppercase mb-4">❌ Les Autres</div>
-                    <h3 className="font-black text-2xl text-gray-400 mb-4">CONSOMMATION</h3>
-                    <ul className="space-y-3">
-                      {["Kits préfabriqués Lego / Robotiko", "Manuel d'instructions rigide", "Assemblage passif et guidé", "Résultat identique pour tous", "Aucune compétence transférable"].map((item, i) => (
-                        <li key={i} className="flex items-center gap-3 text-gray-500 font-medium text-sm">
-                          <span className="w-5 h-5 rounded-full bg-red-900/50 flex items-center justify-center text-red-500 text-xs font-black shrink-0">✕</span>{item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </Reveal>
-              <Reveal delay={120}>
-                <div className={`h-full p-7 border-2 rounded-3xl relative group overflow-hidden`} style={{ borderColor: `var(--theme-border)`, background: `${theme.glow.replace('.22','.06')}` }}>
-                  <div className="absolute inset-0 bg-gradient-to-br from-black/20 to-transparent" />
-                  <div className="absolute top-0 right-0 w-32 h-32 rounded-full opacity-20" style={{ background: `radial-gradient(circle,${theme.glow} 0%,transparent 70%)` }} />
-                  <div className="relative z-10">
-                    <div className={`inline-flex items-center gap-2 px-3 py-1 border rounded-full text-xs font-black uppercase mb-4`} style={{ background: `${theme.glow.replace('.22','.3')}`, color: `var(--theme-text)`, borderColor: `${theme.glow.replace('.22','.4')}` }}>✅ Makerlab</div>
-                    <h3 className={`font-black text-2xl mb-4`} style={{ color: `var(--theme-text)` }}>CRÉATION</h3>
-                    <ul className="space-y-3">
-                      {["Vrais logiciels de CAO & modélisation 3D", "Fers à souder & composants Arduino réels", "Découpe laser & impression 3D", "Projet 100% unique signé à leur nom", "Compétences réelles d'ingénieur"].map((item, i) => (
-                        <li key={i} className="flex items-center gap-3 text-gray-200 font-medium text-sm">
-                          <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-black shrink-0`} style={{ background: `var(--theme-glow)`, color: `var(--theme-primary)` }}>✓</span>{item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </Reveal>
-            </div>
-
-            <Reveal>
-              <h2 className="font-black text-3xl md:text-5xl text-center leading-tight mb-8">
-                {t('agitatorHeadline').split('. ').map((part: string, i: number, arr: string[]) => (
-                  <span key={i}>{i === 1 ? <em className="not-italic" style={{ color: `var(--theme-primary)` }}>{part}</em> : part}{i < arr.length - 1 ? '. ' : ''}</span>
-                ))}
-              </h2>
-              {t('agitatorBody').split('\n\n').map((para: string, i: number) => (
-                <p key={i} className={`text-gray-300 font-medium leading-relaxed mb-4 max-w-3xl mx-auto text-center ${i === 0 ? 'text-lg' : ''}`}>
-                  {para.split('BUILT NOT BOUGHT').map((part: string, j: number, arr: string[]) => (
-                    <React.Fragment key={j}>{part}{j < arr.length - 1 && <strong className="font-black" style={{ color: `var(--theme-primary)` }}> BUILT NOT BOUGHT </strong>}</React.Fragment>
-                  ))}
-                </p>
-              ))}
-            </Reveal>
-          </div>
-        </section>
-
-        {/* ═══ MASONRY GALLERY ══════════════════════════════════════════════ */}
-        {(gallery.length > 0 || program.image) && (
-          <section className="py-10 px-4 overflow-hidden" style={{ background: '#0a0a0a' }}>
-            <Reveal>
-              <p className="text-center text-xs font-black uppercase tracking-widest text-gray-600 mb-6">📸 Nos Makers en Action — Preuve Visuelle</p>
-            </Reveal>
-            <div className={`mx-auto grid gap-3 ${
-              gallery.length === 1 ? 'max-w-4xl grid-cols-1' :
-              gallery.length === 2 ? 'max-w-5xl grid-cols-1 sm:grid-cols-2' :
-              gallery.length === 4 ? 'max-w-4xl grid-cols-2' :
-              'max-w-6xl grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
-            }`}>
-              {(gallery.length > 0 ? gallery : [program.image]).map((url, i) => (
-                <div key={i} className="relative overflow-hidden rounded-3xl border-2 border-white/5 group bg-white/5 aspect-square shadow-2xl" style={{ animationDelay: `${i * 80}ms` }}>
-                  <img src={url} alt={`Makerlab Action ${i + 1}`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-500" />
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* ═══ BLOCK 3 — THE TRACKS (BINARY CHOICE) ══════════════════════════ */}
-        <section className="py-24 px-6 relative overflow-hidden" style={{ background: 'linear-gradient(180deg,#0a0a0a 0%,#130800 50%,#0a0a0a 100%)' }}>
-          <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: `radial-gradient(rgba(${theme.primaryRGB},.07) 1px,transparent 1px)`, backgroundSize: '32px 32px' }} />
-          <div className="max-w-6xl mx-auto relative z-10">
-            <Reveal>
-              <div className="text-center mb-16">
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full mb-4" style={{ borderColor: `var(--theme-border)` }}>
-                  <Zap size={14} style={{ color: `var(--theme-primary)` }} /><span className="text-xs font-black uppercase tracking-widest" style={{ color: `var(--theme-primary)` }}>Le Parcours</span>
-                </div>
-                <h2 className="font-black text-4xl md:text-5xl lg:text-6xl mb-4 text-white">Choisissez Son Super-Pouvoir</h2>
-                <p className="text-xl text-gray-400 font-medium">Sélectionnez le parcours complet (3 semaines) qui correspond à sa passion.</p>
-              </div>
-            </Reveal>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-14">
-              {tracks?.filter(t => t.active !== false).map((track, i) => (
-                <Reveal key={track.id} delay={i * 100}>
-                  <div className="relative rounded-3xl border-4 border-white/10 bg-black/50 overflow-hidden card-theme transition-all duration-300 group shadow-2xl flex flex-col h-full"
-                    style={{ borderColor: `rgba(${theme.primaryRGB}, 0.1)` }}>
-                    <div className="h-48 bg-gray-900 border-b-4 border-white/10 relative overflow-hidden shrink-0">
-                      {track.coverImage ? (
-                        <img src={track.coverImage} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="" />
-                      ) : (
-                         <div className="w-full h-full flex items-center justify-center bg-gray-900"><Cpu size={48} className="text-gray-800" /></div>
-                      )}
-                      <div className="absolute bottom-4 left-4 right-4 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-                         <div className="text-black text-[10px] font-black uppercase px-2 py-1 inline-block rounded border-2 border-black" style={{ backgroundColor: `var(--theme-primary)` }}>3 SESSIONS INTENSIVES</div>
-                      </div>
-                    </div>
-                    
-                    <div className="p-8 flex flex-col flex-grow text-left text-white">
-                      <h3 className="font-black text-2xl mb-3 leading-tight text-white">{track.title}</h3>
-                      <p className="text-sm text-gray-400 font-medium leading-relaxed mb-6 flex-grow">{track.description}</p>
-                      
-                      <ul className="space-y-3 mb-8">
-                        {track.benefits?.filter(Boolean).map((benefit, bi) => (
-                          <li key={bi} className="flex gap-3 text-sm font-bold items-start text-gray-300">
-                             <CheckCircle2 size={18} className="text-green-400 shrink-0 mt-0.5" />
-                             <span>{benefit}</span>
-                          </li>
-                        ))}
-                      </ul>
-                      
-                      <div className="mt-auto pt-6 border-t-2 border-white/10 flex flex-col gap-4">
-                        <div className="text-center">
-                          <span className="text-3xl font-black text-white block mb-1">{track.price}</span>
-                          <span className="text-xs text-gray-500 uppercase tracking-widest font-black">Paiement sur place</span>
-                        </div>
-                        <button
-                          onClick={() => setSelectedTarget(track)}
-                          className="w-full py-4 text-black font-black text-sm uppercase tracking-widest border-4 border-black rounded-xl shadow-[5px_5px_0_0_#fff] hover:-translate-y-1 hover:shadow-[7px_7px_0_0_#fff] transition-all"
-                          style={{ backgroundColor: `var(--theme-primary)` }}
-                        >
-                          SÉLECTIONNER CE PARCOURS
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </Reveal>
-              ))}
-            </div>
-            
-            <Reveal>
-              <div className={`text-center p-10 border-2 rounded-3xl relative overflow-hidden`} style={{ borderColor: `var(--theme-border)`, background: `${theme.glow.replace('.22','.05')}` }}>
-                <div className="absolute top-0 right-0 w-48 h-48 rounded-full opacity-10" style={{ background: `radial-gradient(circle,${theme.glow} 0%,transparent 70%)` }} />
-                <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full opacity-10" style={{ background: `radial-gradient(circle,${theme.glow} 0%,transparent 70%)` }} />
-                <p className="font-black text-2xl md:text-3xl mb-3 relative z-10 text-white leading-tight">
-                  À la fin des 3 semaines, ils ramènent à la maison <span style={{ color: `var(--theme-primary)` }}>tous leurs projets</span>, étiquetés à leur nom.
-                </p>
-                <p className="font-black text-4xl md:text-5xl mt-6 shimmer-text underline decoration-4 underline-offset-8" style={{ color: `var(--theme-primary)` }}>STOP PLAYING, START MAKING.</p>
-              </div>
-            </Reveal>
-          </div>
-        </section>
-
-        {/* ═══ TESTIMONIALS ════════════════════════════════════════════════ */}
-        <TestimonialsSection theme={theme} />
-
-        {/* ═══ BLOCK 4 — SINGLE MISSIONS (Make & Go) ═══════════════════════ */}
-        {visibleMissions.length > 0 && (
-          <section ref={missionsRef} id="missions" className="py-24 px-6" style={{ background: '#111' }}>
-            <div className="max-w-4xl mx-auto">
-              <Reveal>
-                <div className="text-center mb-16">
-                  <p className="text-gray-500 text-xs font-black uppercase tracking-widest mb-3">⬇ SESSIONS À LA CARTE</p>
-                  <h2 className="font-black text-4xl md:text-5xl mb-4 text-white">Pas prêt pour le parcours<br/>complet ?</h2>
-                  <p className="text-gray-400 font-medium mx-auto leading-relaxed text-lg">
-                    Laissez votre enfant essayer une seule <span className={`font-bold ${theme.text}`}>Mission d'Essai (3 heures)</span>. S'il adore, on déduira le prix si vous passez au Pack.
-                  </p>
-                  
-                  {lp?.layoutVariant === 'modular' && lp.perks && lp.perks.length > 0 && (
-                    <div className="mt-12 text-left">
-                       <p className="text-center text-xs font-black uppercase tracking-widest text-gray-500 mb-6">{lp.perksHeadline || 'Logistique & Avantages'}</p>
-                       <PerksList perks={lp.perks} theme={theme} />
-                    </div>
-                  )}
-                </div>
-              </Reveal>
-
-              <div className="space-y-4">
-                {visibleMissions.map((mission, mi) => {
-                  const isMissionBox = 'theme' in mission;
-                  const m = {
-                    id: mission.id,
-                    title: isMissionBox ? (mission as MissionBox).theme : (mission as Mission).title,
-                    description: isMissionBox ? '' : (mission as Mission).description,
-                    coverImage: isMissionBox ? undefined : (mission as Mission).coverImage,
-                    date: mission.date,
-                    price: mission.price,
-                    spotsTotal: mission.spotsTotal,
-                    spotsLeft: mission.spotsLeft,
-                    status: mission.status
-                  };
-                  
-                  const isLimited = m.status === 'limited';
-                  const total = m.spotsTotal || 20;
-                  const left = Math.max(0, m.spotsLeft || 0);
-                  const pct = Math.min(100, ((total - left) / total) * 100);
-                  
-                  return (
-                    <Reveal key={m.id} delay={mi * 100}>
-                      <div className={`p-6 rounded-3xl border-2 transition-all duration-300 flex flex-col md:flex-row items-center gap-6 ${isLimited ? 'border-red-500 bg-red-500/5 hover:-translate-x-2' : 'border-white/10 bg-black hover:-translate-x-2'}`}
-                        onMouseEnter={(e) => !isLimited && (e.currentTarget.style.borderColor = 'var(--theme-primary)')}
-                        onMouseLeave={(e) => !isLimited && (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
-                      >
-                        {/* Img Thumbnail */}
-                        <div className="w-full md:w-48 h-32 shrink-0 bg-gray-900 rounded-2xl border-2 border-white/10 overflow-hidden relative">
-                           {m.coverImage ? (
-                              <img src={m.coverImage} className="w-full h-full object-cover" alt="" />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center"><Target size={32} className="text-gray-700" /></div>
-                            )}
-                            {isLimited && (
-                              <div className="absolute inset-0 bg-red-500/20 isolate flex items-center justify-center pointer-events-none"></div>
-                            )}
-                        </div>
-
-                        <div className="flex-grow text-white w-full">
-                          <div className="flex items-center gap-3 mb-2 flex-wrap">
-                            <span className={`text-xs font-black uppercase px-2 py-1 bg-white/5 border border-white/10 rounded-md`} style={{ color: `var(--theme-primary)` }}>
-                              {m.date}
-                            </span>
-                            {isLimited && (
-                              <span className="text-xs text-red-100 font-black uppercase px-2 py-1 bg-red-600 border border-red-700 rounded-md animate-pulse">
-                                🔥 {m.spotsLeft} places !
-                              </span>
-                            )}
-                          </div>
-                          <h3 className="font-black text-2xl mb-1">{m.title}</h3>
-                          <p className="text-sm text-gray-400 font-medium line-clamp-2 md:line-clamp-1 mb-4">{m.description}</p>
-                          
-                          <div className="flex items-center gap-4">
-                            <div className="h-2 w-48 bg-white/10 rounded-full overflow-hidden shrink-0">
-                                <div className={`h-full rounded-full transition-all duration-1000 ${isLimited ? 'bg-red-500' : 'bg-green-500'}`} style={{ width: `${pct}%` }} />
-                            </div>
-                            <span className="text-[10px] text-gray-500 font-black uppercase">{m.spotsTotal - m.spotsLeft}/{m.spotsTotal} réservées</span>
-                          </div>
-                        </div>
-
-                        <div className="shrink-0 text-center md:text-right w-full md:w-auto">
-                          <div className="mb-3 text-white">
-                            <span className="font-black text-2xl">{m.price}</span>
-                          </div>
-                          <button
-                            onClick={() => setSelectedTarget(mission as any)}
-                            className="w-full md:w-auto px-6 py-4 font-black uppercase tracking-widest text-xs border-4 rounded-xl transition-all whitespace-nowrap border-black text-black hover-theme shadow-[3px_3px_0_0_black]"
-                            style={{ backgroundColor: theme.primary, boxShadow: `5px 5px 0 0 ${theme.glow.replace('.22', '.3')}` }}
-                          >
-                            {lp?.ctaMode === 'lead' ? 'EN SAVOIR PLUS →' : 'RÉSERVER UNE PLACE →'}
-                          </button>
-                        </div>
-                      </div>
-                    </Reveal>
-                  );
-                })}
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* ═══ BLOCK 5 — FAQ ═══════════════════════════════════════════════ */}
-        {(lp?.faqEnabled !== false) && (
-          <section className="py-24 px-6" style={{ background: '#0a0a0a' }}>
-            <div className="max-w-3xl mx-auto">
-              <Reveal>
-                <div className="text-center mb-12">
-                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full mb-4">
-                    <Shield size={14} className="text-green-400" /><span className="text-green-400 text-xs font-black uppercase tracking-widest">Garantie Sans Risque</span>
-                  </div>
-                  <h2 className="font-black text-4xl md:text-5xl">Vous Hésitez Encore ?</h2>
-                </div>
-              </Reveal>
-              <div className="space-y-4">
-                {[
-                  { q: "Mon enfant n'a jamais codé. Est-ce un problème ?", a: 'Absolument pas. Nos mentors accompagnent chaque enfant pas-à-pas. Ils passeront de "débutant absolu" à "créateur fier" en une après-midi.' },
-                  { q: 'Dois-je rester sur place pendant les 3 heures ?', a: "Non ! Déposez-les, profitez de votre après-midi l'esprit tranquille, et revenez à 17h30 pour découvrir ce qu'ils ont fabriqué." },
-                  { q: 'Est-ce vraiment sans Lego ?', a: '100% sans Lego. Nous utilisons du vrai bois (MDF), de véritables composants électroniques (Arduino), et de vrais outils de fabrication.' },
-                ].map((faq, i) => <Reveal key={i} delay={i * 80}><FaqItem question={faq.q} answer={faq.a} theme={theme} /></Reveal>)}
-              </div>
-              <Reveal>
-                <div className="mt-10 flex flex-wrap justify-center gap-4">
-                  {[
-                    { icon: <Shield size={16} />, text: 'Remboursé si non satisfait' },
-                    { icon: <CheckCircle2 size={16} />, text: 'Mentors certifiés' },
-                    { icon: <AlertTriangle size={16} />, text: 'Max 20 enfants / session' },
-                  ].map((b, i) => (
-                    <div key={i} className="float-y flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full text-sm font-bold text-gray-400" style={{ animationDelay: `${i * .4}s` }}>
-                      <span className="text-green-400">{b.icon}</span>{b.text}
-                    </div>
-                  ))}
-                </div>
-              </Reveal>
-            </div>
-          </section>
-        )}
-
-        {/* ═══ BLOCK 6 — FINAL CTA ═════════════════════════════════════════ */}
-        <section className="relative py-28 px-6 text-center overflow-hidden" style={{ background: theme.gradient }}>
-          <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse 80% 50% at 50% 100%,${theme.glow} 0%,transparent 70%)` }} />
-          <div className="max-w-2xl mx-auto relative z-10">
-            <Reveal>
-              <h2 className="font-black text-4xl md:text-6xl mb-6 leading-tight">
-                {t('finalCtaHeadline')} <span className={theme.text}>💡</span>
-              </h2>
-              <p className="text-gray-300 text-lg font-medium mb-10 leading-relaxed">{t('finalCtaBody')}</p>
+           </Reveal>
+           <Reveal delay={100}>
+              <p className="text-orange-500 font-black text-xs md:text-sm uppercase tracking-[0.4em] mb-6 italic">{t('heroPreHeadline')}</p>
+              <h1 className="font-black text-6xl md:text-8xl lg:text-9xl leading-[0.8] mb-10 shimmer-text italic tracking-tighter uppercase">{lp.heroHeadline || t('heroHeadline')}</h1>
+              <p className="text-xl md:text-3xl text-gray-400 font-black max-w-4xl mx-auto mb-16 leading-tight italic uppercase">{lp.heroSubHeadline || t('heroSubHeadline')}</p>
+           </Reveal>
+           <Reveal delay={300}>
               <button 
-                onClick={scrollToMissions} 
-                className="cta-pulse hover-theme inline-flex items-center gap-3 px-10 py-5 text-black font-black text-xl uppercase tracking-widest border-4 border-black rounded-2xl transition-all"
-                style={{ backgroundColor: theme.primary }}
+                onClick={() => missionsRef.current?.scrollIntoView({ behavior: 'smooth' })} 
+                className="cta-pulse px-16 py-8 bg-white text-black font-black text-3xl uppercase tracking-widest border-8 border-black rounded-[3rem] shadow-[12px_12px_0_0_#000] hover:translate-x-2 hover:translate-y-2 hover:shadow-none transition-all active:scale-95"
               >
-                <Rocket size={24} strokeWidth={3} />VOIR LES MISSIONS DISPONIBLES
+                 {lp.heroCtaText || "REJOINDRE LA MISSION"}
               </button>
-            </Reveal>
-          </div>
-          <div className="mt-16 pt-8 border-t border-white/5 text-center text-xs text-gray-600 font-medium">
-            © {new Date().getFullYear()} Makerlab Academy — Casablanca, Maroc
-          </div>
+              <p className="mt-8 text-orange-500 font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 animate-bounce"><ArrowDownCircle size={14}/> {lp.heroScarcityText || "PLACES LIMITÉES"}</p>
+           </Reveal>
         </section>
-      </div>
 
-      {/* ═══ STICKY BOTTOM CTA BAR ═══════════════════════════════════════════ */}
-      <div className={`fixed bottom-0 left-0 right-0 z-[150] transition-transform duration-500 ${showStickyBar ? 'translate-y-0' : 'translate-y-full'}`}>
-        <div className={`bg-black border-t-4 px-4 py-3 flex items-center justify-between gap-4 max-w-6xl mx-auto`} style={{ borderColor: theme.primary }}>
-          <div className="hidden sm:block">
-            <p className="font-black text-white text-sm">Inscriptions Ouvertes Make & Go</p>
-            <p className={`${theme.text} font-black text-xs`}>Packs de 3 semaines ou Sessions Uniques.</p>
-          </div>
-          <button className="sm:hidden text-white font-bold text-sm">🚀 Places Limitées !</button>
-          <button
-            onClick={scrollToMissions}
-            className="shrink-0 px-6 py-3 text-black font-black text-sm uppercase tracking-widest border-2 border-black rounded-xl transition-all shadow-[3px_3px_0_0_rgba(255,255,255,.3)] hover-theme"
-            style={{ backgroundColor: theme.primary }}
-          >
-            SÉCURISER MA PLACE →
-          </button>
+        {/* ══ FRAMEWORK SECTIONS ══ */}
+        {funnel?.framework === MarketingFramework.PAS && <PASSection lp={lp} theme={theme} programStations={programStations} />}
+        {funnel?.framework === MarketingFramework.BAB && <BABSection lp={lp} theme={theme} />}
+        {funnel?.framework === MarketingFramework.CONTRAST && <ContrastSection lp={lp} theme={theme} />}
+
+        {/* ══ STATIONS SECTION (MODULAR) ══ */}
+        {lp.layoutVariant === 'modular' && selectedStations.length > 0 && !lp.showStationsInPAS && (
+          <section className="py-32 px-6 bg-[#0a0a0a]">
+             <div className="max-w-6xl mx-auto">
+                <div className="text-center mb-20">
+                   <h2 className="font-black text-5xl md:text-7xl uppercase italic shimmer-text mb-6">{lp.stationsHeadline || "Innovation Stations."}</h2>
+                   <p className="text-xl text-gray-400 font-bold max-w-3xl mx-auto mb-16">{lp.stationsSubHeadline || "Une progression individuelle à travers 5 pôles d'excellence."}</p>
+                </div>
+                <StationsGrid stations={selectedStations} theme={theme} />
+             </div>
+          </section>
+        )}
+
+        {/* ══ MISSIONS ══ */}
+        <section ref={missionsRef} className="py-32 px-6 bg-[#0c0c0c]">
+           <div className="max-w-5xl mx-auto">
+              <div className="text-center mb-24 relative">
+                 <h2 className="font-black text-6xl md:text-8xl uppercase italic text-orange-500 mb-6 leading-none tracking-tighter">{lp.missionsHeadline || "SESSIONS OUVERTES."}</h2>
+                 <p className="text-gray-500 font-black text-xl uppercase tracking-widest">{lp.missionsSubHeadline || "Sélectionnez votre créneau de déploiement."}</p>
+                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[15vw] font-black opacity-[0.03] pointer-events-none select-none italic uppercase">CALENDAR</div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                 {visibleMissions.map((m, i) => (
+                   <Reveal key={m.id} delay={i * 100}>
+                      <div className="card-neobrutal p-8 bg-white text-black rounded-[3rem] h-full flex flex-col justify-between group">
+                         <div>
+                            <div className="flex items-center justify-between mb-8">
+                               <div className="px-4 py-1.5 bg-black text-white font-black text-[9px] uppercase tracking-widest rounded-full italic">{m.date}</div>
+                               <div className="p-3 bg-gray-50 rounded-2xl border-3 border-black group-hover:bg-orange-500 transition-colors"><TrendingUp size={24}/></div>
+                            </div>
+                            <h3 className="font-black text-3xl mb-4 italic leading-tight uppercase group-hover:text-orange-500 transition-colors">{m.title || m.theme}</h3>
+                            <p className="text-gray-500 font-bold text-sm leading-relaxed mb-8">{m.description || "Projet d'ingénierie avancée, modélisation 3D et programmation."}</p>
+                         </div>
+                         <div className="flex items-center justify-between pt-8 border-t-3 border-black">
+                            <span className="font-black text-4xl italic tracking-tighter">{m.price}</span>
+                            <button 
+                              onClick={() => setSelectedTarget(m)}
+                              className="px-8 py-4 bg-orange-500 text-black font-black rounded-[1.5rem] uppercase text-xs tracking-widest italic border-4 border-black shadow-[6px_6px_0_0_#000] hover:shadow-none translate-y-[-2px] hover:translate-y-0 transition-all font-sans"
+                            >
+                               RÉSERVER →
+                            </button>
+                         </div>
+                      </div>
+                   </Reveal>
+                 ))}
+              </div>
+           </div>
+        </section>
+
+        {lp.faqEnabled && <FAQSection items={lp.faqItems || []} theme={theme} />}
+
+        {/* ══ FINAL BLOCK ══ */}
+        <section className="py-40 px-6 text-center noise-bg relative" style={{ background: theme.gradient }}>
+           <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none"><Rocket size={500} strokeWidth={0.5}/></div>
+           <Reveal>
+              <h2 className="font-black text-5xl md:text-8xl mb-12 uppercase italic shimmer-text leading-none">{lp.finalCtaHeadline || "DEVENIR UN MAKEMAKER."}</h2>
+              <button 
+                onClick={() => missionsRef.current?.scrollIntoView({ behavior: 'smooth' })} 
+                className="px-16 py-8 bg-orange-500 text-black font-black text-4xl italic uppercase tracking-widest border-8 border-black rounded-[3.5rem] shadow-[15px_15px_0_0_#000] hover:translate-x-3 hover:translate-y-3 hover:shadow-none transition-all scale-110 active:scale-95"
+              >
+                  LANCER LA SESSION
+              </button>
+              <p className="mt-12 text-gray-500 font-black text-xs md:text-sm uppercase tracking-[0.5em] italic">{lp.finalCtaBody || "Ne laissez pas le futur s'écrire sans eux."}</p>
+           </Reveal>
+        </section>
+
+        {/* ══ STICKY ══ */}
+        <div className={`fixed bottom-0 left-0 right-0 z-[400] transition-transform duration-500 ${showStickyBar ? 'translate-y-0' : 'translate-y-full'}`}>
+           <div className="mx-6 mb-6">
+              <div className="bg-white border-6 border-black p-4 md:p-6 flex items-center justify-between max-w-5xl mx-auto rounded-[2.5rem] shadow-[10px_10px_0_0_#000]">
+                 <div className="hidden md:block">
+                    <p className="font-black text-xs uppercase tracking-widest text-orange-500 mb-1 italic">Dernières places disponibles</p>
+                    <p className="font-black text-lg uppercase italic text-black leading-none">Programme : {program.title}</p>
+                 </div>
+                 <div className="md:hidden text-black">
+                    <p className="font-black text-[10px] uppercase italic">{program.title}</p>
+                 </div>
+                 <button onClick={() => missionsRef.current?.scrollIntoView({ behavior: 'smooth' })} className="px-8 py-4 bg-orange-500 text-black font-black uppercase text-xs md:text-sm rounded-[1.5rem] border-4 border-black hover:scale-105 active:scale-95 transition-all shadow-lg italic">RÉSERVER MA PLACE →</button>
+              </div>
+           </div>
         </div>
+
+        <DrawerCheckout 
+          selection={selectedTarget} 
+          funnel={funnel}
+          programId={program.id} 
+          programTitle={program.title} 
+          theme={theme}
+          onClose={() => setSelectedTarget(null)} 
+        />
       </div>
-
-      {/* ═══ WHATSAPP FLOATING BUTTON ════════════════════════════════════════ */}
-      <a
-        href="https://wa.me/212600000000?text=Bonjour%20Makerlab%20!%20Je%20voudrais%20réserver%20une%20place%20pour%20mon%20enfant."
-        target="_blank"
-        rel="noopener noreferrer"
-        className="wa-btn fixed z-[140] bg-green-500 text-white rounded-full flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,.4)] border-4 border-black hover:bg-green-400 transition-colors"
-        style={{ bottom: showStickyBar ? '80px' : '24px', right: '20px', width: 60, height: 60, transition: 'bottom .4s ease' }}
-        title="Contactez-nous sur WhatsApp"
-      >
-        <MessageCircle size={28} strokeWidth={2.5} />
-      </a>
-
-      {/* ═══ DRAWER CHECKOUT ═════════════════════════════════════════════════ */}
-      <DrawerCheckout 
-        selection={selectedTarget} 
-        programId={program.id} 
-        programTitle={program.title} 
-        theme={theme}
-        ctaMode={lp?.ctaMode}
-        onClose={() => setSelectedTarget(null)} 
-      />
     </>
   );
 };

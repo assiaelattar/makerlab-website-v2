@@ -1,17 +1,25 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { Program, Workshop } from '../types';
+import { Program, Workshop, Funnel } from '../types';
 import { initialPrograms } from '../data/programs';
-import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
+import { collection, doc, onSnapshot, addDoc, updateDoc, deleteDoc, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
 
 interface ProgramContextType {
   programs: Program[];
   workshops: Workshop[];
+  funnels: Funnel[];
   addProgram: (program: Program) => void;
   updateProgram: (id: string, updatedProgram: Partial<Program>) => void;
   deleteProgram: (id: string) => void;
   getProgram: (id: string) => Program | undefined;
   getWorkshop: (id: string) => Workshop | undefined;
+  
+  // Funnel Operations
+  addFunnel: (funnel: Omit<Funnel, 'id'>) => Promise<string>;
+  updateFunnel: (id: string, updatedFunnel: Partial<Funnel>) => Promise<void>;
+  deleteFunnel: (id: string) => Promise<void>;
+  getFunnelBySlug: (slug: string) => Funnel | undefined;
+  
   isLoading: boolean;
 }
 
@@ -20,100 +28,135 @@ const ProgramContext = createContext<ProgramContextType | undefined>(undefined);
 export const ProgramProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [programs, setPrograms] = useState<Program[]>(initialPrograms);
   const [workshops, setWorkshops] = useState<Workshop[]>([]);
+  const [funnels, setFunnels] = useState<Funnel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Real-time listeners
   useEffect(() => {
-    const fetchPrograms = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, 'website-programs'));
-        const data = querySnapshot.docs.map(doc => ({
-          ...doc.data(),
-          id: doc.id,
-          active: doc.data().active ?? true,
-          format: doc.data().format ?? 'Workshop',
-        } as Program));
+    let programsLoaded = false;
+    let funnelsLoaded = false;
+    let workshopsLoaded = false;
 
-        const workshopSnapshot = await getDocs(collection(db, 'website-workshops'));
-        const workshopData = workshopSnapshot.docs.map(doc => ({
-            ...doc.data(),
-            id: doc.id,
-            active: doc.data().active ?? true
-        } as Workshop));
-
-        if (data.length > 0) setPrograms(data);
-        setWorkshops(workshopData);
-      } catch (error) {
-        console.warn("⚠️ Firebase offline. Using fallback.", error);
-      } finally {
+    const checkLoading = () => {
+      if (programsLoaded && funnelsLoaded && workshopsLoaded) {
         setIsLoading(false);
       }
     };
 
-    fetchPrograms();
+    // 1. Programs listener
+    const unsubPrograms = onSnapshot(collection(db, 'website-programs'), (snapshot) => {
+      const data = snapshot.docs.map(doc => ({
+        ...doc.data(),
+        id: doc.id,
+        active: doc.data().active ?? true,
+        format: doc.data().format ?? 'Workshop',
+      } as Program));
+      
+      // Merge with initial programs to ensure we have the rich mock data if Firestore is empty
+      const merged = [...data];
+      initialPrograms.forEach(ip => {
+        if (!merged.find(p => p.id === ip.id)) merged.push(ip);
+      });
+      setPrograms(merged);
+      programsLoaded = true;
+      checkLoading();
+    }, (error) => {
+      console.error("Firebase Programs sync error:", error);
+      programsLoaded = true;
+      checkLoading();
+    });
+
+    // 2. Workshops listener
+    const unsubWorkshops = onSnapshot(collection(db, 'website-workshops'), (snapshot) => {
+      const data = snapshot.docs.map(doc => ({
+        ...doc.data(),
+        id: doc.id,
+        active: doc.data().active ?? true
+      } as Workshop));
+      setWorkshops(data);
+      workshopsLoaded = true;
+      checkLoading();
+    }, (error) => {
+      console.error("Firebase Workshops sync error:", error);
+      workshopsLoaded = true;
+      checkLoading();
+    });
+
+    // 3. Funnels listener
+    const unsubFunnels = onSnapshot(collection(db, 'website-funnels'), (snapshot) => {
+      const data = snapshot.docs.map(doc => ({
+        ...doc.data(),
+        id: doc.id,
+      } as Funnel));
+      setFunnels(data);
+    });
+
+    return () => {
+      unsubPrograms();
+      unsubWorkshops();
+      unsubFunnels();
+    };
   }, []);
 
   const addProgram = async (program: Program) => {
-    // Auto-attach a default landing page pre-filled from the program
-    const defaultLandingPage = {
-      enabled: false,
-      layoutVariant: 'classic' as const,
-      ctaMode: 'booking' as const,
-      heroHeadline: `Transformez Son Temps d'Écran avec ${program.title} en Seulement ${program.duration || '3 Heures'}.`,
-      heroSubHeadline: "Pas de jouets en plastique. Pas de Lego. Vos enfants utiliseront de vrais outils, du vrai code et ramèneront chez eux un projet technologique qu'ils ont construit de leurs propres mains.",
-      heroCtaText: 'RÉSERVER UNE MISSION POUR CE WEEK-END',
-      heroScarcityText: '⏳ Places limitées à 20 Makers par session.',
-      missionIds: [],
-      missionBoxes: [],
-      galleryImages: [],
-      faqEnabled: true,
-      finalCtaHeadline: "Le Moment Où Tout S'allume.",
-      finalCtaBody: "Ne laissez pas passer un autre week-end devant les écrans. Donnez-leur les compétences de demain, aujourd'hui.",
-    };
-
-    const programWithLanding = program.landingPage
-      ? program
-      : { ...program, landingPage: defaultLandingPage };
-
-    // Generate a temporary ID for optimistic UI update
-    const tempId = Date.now().toString();
-    const newProgramWithTempId = { ...programWithLanding, id: tempId };
-    setPrograms(prev => [...prev, newProgramWithTempId]);
-
+    // Note: onSnapshot will handle state update
     try {
-      const { id, ...programData } = programWithLanding;
-      const docRef = await addDoc(collection(db, 'website-programs'), programData);
-      // Replace tempId with the real Firebase document ID
-      setPrograms(prev => prev.map(p => p.id === tempId ? { ...programWithLanding, id: docRef.id } : p));
+      const { id, ...programData } = program;
+      await addDoc(collection(db, 'website-programs'), programData);
     } catch (e) {
-      console.error("Failed to save to DB", e);
+      console.error("Failed to save program", e);
     }
   };
 
   const updateProgram = async (id: string, updatedProgram: Partial<Program>) => {
-    // Optimistic UI update
-    setPrograms(prev => prev.map(p => p.id === id ? { ...p, ...updatedProgram } : p));
-
     try {
       const docRef = doc(db, 'website-programs', id);
-      // Exclude the ID field if it exists in updatedProgram
       const { id: _, ...dataToUpdate } = updatedProgram as any;
       await updateDoc(docRef, dataToUpdate);
     } catch (e) {
-      console.error("Failed to update DB", e);
+      console.error("Failed to update program", e);
     }
   };
 
   const deleteProgram = async (id: string) => {
-    // Optimistic UI update
-    setPrograms(prev => prev.filter(p => p.id !== id));
-
     try {
-      const docRef = doc(db, 'website-programs', id);
-      await deleteDoc(docRef);
+      await deleteDoc(doc(db, 'website-programs', id));
     } catch (e) {
-      console.error("Failed to delete from DB", e);
+      console.error("Failed to delete program", e);
     }
   };
+
+  const addFunnel = async (funnel: Omit<Funnel, 'id'>) => {
+    try {
+      const docRef = await addDoc(collection(db, 'website-funnels'), funnel);
+      return docRef.id;
+    } catch (e) {
+      console.error("Failed to add funnel", e);
+      throw e;
+    }
+  };
+
+  const updateFunnel = async (id: string, updatedFunnel: Partial<Funnel>) => {
+    try {
+      const docRef = doc(db, 'website-funnels', id);
+      const { id: _, ...dataToUpdate } = updatedFunnel as any;
+      await updateDoc(docRef, dataToUpdate);
+    } catch (e) {
+      console.error("Failed to update funnel", e);
+    }
+  };
+
+  const deleteFunnel = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, 'website-funnels', id));
+    } catch (e) {
+      console.error("Failed to delete funnel", e);
+    }
+  };
+
+  const getFunnelBySlug = useCallback((slug: string) => {
+    return funnels.find(f => f.slug === slug);
+  }, [funnels]);
 
   const getProgram = useCallback((id: string) => {
     return programs.find(p => p.id === id);
@@ -124,7 +167,12 @@ export const ProgramProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [workshops]);
 
   return (
-    <ProgramContext.Provider value={{ programs, workshops, addProgram, updateProgram, deleteProgram, getProgram, getWorkshop, isLoading }}>
+    <ProgramContext.Provider value={{ 
+      programs, workshops, funnels, 
+      addProgram, updateProgram, deleteProgram, getProgram, getWorkshop,
+      addFunnel, updateFunnel, deleteFunnel, getFunnelBySlug,
+      isLoading 
+    }}>
       {children}
     </ProgramContext.Provider>
   );

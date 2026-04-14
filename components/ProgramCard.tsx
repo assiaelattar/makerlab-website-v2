@@ -165,7 +165,7 @@ export const ProgramCard: React.FC<Props> = ({ program, index = 0 }) => {
         {/* Footer Buttons */}
         <div className="mt-auto space-y-3">
           <div className="flex gap-2">
-            <Link to={('date' in program) ? `/programs/kids-2` : `/programs/${program.id}`} className="flex-1">
+            <Link to={('date' in program) ? `/programs/kids-2?missionId=${program.id}` : `/programs/${program.id}`} className="flex-1">
               <button className={`w-full bg-white text-black p-3 rounded-none border-4 border-black font-black uppercase tracking-widest text-xs flex items-center justify-center gap-1 hover:bg-gray-100 transition-all`}>
                 Détails
               </button>
@@ -185,8 +185,9 @@ export const ProgramCard: React.FC<Props> = ({ program, index = 0 }) => {
               if (!('date' in program) && (program as Program).bookingType === 'external' && (program as Program).externalBookingUrl) {
                 window.open((program as Program).externalBookingUrl, '_blank');
               } else if ('date' in program) {
-                // It's a mission, point to Make & Go program with missionId
-                window.location.href = `#/booking/kids-2?missionId=${program.id}`;
+                // If it's a mission, we point to the Make & Go booking flow
+                const targetId = 'kids-2'; 
+                window.location.href = `#/booking/${targetId}?missionId=${program.id}`;
               } else {
                 window.location.href = `#/booking/${program.id}`;
               }

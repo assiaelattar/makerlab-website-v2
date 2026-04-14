@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Zap, Home, BookOpen, PenTool, UserPlus, Presentation, Users, Info, Lock } from 'lucide-react';
+import { Menu, X, Zap, Home, BookOpen, PenTool, UserPlus, Presentation, Users, Info, Lock, Star, Sparkles } from 'lucide-react';
 import { Button } from './Button';
 
 interface NavbarProps {
@@ -76,6 +76,15 @@ export const Navbar: React.FC<NavbarProps> = ({ scrolled = false }) => {
                 {link.name}
               </Link>
             ))}
+            <Link to="/quiz" className="hidden xl:flex">
+              <Button variant="primary" size="sm" className="uppercase tracking-widest text-xs flex items-center gap-1.5 bg-brand-orange text-black border-black hover:bg-brand-orange/90">
+                <Sparkles size={14} />
+                Trouver ma mission
+              </Button>
+            </Link>
+            <Link to="/booking/trial?type=trial" className="hidden xl:flex">
+                <Button variant="outline" size="sm" className="uppercase tracking-widest text-xs border-black bg-white hover:bg-gray-50 text-black">Essai Gratuit</Button>
+            </Link>
             <Link to="/register">
               <Button variant="primary" size="sm" className={`uppercase tracking-widest text-xs hidden xl:flex transition-all duration-300 ${scrolled ? 'scale-90 px-4' : ''}`}>S'inscrire</Button>
             </Link>
@@ -124,12 +133,26 @@ export const Navbar: React.FC<NavbarProps> = ({ scrolled = false }) => {
 
             <div className="h-2"></div>
 
-            <Link to="/register" onClick={() => setIsOpen(false)}>
-              <Button variant="primary" className="w-full justify-center py-3 text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] uppercase tracking-wider">
-                <UserPlus size={20} className="mr-2" strokeWidth={3} />
-                S'inscrire
-              </Button>
-            </Link>
+            <div className="flex flex-col gap-3">
+              <Link to="/quiz" onClick={() => setIsOpen(false)}>
+                <Button variant="primary" className="w-full justify-center py-4 text-base border-4 border-black bg-brand-orange text-black hover:bg-brand-orange/90 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] uppercase tracking-wider">
+                  <Sparkles size={20} className="mr-2 animate-pulse" strokeWidth={3} />
+                  ✨ Trouver ma mission
+                </Button>
+              </Link>
+              <Link to="/booking/trial?type=trial" onClick={() => setIsOpen(false)}>
+                <Button variant="outline" className="w-full justify-center py-3 text-lg border-4 border-black bg-white hover:bg-gray-50 text-black uppercase tracking-wider">
+                  <Star size={20} className="mr-2" strokeWidth={3} />
+                  Essai Gratuit
+                </Button>
+              </Link>
+              <Link to="/register" onClick={() => setIsOpen(false)}>
+                <Button variant="primary" className="w-full justify-center py-3 text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] uppercase tracking-wider">
+                  <UserPlus size={20} className="mr-2" strokeWidth={3} />
+                  S'inscrire
+                </Button>
+              </Link>
+            </div>
 
             <div className="mt-4 text-center">
               <p className="font-bold text-xs text-black/60">MakerLab Academy © 2026</p>

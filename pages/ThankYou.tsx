@@ -42,13 +42,14 @@ export const ThankYou: React.FC = () => {
   
   const leadId = searchParams.get('leadId');
   const programId = searchParams.get('programId');
-  const type = searchParams.get('type') || 'mission';
+  const type = (searchParams.get('type') || 'mission') as string;
   const childName = searchParams.get('childName') || 'votre enfant';
-  const programTitle = searchParams.get('programTitle') || 'votre atelier';
+  const programTitle = searchParams.get('programTitle') || searchParams.get('title') || 'votre atelier';
   
   const program = useMemo(() => programId ? getProgram(programId) : null, [programId, getProgram]);
   const config = program?.landingPage?.thankYou;
 
+  const isOrientation = type === 'orientation' || type === 'evaluation' || type === 'trial';
   const itemPrice = searchParams.get('itemPrice') || '';
   const isSingleMission = itemPrice.includes('400') || type === 'mission';
 
@@ -115,32 +116,38 @@ export const ThankYou: React.FC = () => {
     };
   }, [isSingleMission]);
 
+  // 🛡️ Safe Collection Logic
+  const getCollectionName = (t: string) => {
+    if (t === 'enrollment') return 'enrollments';
+    if (t === 'orientation' || t === 'evaluation' || t === 'trial') return 'website-orientation-leads';
+    return 'website-landing-leads';
+  };
+
   const syncSelectionWithAdmin = useCallback(async (pack: PackType) => {
-    if (!leadId) return;
+    if (!leadId || isOrientation) return; // Don't sync packs for orientations
     setSyncing(true);
     try {
-      const collectionName = type === 'enrollment' ? 'enrollments' : 'website-landing-leads';
+      const collectionName = getCollectionName(type);
       const docRef = doc(db, collectionName, leadId);
       await updateDoc(docRef, { 
         selectedPack: packs[pack].title,
         paymentStatus: pack === '1-project' ? 'Pending' : 'Full Bundle'
       });
-      console.log("Selection updated in Admin for lead:", leadId);
     } catch (e) {
-      console.error("Failed to sync with admin", e);
+      console.warn("Soft fail on lead sync (expected if doc not yet replicated):", e);
     } finally {
       setSyncing(false);
     }
-  }, [leadId, type, packs]);
+  }, [leadId, type, packs, isOrientation]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    document.title = "Action Requise - Makerlab Academy";
-    // Sync initial selection
-    syncSelectionWithAdmin(selectedPack);
+    document.title = isOrientation ? "Confirmation Orientation - MakerLab" : "Action Requise - MakerLab Academy";
+    if (!isOrientation) syncSelectionWithAdmin(selectedPack);
   }, []);
 
   const handlePackChange = (pack: PackType) => {
+    if (isOrientation) return;
     setSelectedPack(pack);
     syncSelectionWithAdmin(pack);
   };
@@ -149,7 +156,9 @@ export const ThankYou: React.FC = () => {
   const cleanPhone = phoneNumber.replace(/\s+/g, '').replace(/^\+/, '');
   
   const whatsappMessage = encodeURIComponent(
-    `Bonjour MakerLab ! Je suis le parent de ${childName}. Je viens de réserver ${programTitle}. 🚀 \n\nJe souhaite profiter de l'offre : "${packs[selectedPack].title}" au prix de ${packs[selectedPack].price}. \n\nComment puis-je confirmer et régler ?`
+    isOrientation 
+      ? `Bonjour MakerLab ! Je suis le parent de ${childName}. Je viens de réserver une session d'Orientation/Évaluation pour ${programTitle}. 🚀 \n\nQuelles sont les prochaines étapes pour notre visite au Lab ?`
+      : `Bonjour MakerLab ! Je suis le parent de ${childName}. Je viens de réserver ${programTitle}. 🚀 \n\nJe souhaite profiter de l'offre : "${packs[selectedPack].title}" au prix de ${packs[selectedPack].price}. \n\nComment puis-je confirmer et régler ?`
   );
   const whatsappUrl = `https://wa.me/${cleanPhone}/?text=${whatsappMessage}`;
 
@@ -213,30 +222,64 @@ export const ThankYou: React.FC = () => {
           
           {/* ── Hero Section (Simplified) ── */}
           <div className="relative text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-6 py-2 bg-green-50 border-4 border-green-600 rounded-full mb-8 transform -rotate-1 shadow-neo-sm">
-              <CheckCircle2 size={24} className="text-green-600" />
-              <span className="text-sm font-black uppercase tracking-widest text-green-700">Demande de {childName} Reçue</span>
+            <div className={`inline-flex items-center gap-2 px-6 py-2 border-4 rounded-full mb-8 transform -rotate-1 shadow-neo-sm ${isOrientation ? 'bg-orange-50 border-orange-600' : 'bg-green-50 border-green-600'}`}>
+              <CheckCircle2 size={24} className={isOrientation ? 'text-orange-600' : 'text-green-600'} />
+              <span className={`text-sm font-black uppercase tracking-widest ${isOrientation ? 'text-orange-700' : 'text-green-700'}`}>
+                {isOrientation ? `Candidature de ${childName} en cours` : `Demande de ${childName} Reçue`}
+              </span>
             </div>
             <h1 className="font-display font-black text-4xl md:text-7xl uppercase tracking-tighter leading-[0.9] mb-8">
               {config?.headline || (
-                <>Bienvenue au Lab !<br />
-                <span className="text-brand-orange">Prochaine étape...</span></>
+                isOrientation ? (
+                  <>Dernière étape...<br />
+                  <span className="text-brand-orange text-3xl md:text-5xl">Confirmez votre orientation</span></>
+                ) : (
+                  <>Bienvenue au Lab !<br />
+                  <span className="text-brand-orange">Prochaine étape...</span></>
+                )
               )}
             </h1>
             <p className="text-lg md:text-xl font-bold text-gray-700 max-w-2xl mx-auto mb-10 leading-relaxed uppercase tracking-tight">
               {config?.subHeadline || (
-                <>Choisissez l'expérience complète de <span className="bg-brand-orange/20 px-2">{childName.split(' ')[0]}</span> ci-dessous, puis confirmez votre place.</>
+                isOrientation 
+                ? <>Nous avons bien reçu votre demande pour le parcours <span className="underline decoration-4 decoration-brand-orange">{programTitle}</span>.</>
+                : <>Choisissez l'expérience complète de <span className="bg-brand-orange/20 px-2">{childName.split(' ')[0]}</span> ci-dessous, puis confirmez votre place.</>
               )}
             </p>
-            <div className="flex flex-col items-center gap-4">
-              <p className="text-[10px] md:text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2 bg-gray-100 px-6 py-3 rounded-full border-2 border-black/5">
-                <Clock size={16} className="text-brand-orange" /> Inscription en cours de traitement par nos mentors
-              </p>
-            </div>
+            {!isOrientation && (
+              <div className="flex flex-col items-center gap-4">
+                <div className="bg-brand-orange/10 border-2 border-brand-orange p-6 rounded-2xl mb-4 w-full max-w-lg shadow-neo-sm">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-brand-orange mb-1">Résumé de votre réservation</p>
+                  <h4 className="font-display font-black text-xl uppercase leading-none mb-1">{programTitle}</h4>
+                  <p className="font-black text-brand-red text-sm uppercase italic">{itemPrice || '400 MAD'}</p>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* ── 1. The Pack Selection Section ── */}
-          {showPacks && (
+          {/* ── 1. The Orientation / Pack Selection Section ── */}
+          {isOrientation ? (
+            <div className="mb-12 bg-gray-50 border-4 border-black rounded-[40px] p-8 md:p-12 relative overflow-hidden shadow-neo-lg">
+               <div className="absolute top-0 right-0 p-8 font-display font-black text-9xl text-black/5 select-none pointer-events-none uppercase">ELITE</div>
+               <div className="text-center mb-12 relative z-10">
+                  <h2 className="font-display font-black text-3xl md:text-5xl uppercase mb-3">Votre Roadmap Lab</h2>
+                  <p className="font-bold text-gray-600 uppercase tracking-tight text-sm">Le processus d'admission chez MakerLab</p>
+               </div>
+               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+                  {[
+                    { step: "01", title: "Evaluation", desc: "Test de curiosité et d'aptitude technologique." },
+                    { step: "02", title: "Orientation", desc: "Choix de la station d'innovation prioritaire." },
+                    { step: "03", title: "Incubation", desc: "Début du parcours annuel personnalisé." }
+                  ].map((s, i) => (
+                    <div key={i} className="bg-white border-4 border-black p-6 rounded-3xl shadow-neo-sm flex flex-col items-center text-center">
+                       <span className="w-12 h-12 bg-brand-orange border-2 border-black rounded-xl flex items-center justify-center font-black mb-4 shadow-neo-sm">{s.step}</span>
+                       <h4 className="font-black uppercase mb-1">{s.title}</h4>
+                       <p className="text-[10px] font-bold text-gray-400 uppercase leading-tight">{s.desc}</p>
+                    </div>
+                  ))}
+               </div>
+            </div>
+          ) : showPacks && (
             <div className="mb-12 bg-gray-50 border-4 border-black rounded-[40px] p-8 md:p-12 relative overflow-hidden shadow-neo-lg">
               <div className="absolute top-0 right-0 p-8 font-display font-black text-9xl text-black/5 select-none pointer-events-none uppercase">PACKS</div>
               

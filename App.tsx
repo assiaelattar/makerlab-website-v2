@@ -47,6 +47,12 @@ import { ProgramLanding } from './pages/ProgramLanding';
 import { SocialProofToast } from './components/SocialProofToast';
 import { AdminCalendar } from './pages/Admin/AdminCalendar';
 import { ThankYou } from './pages/ThankYou';
+import { LeadMagnet } from './pages/LeadMagnet';
+import { AdminLeadMagnet } from './pages/Admin/AdminLeadMagnet';
+import { MakeAndGo } from './pages/MakeAndGo';
+import { PriorityBooking } from './pages/PriorityBooking';
+import { MerciPage } from './pages/MerciPage';
+import { DecouvrirPage } from './pages/DecouvrirPage';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -166,6 +172,13 @@ const App: React.FC = () => {
                 <Route path="/lp/:id" element={<ProgramLanding />} />
                 <Route path="/thanks" element={<ThankYou />} />
 
+                {/* ── Make & Go lead funnel — /quiz + /apply both go here ── */}
+                <Route path="/quiz"   element={<MakeAndGo />} />
+                <Route path="/apply"  element={<MakeAndGo />} />
+                <Route path="/priority-booking" element={<PriorityBooking />} />
+                <Route path="/merci"     element={<MerciPage />} />
+                <Route path="/decouvrir" element={<DecouvrirPage />} />
+
                 {/* ── Everything else uses the standard layout shell ── */}
                 <Route path="*" element={
                   <div className="font-sans text-brand-dark min-h-screen flex flex-col bg-transparent relative">
@@ -211,6 +224,7 @@ const App: React.FC = () => {
                           <Route path="blogs" element={<AdminBlogs />} />
                           <Route path="landing-pages" element={<AdminLandingPages />} />
                           <Route path="missions" element={<AdminMissions />} />
+                          <Route path="leads" element={<AdminLeadMagnet />} />
                           <Route path="program/:id" element={<ProgramEditor />} />
                           
                           {/* School Partner Admin Routes */}

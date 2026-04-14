@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { collection, query, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase';
-import { ChevronLeft, ChevronRight, Baby, Target, Clock, User } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Baby, Target, Clock, User, AlertTriangle } from 'lucide-react';
+import { useMissions } from '../../contexts/MissionContext';
+import { generateUpcomingInstances } from '../../utils/slotUtils';
 
 interface Booking {
     id: string;
@@ -12,6 +14,7 @@ interface Booking {
 }
 
 export const AdminCalendar: React.FC = () => {
+    const { missions, demoSlots, recurrentSlots, leads: contextLeads } = useMissions();
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [currentDate, setCurrentDate] = useState(new Date());
 
@@ -22,6 +25,12 @@ export const AdminCalendar: React.FC = () => {
         });
         return unsubscribe;
     }, []);
+
+    // 🧠 Compute all demo instances (including recurrent)
+    const allDemos = useMemo(() => {
+        // Generate for 8 weeks in admin to see further ahead
+        return generateUpcomingInstances(recurrentSlots, demoSlots, contextLeads as any, 8);
+    }, [recurrentSlots, demoSlots, contextLeads]);
 
     const daysInMonth = useMemo(() => {
         const year = currentDate.getFullYear();
@@ -50,17 +59,55 @@ export const AdminCalendar: React.FC = () => {
         return days;
     }, [currentDate]);
 
-    const bookingsByDate = useMemo(() => {
-        const map: Record<string, Booking[]> = {};
+    const eventsByDate = useMemo(() => {
+        const map: Record<string, { bookings: Booking[], missions: any[], demos: any[], conflicts: boolean }> = {};
+        
+        // Initialize map for missions
+        missions.forEach(m => {
+            if (!m.isoDate) return;
+            if (!map[m.isoDate]) map[m.isoDate] = { bookings: [], missions: [], demos: [], conflicts: false };
+            map[m.isoDate].missions.push(m);
+        });
+
+        // Initialize map for demo slots
+        demoSlots.forEach(d => {
+            if (!d.isoDate) return;
+            if (!map[d.isoDate]) map[d.isoDate] = { bookings: [], missions: [], demos: [], conflicts: false };
+            map[d.isoDate].demos.push(d);
+        });
+
+        // Add bookings
         bookings.forEach(b => {
             if (!b.preferredDate) return;
-            // Handle both YYYY-MM-DD and potentially other formats
             const dateStr = b.preferredDate.split('T')[0];
-            if (!map[dateStr]) map[dateStr] = [];
-            map[dateStr].push(b);
+            if (!map[dateStr]) map[dateStr] = { bookings: [], missions: [], demos: [], conflicts: false };
+            map[dateStr].bookings.push(b);
         });
+
+        // Check for conflicts on each date
+        Object.keys(map).forEach(date => {
+            const dayEvents = [...map[date].missions, ...map[date].demos];
+            if (dayEvents.length > 1) {
+                for (let i = 0; i < dayEvents.length; i++) {
+                    for (let j = i + 1; j < dayEvents.length; j++) {
+                        const a = dayEvents[i];
+                        const b = dayEvents[j];
+                        if (a.startTime && a.endTime && b.startTime && b.endTime) {
+                            if ((a.startTime >= b.startTime && a.startTime < b.endTime) || 
+                                (a.endTime > b.startTime && a.endTime <= b.endTime) ||
+                                (a.startTime <= b.startTime && a.endTime >= b.endTime)) {
+                                map[date].conflicts = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (map[date].conflicts) break;
+                }
+            }
+        });
+
         return map;
-    }, [bookings]);
+    }, [bookings, missions, demoSlots]);
 
     const changeMonth = (offset: number) => {
         const newDate = new Date(currentDate);
@@ -72,8 +119,8 @@ export const AdminCalendar: React.FC = () => {
         <div className="p-4 md:p-8 max-w-6xl mx-auto">
             <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
                 <div>
-                    <h1 className="font-display font-black text-4xl uppercase mb-2">Calendrier des Missions</h1>
-                    <p className="font-bold text-gray-500 uppercase text-xs tracking-widest">Planification des Ateliers MakerLAB</p>
+                    <h1 className="font-display font-black text-4xl uppercase mb-2">Planning Unifié</h1>
+                    <p className="font-bold text-gray-500 uppercase text-xs tracking-widest">Make & Go + Ateliers Démo</p>
                 </div>
                 
                 <div className="flex items-center gap-4 bg-white border-4 border-black p-2 shadow-neo-sm">
@@ -95,32 +142,52 @@ export const AdminCalendar: React.FC = () => {
                 
                 {daysInMonth.map((dayObj, i) => {
                     const dateKey = dayObj.date.toISOString().split('T')[0];
-                    const dayBookings = bookingsByDate[dateKey] || [];
+                    const dayData = eventsByDate[dateKey] || { bookings: [], missions: [], demos: [], conflicts: false };
                     const isToday = new Date().toISOString().split('T')[0] === dateKey;
 
                     return (
                         <div 
                             key={i} 
-                            className={`min-h-[140px] p-2 transition-colors relative ${dayObj.currentMonth ? 'bg-white' : 'bg-gray-100 opacity-60'} ${isToday ? 'ring-inset ring-4 ring-brand-red' : ''}`}
+                            className={`min-h-[160px] p-2 transition-colors relative border-2 ${dayObj.currentMonth ? 'bg-white' : 'bg-gray-50 opacity-40'} ${isToday ? 'ring-inset ring-4 ring-brand-red' : ''} ${dayData.conflicts ? 'border-red-500 bg-red-50' : 'border-transparent'}`}
                         >
-                            <span className={`font-black text-sm absolute top-2 right-2 ${isToday ? 'bg-brand-red text-white px-2 py-0.5' : 'text-gray-300'}`}>
-                                {dayObj.day}
-                            </span>
+                            <div className="flex justify-between items-start mb-2">
+                                {dayData.conflicts && <AlertTriangle size={14} className="text-red-500 animate-pulse" />}
+                                <span className={`font-black text-[10px] ${isToday ? 'bg-brand-red text-white px-2 py-0.5 rounded' : 'text-gray-300'}`}>
+                                    {dayObj.day}
+                                </span>
+                            </div>
                             
-                            <div className="flex flex-col gap-1 mt-6">
-                                {dayBookings.map((b, bi) => (
+                            <div className="flex flex-col gap-1 overflow-y-auto max-h-[120px] scrollbar-none">
+                                {/* Missions */}
+                                {dayData.missions.map((m, mi) => (
+                                    <div key={`m-${mi}`} className="text-[7px] font-black p-1 bg-brand-orange border border-black shadow-neo-xxs flex flex-col">
+                                        <div className="flex justify-between items-center">
+                                            <span className="truncate">MSG: {m.title}</span>
+                                            <span className="opacity-70 whitespace-nowrap">{m.startTime}-{m.endTime}</span>
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {/* Demos */}
+                                {dayData.demos.map((d, di) => (
+                                    <div key={`d-${di}`} className="text-[7px] font-black p-1 bg-purple-500 text-white border border-black shadow-neo-xxs flex flex-col">
+                                        <div className="flex justify-between items-center">
+                                            <span className="truncate">DÉMO: {d.title}</span>
+                                            <span className="opacity-80 whitespace-nowrap">{d.startTime}-{d.endTime}</span>
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {/* Bookings */}
+                                {dayData.bookings.map((b, bi) => (
                                     <div 
-                                        key={bi} 
-                                        className={`text-[8px] font-black p-1 border-2 border-black shadow-neo-xs flex flex-col gap-0.5 ${b.status === 'confirmed' ? 'bg-brand-green text-white' : 'bg-brand-orange'}`}
+                                        key={`b-${bi}`} 
+                                        className={`text-[7px] font-black p-1 border border-black shadow-neo-xxs flex flex-col gap-0.5 ${b.status === 'confirmed' ? 'bg-brand-green text-white' : 'bg-white text-black'}`}
                                         title={`${b.childName} - ${b.programTitle}`}
                                     >
                                         <div className="flex items-center gap-1">
-                                            <Baby size={8} />
+                                            <Baby size={6} />
                                             <span className="truncate">{b.childName}</span>
-                                        </div>
-                                        <div className="flex items-center gap-1 opacity-80 italic">
-                                            <Target size={8} />
-                                            <span className="truncate">{b.programTitle}</span>
                                         </div>
                                     </div>
                                 ))}
@@ -131,18 +198,22 @@ export const AdminCalendar: React.FC = () => {
             </div>
 
             {/* Legend */}
-            <div className="mt-8 flex flex-wrap gap-6 items-center justify-center bg-white border-4 border-black p-6 shadow-neo">
-                <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-brand-green border-2 border-black" />
-                    <span className="text-xs font-black uppercase tracking-tighter">Mission Confirmée</span>
-                </div>
+            <div className="mt-8 flex flex-wrap gap-4 items-center justify-center bg-white border-4 border-black p-6 shadow-neo">
                 <div className="flex items-center gap-2">
                     <div className="w-4 h-4 bg-brand-orange border-2 border-black" />
-                    <span className="text-xs font-black uppercase tracking-tighter">Attente Validation</span>
+                    <span className="text-[10px] font-black uppercase">Mission M&G</span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-brand-red" />
-                    <span className="text-xs font-black uppercase tracking-tighter">Aujourd'hui</span>
+                    <div className="w-4 h-4 bg-purple-500 border-2 border-black" />
+                    <span className="text-[10px] font-black uppercase">Atelier Démo</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-brand-green border-2 border-black" />
+                    <span className="text-[10px] font-black uppercase">Inscription OK</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-red-100 border-2 border-red-500" />
+                    <span className="text-[10px] font-black uppercase text-red-600">Conflit</span>
                 </div>
             </div>
         </div>
