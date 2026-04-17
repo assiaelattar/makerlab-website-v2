@@ -100,6 +100,9 @@ function buildPageHtml(baseHtml, { title, description, image, url, gaId, gscCode
   html = injectMeta(html, 'twitter:description',  esc(description),     true);
   html = injectMeta(html, 'description',          esc(description),     true);
 
+  // Robots — Explicitly allow indexing for public pages
+  html = injectMeta(html, 'robots', 'index, follow', true);
+
   // GSC & GA4
   if (gscCode) html = injectMeta(html, 'google-site-verification', gscCode, true);
   if (gaId) {
@@ -218,6 +221,44 @@ async function run() {
     blogCount++;
   }
   console.log(`✅ ${blogCount} blog posts → dist/blog/[id]/index.html`);
+
+  // 5. School Partners — fetch for sitemap
+  console.log('\n📡 Fetching school partners for sitemap...');
+  const schoolDocs = await fsList('website-school-partners');
+  const schoolUrls = schoolDocs.map(doc => `/s/${str(doc.fields?.slug) || doc.name.split('/').pop()}`);
+
+  // 6. Generate robots.txt and sitemap.xml
+  console.log('\n🤖 Generating robots.txt and sitemap.xml...');
+  const robots = `User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /dist
+Disallow: /node_modules
+
+Sitemap: ${SITE}/sitemap.xml`;
+  fs.writeFileSync(path.join(DIST, 'robots.txt'), robots, 'utf8');
+
+  const allUrls = [
+    '', '/programs', '/blog', '/about', '/contact', '/register', '/schools', '/kids-families', '/store',
+    ...programDocs.map(doc => `/programs/${doc.name.split('/').pop()}`),
+    ...programDocs.map(doc => `/lp/${doc.name.split('/').pop()}`),
+    ...blogDocs.map(doc => `/blog/${doc.name.split('/').pop()}`),
+    ...schoolUrls
+  ];
+
+  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  ${allUrls.map(url => `
+  <url>
+    <loc>${SITE}${url}</loc>
+    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+    <changefreq>${url === '' ? 'daily' : 'weekly'}</changefreq>
+    <priority>${url === '' ? '1.0' : '0.8'}</priority>
+  </url>`).join('')}
+</urlset>`;
+  fs.writeFileSync(path.join(DIST, 'sitemap.xml'), sitemap, 'utf8');
+
+  console.log('✅ robots.txt and sitemap.xml created in dist/');
 
   console.log('\n🚀 SEO injection complete!\n');
 }
