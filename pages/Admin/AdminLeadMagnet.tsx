@@ -38,6 +38,7 @@ interface MakeAndGoLead {
   submitted_at:   string;
   wa_sent:        boolean;
   capi_sent:      boolean;
+  status:         'Pending' | 'Contacted' | 'Confirmed' | 'Cancelled';
 }
 
 /* ─── Shared meta ──────────────────────────────────────────────────────────── */
@@ -275,6 +276,13 @@ const MakeAndGoTab: React.FC = () => {
     await deleteDoc(doc(db, 'make-and-go-leads', id));
   };
 
+  const updateLeadStatus = async (id: string, newStatus: string) => {
+    const { doc, updateDoc } = await import('firebase/firestore');
+    await updateDoc(doc(db, 'make-and-go-leads', id), {
+      status: newStatus
+    });
+  };
+
   const filtered = leads.filter(l => {
     if (tierFilter  !== 'ALL' && l.lead_tier !== tierFilter)  return false;
     if (trackFilter !== 'ALL' && l.track     !== trackFilter) return false;
@@ -394,6 +402,20 @@ const MakeAndGoTab: React.FC = () => {
 
                   {/* Actions */}
                   <div className="flex items-center gap-2 shrink-0">
+                    <select 
+                      value={lead.status || 'Pending'}
+                      onChange={(e) => updateLeadStatus(lead.id, e.target.value)}
+                      className={`text-[10px] font-black uppercase px-2 py-2 rounded-xl border-2 border-black outline-none shadow-neo-sm transition-all ${
+                        lead.status === 'Confirmed' ? 'bg-green-100 text-green-700' :
+                        lead.status === 'Contacted' ? 'bg-blue-100 text-blue-700' :
+                        lead.status === 'Cancelled' ? 'bg-red-100 text-red-500' : 'bg-gray-100'
+                      }`}
+                    >
+                      <option value="Pending">🕒 En attente</option>
+                      <option value="Contacted">📞 Contacté</option>
+                      <option value="Confirmed">✅ Confirmé</option>
+                      <option value="Cancelled">❌ Annulé</option>
+                    </select>
                     <a href={buildWaLink(lead)} target="_blank" rel="noopener noreferrer"
                       className="flex items-center gap-1 bg-[#25D366] text-white px-3 py-2 rounded-xl border-2 border-black font-black text-[10px] uppercase shadow-neo-sm hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
                       <MessageCircle size={14} fill="currentColor" /> WA

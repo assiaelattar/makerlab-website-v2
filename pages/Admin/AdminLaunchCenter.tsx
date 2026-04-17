@@ -6,13 +6,15 @@ import {
   Rocket, Copy, ExternalLink, CheckCircle2, 
   Target, ChevronRight, Sparkles, ShieldCheck, 
   AlertTriangle, Phone, Image as ImageIcon,
-  Zap, ArrowRight, MousePointer2, RefreshCw
+  Zap, ArrowRight, MousePointer2, RefreshCw, QrCode, X, Download
 } from 'lucide-react';
+import { Button } from '../../components/Button';
 
 export const AdminLaunchCenter: React.FC = () => {
   const { funnels, programs } = usePrograms();
   const { settings } = useSettings();
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [qrModal, setQrModal] = useState<{ url: string; name: string } | null>(null);
 
   // Integration Status
   const hasWAInternal = !!settings.WA_INTERNAL_NUMBER || !!settings.waInternalNumber;
@@ -117,6 +119,13 @@ export const AdminLaunchCenter: React.FC = () => {
                                    {copiedId === funnel.slug ? <CheckCircle2 size={14} /> : <Copy size={14} />}
                                    {copiedId === funnel.slug ? 'Copié !' : 'Lien'}
                                 </button>
+                                <button 
+                                  onClick={() => setQrModal({ url: `${window.location.origin}/lp/${funnel.slug}`, name: funnel.name })}
+                                  className="p-2 bg-white border-2 border-black rounded-xl shadow-neo-sm hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
+                                  title="Générer QR"
+                                >
+                                   <QrCode size={16} />
+                                </button>
                                 <Link 
                                   to={`/lp/${funnel.slug}`} 
                                   target="_blank" 
@@ -159,6 +168,56 @@ export const AdminLaunchCenter: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* QR Code Modal */}
+      {qrModal && (
+        <div className="fixed inset-0 z-[1100] flex items-center justify-center p-6">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setQrModal(null)} />
+          <div className="relative w-full max-w-sm bg-white border-8 border-black rounded-[2.5rem] shadow-[20px_20px_0_0_rgba(0,0,0,0.3)] animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
+             <div className="bg-black p-4 text-white flex justify-between items-center">
+                <h3 className="font-black text-lg uppercase italic flex items-center gap-2">
+                   <QrCode size={20} /> QR Code
+                </h3>
+                <button onClick={() => setQrModal(null)} className="hover:text-red-400 transition-colors">
+                   <X size={24} />
+                </button>
+             </div>
+             <div className="p-8 flex flex-col items-center">
+                <div className="mb-4 text-center">
+                  <p className="font-black uppercase text-sm leading-tight mb-1">{qrModal.name}</p>
+                  <p className="text-[10px] text-indigo-500 font-bold truncate max-w-[250px]">{qrModal.url}</p>
+                </div>
+                
+                <div className="p-4 bg-white border-4 border-black rounded-3xl shadow-[8px_8px_0_0_rgba(0,0,0,1)] mb-8">
+                   <img 
+                     src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrModal.url)}`} 
+                     alt="QR Code"
+                     className="w-48 h-48"
+                   />
+                </div>
+                
+                <div className="flex gap-3 w-full">
+                   <Button 
+                     variant="primary" 
+                     className="flex-1 bg-brand-orange text-black border-4 border-black py-4 uppercase font-black tracking-widest text-xs"
+                     onClick={() => window.print()}
+                   >
+                     Imprimer
+                   </Button>
+                   <a 
+                     href={`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(qrModal.url)}`}
+                     download="qrcode.png"
+                     target="_blank"
+                     rel="noopener noreferrer"
+                     className="flex-1 bg-black text-white border-4 border-black flex items-center justify-center rounded-xl font-black uppercase tracking-widest text-xs hover:bg-gray-800"
+                   >
+                     Télécharger
+                   </a>
+                </div>
+             </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -2,11 +2,15 @@
     "buildCommand": "npm run build",
     "outputDirectory": "dist",
     "rewrites": [
+        { "source": "/robots.txt", "destination": "/api/robots-handler" },
+        { "source": "/sitemap.xml", "destination": "/api/sitemap-handler" },
         { "source": "/api/make-and-go-lead", "destination": "/api/make-and-go-lead" },
         { "source": "/s/:slug", "destination": "/api/school-seo" },
         { "source": "/programs/:id", "destination": "/api/program-seo" },
         { "source": "/lp/:id", "destination": "/api/program-seo" },
         { "source": "/blog/:id", "destination": "/api/blog-seo" },
+        { "source": "/admin", "destination": "/api/admin-seo" },
+        { "source": "/admin/(.*)", "destination": "/api/admin-seo" },
         { "source": "/", "destination": "/api/home-seo" },
         { "source": "/(.*)", "destination": "/index.html" }
     ]

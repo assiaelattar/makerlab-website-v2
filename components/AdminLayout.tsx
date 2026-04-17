@@ -122,31 +122,36 @@ export const AdminLayout: React.FC = () => {
   };
 
   const navItems = [
-    { label: '🚀 Centre de Lancement', path: '/admin/setup',           icon: Rocket },
-    { label: 'Tableau de Bord',    path: '/admin/dashboard',       icon: LayoutDashboard },
-    { label: 'Calendrier',          path: '/admin/calendar',         icon: CalendarDays },
-    { label: 'Contenu du Site',     path: '/admin/content',          icon: FileText },
-    { label: 'Programmes',          path: '/admin/programs',         icon: Package },
-    { label: 'Réservations',        path: '/admin/bookings',         icon: CalendarDays },
+    { type: 'header', label: 'Lancement' },
+    { label: 'Centre de Lancement', path: '/admin/setup',           icon: Rocket },
     { label: 'Landing Pages',       path: '/admin/landing-pages',    icon: Rocket },
-    { label: 'Missions & Parcours', path: '/admin/missions',         icon: Target },
-    { label: '🎯 Make & Go Leads', path: '/admin/leads',            icon: Sparkles, badge: true },
-    { label: 'Blog',                path: '/admin/blogs',            icon: PenTool },
-    { label: 'Médias',              path: '/admin/media',            icon: ImageIcon },
+    { label: 'Make & Go Leads',     path: '/admin/leads',            icon: Sparkles, badge: true },
+    
+    { type: 'header', label: 'Opérations' },
+    { label: 'Inscriptions',        path: '/admin/bookings',         icon: CalendarDays },
+    { label: 'Missions & Stages',   path: '/admin/missions',         icon: Target },
+    { label: 'Calendrier',          path: '/admin/calendar',         icon: CalendarDays },
+    { label: 'Programmes',          path: '/admin/programs',         icon: Package },
+    { label: 'Tableau de Bord',    path: '/admin/dashboard',       icon: LayoutDashboard },
+
+    { type: 'header', label: 'Écoles (B2B)' },
     { label: 'Catalogue Ateliers',  path: '/admin/workshop-catalog', icon: BookOpen },
-    { label: 'Partenaires',         path: '/admin/partners',         icon: School },
-    { label: 'Gestion Périodes',    path: '/admin/periods',          icon: CalendarDays },
-    { label: 'Offres Scolaires',    path: '/admin/offers',           icon: Ticket },
+    { label: 'Partenaires Scolaires', path: '/admin/partners',         icon: School },
+    { label: 'Périodes & Offres',    path: '/admin/periods',          icon: Ticket },
+
+    { type: 'header', label: 'Contenu & Admin' },
+    { label: 'Blog & SEO',          path: '/admin/blogs',            icon: PenTool },
+    { label: 'Médiathèque',          path: '/admin/media',            icon: ImageIcon },
     { label: 'Configuration',       path: '/admin/settings',         icon: Settings },
   ];
 
   const isLeadsPage = location.pathname.startsWith('/admin/leads');
 
   return (
-    <div className="min-h-screen bg-gray-100 flex font-sans relative">
+    <div className="min-h-screen bg-gray-100 flex font-sans relative overflow-x-hidden">
 
       {/* ── Mobile Header ─────────────────────────────────────────────────── */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b-4 border-black z-[60] flex items-center justify-between px-4">
+      <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b-4 border-black z-[100] flex items-center justify-between px-4">
         <div className="flex items-center gap-3">
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -159,7 +164,6 @@ export const AdminLayout: React.FC = () => {
           </h1>
         </div>
         <div className="flex items-center gap-3">
-          {/* Bell with badge — mobile */}
           {unreadCount > 0 && (
             <Link
               to="/admin/leads"
@@ -181,83 +185,89 @@ export const AdminLayout: React.FC = () => {
       {/* Overlay for mobile sidebar */}
       {isSidebarOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity"
+          className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[90] transition-opacity"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
       {/* ── Sidebar ───────────────────────────────────────────────────────── */}
       <aside className={`
-        fixed lg:sticky top-0 left-0 h-screen w-64 bg-white border-r-4 border-black flex flex-col justify-between overflow-y-auto z-50 transition-transform duration-300
+        fixed top-0 left-0 h-screen w-64 bg-white border-r-4 border-black flex flex-col z-[95] transition-transform duration-300
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
-        <div>
-          {/* Logo */}
-          <div className="p-6 border-b-4 border-black flex items-center justify-between">
-            <h1 className="font-display font-black text-2xl uppercase tracking-tighter">
-              MakerLab<br /><span className="text-brand-orange">Admin.</span>
-            </h1>
-            {/* Bell with badge — desktop sidebar */}
-            {unreadCount > 0 && (
-              <Link
-                to="/admin/leads"
-                onClick={clearUnread}
-                className="relative p-2 bg-[#CC0000] text-white border-2 border-black rounded-xl shadow-neo-sm hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all animate-pulse"
-                title={`${unreadCount} nouveau(x) lead(s)`}
-              >
-                <Bell size={16} />
-                <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-black text-white text-[9px] font-black rounded-full flex items-center justify-center border border-white">
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </span>
-              </Link>
-            )}
-          </div>
-
-          {/* Nav */}
-          <nav className="p-4 space-y-2">
-            {navItems.map((item) => {
-              const isActive = location.pathname.startsWith(item.path);
-              const showBadge = (item as any).badge && unreadCount > 0 && !isLeadsPage;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => { if ((item as any).badge) clearUnread(); }}
-                  className={`
-                    flex items-center gap-3 px-4 py-3 font-bold rounded-xl border-2 transition-all
-                    ${isActive
-                      ? 'bg-brand-orange border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-1 -translate-y-1'
-                      : 'border-transparent text-gray-600 hover:bg-gray-100'
-                    }
-                  `}
-                >
-                  <item.icon size={20} strokeWidth={isActive ? 3 : 2} />
-                  <span className="flex-1">{item.label}</span>
-                  {showBadge && (
-                    <span className="w-5 h-5 bg-[#CC0000] text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-black animate-pulse">
-                      {unreadCount > 9 ? '9+' : unreadCount}
-                    </span>
-                  )}
-                </Link>
-              );
-            })}
-          </nav>
+        {/* Logo Section - Fixed at top of sidebar */}
+        <div className="p-6 border-b-4 border-black flex items-center justify-between bg-white shrink-0">
+          <h1 className="font-display font-black text-2xl uppercase tracking-tighter">
+            MakerLab<br /><span className="text-brand-orange">Admin.</span>
+          </h1>
+          {unreadCount > 0 && (
+            <Link
+              to="/admin/leads"
+              onClick={clearUnread}
+              className="relative p-2 bg-[#CC0000] text-white border-2 border-black rounded-xl shadow-neo-sm hover:translate-x-0.5 hover:translate-y-0.5 transition-all animate-pulse"
+              title={`${unreadCount} nouveau(x) lead(s)`}
+            >
+              <Bell size={16} />
+              <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-black text-white text-[9px] font-black rounded-full flex items-center justify-center border border-white">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            </Link>
+          )}
         </div>
 
-        {/* Logout */}
-        <div className="p-4 border-t-4 border-black pb-8">
+        {/* Scrollable Navigation Area */}
+        <nav className="flex-1 overflow-y-auto p-4 space-y-1 custom-scrollbar scroll-smooth">
+          {navItems.map((item, idx) => {
+            if (item.type === 'header') {
+              return (
+                <div key={`header-${idx}`} className="pt-6 pb-2 px-4 first:pt-2">
+                  <span className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">{item.label}</span>
+                </div>
+              );
+            }
+
+            const isActive = location.pathname === item.path || (item.path !== '/admin' && location.pathname.startsWith(item.path!));
+            const showBadge = (item as any).badge && unreadCount > 0 && !isLeadsPage;
+            
+            return (
+              <Link
+                key={item.path}
+                to={item.path!}
+                onClick={() => { if ((item as any).badge) clearUnread(); if (window.innerWidth < 1024) setIsSidebarOpen(false); }}
+                className={`
+                  group flex items-center gap-3 px-4 py-3 font-bold rounded-xl border-2 transition-all relative
+                  ${isActive
+                    ? 'bg-brand-orange border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-1 -translate-y-1 text-black'
+                    : 'border-transparent text-gray-500 hover:bg-gray-100 hover:text-black'
+                  }
+                `}
+              >
+                {item.icon && <item.icon size={20} strokeWidth={isActive ? 3 : 2} className={isActive ? 'text-black' : 'text-gray-400 group-hover:text-black'} />}
+                <span className="flex-1 truncate">{item.label}</span>
+                {showBadge && (
+                  <span className="w-5 h-5 bg-[#CC0000] text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-black animate-pulse">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Logout - Fixed at bottom of sidebar */}
+        <div className="p-4 border-t-4 border-black bg-gray-50 shrink-0">
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-4 py-3 font-bold rounded-xl border-2 border-transparent text-red-600 hover:bg-red-50 hover:border-red-200 w-full transition-colors"
+            className="flex items-center gap-3 px-4 py-4 font-black uppercase text-[12px] tracking-widest rounded-xl border-2 border-black bg-white text-red-600 shadow-neo-sm hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all w-full"
           >
-            <LogOut size={20} />
+            <LogOut size={18} />
             Déconnexion
           </button>
         </div>
       </aside>
 
       {/* ── Main Content ──────────────────────────────────────────────────── */}
-      <main className="flex-1 p-4 md:p-8 overflow-x-hidden relative min-w-0">
+      <main className="flex-1 lg:ml-64 p-4 md:p-8 relative min-w-0">
         <div className="lg:hidden h-16" /> {/* Spacer for mobile header */}
         <Outlet />
       </main>

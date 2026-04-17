@@ -3,7 +3,6 @@ export default function robotsHandler(req, res) {
     const robots = `User-agent: *
 Allow: /
 Disallow: /admin
-Disallow: /lp
 Disallow: /dist
 Disallow: /node_modules
 

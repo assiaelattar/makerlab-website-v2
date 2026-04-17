@@ -70,6 +70,9 @@ const buildHtml = (meta) => {
   // Standard Description
   html = injectMeta(html, 'description', esc(description), true);
 
+  // Robots
+  html = injectMeta(html, 'robots', 'index, follow', true);
+
   // Google Search Console verification
   if (gscCode) {
     html = injectMeta(html, 'google-site-verification', gscCode, true);

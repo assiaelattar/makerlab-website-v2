@@ -1,4 +1,4 @@
-import fs from 'fs';
+ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -53,6 +53,9 @@ const buildHtml = (meta) => {
   html = injectMeta(html, 'twitter:description', esc(description), true);
 
   html = injectMeta(html, 'description', esc(description), true);
+
+  // Robots
+  html = injectMeta(html, 'robots', 'index, follow', true);
 
   if (gscCode) html = injectMeta(html, 'google-site-verification', gscCode, true);
   if (gaId) {

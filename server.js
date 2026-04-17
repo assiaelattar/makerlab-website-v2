@@ -9,6 +9,7 @@ import schoolSeoHandler from './api/school-seo.js';
 import homeSeoHandler from './api/home-seo.js';
 import sitemapHandler from './api/sitemap-handler.js';
 import robotsHandler from './api/robots-handler.js';
+import adminSeoHandler from './api/admin-seo.js';
 import makeAndGoLeadHandler from './api/make-and-go-lead.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -68,6 +69,9 @@ app.get('/s/:slug', (req, res) => {
   return schoolSeoHandler(req, res);
 });
 
+// Admin dashboard — force noindex for gated content
+app.get(/^\/admin/, (req, res) => adminSeoHandler(req, res));
+
 // ─────────────────────────────────────────────────────────────
 // Static assets — serve built React app from /dist
 // ─────────────────────────────────────────────────────────────
@@ -77,7 +81,7 @@ app.use(express.static(path.join(__dirname, 'dist')));
 // Catch-all — serve index.html for all other React Router routes
 // (e.g. /admin, /about, /kids-families, etc.)
 // ─────────────────────────────────────────────────────────────
-app.get('*', (req, res) => {
+app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 

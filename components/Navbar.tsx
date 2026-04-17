@@ -19,7 +19,6 @@ export const Navbar: React.FC<NavbarProps> = ({ scrolled = false }) => {
     { name: 'About', path: '/about', icon: Info },
     { name: 'Blog', path: '/blog', icon: BookOpen },
     { name: 'Contact', path: '/contact', icon: PenTool },
-    { name: 'Admin', path: '/admin', icon: Lock },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -76,7 +75,7 @@ export const Navbar: React.FC<NavbarProps> = ({ scrolled = false }) => {
                 {link.name}
               </Link>
             ))}
-            <Link to="/quiz" className="hidden xl:flex">
+            <Link to="/quiz" className="hidden lg:flex">
               <Button variant="primary" size="sm" className="uppercase tracking-widest text-xs flex items-center gap-1.5 bg-brand-orange text-black border-black hover:bg-brand-orange/90">
                 <Sparkles size={14} />
                 Trouver ma mission

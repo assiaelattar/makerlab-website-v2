@@ -59,6 +59,9 @@ const buildHtml = (meta) => {
 
   html = injectMeta(html, 'description', esc(description), true);
 
+  // Robots
+  html = injectMeta(html, 'robots', 'index, follow', true);
+
   if (gscCode) html = injectMeta(html, 'google-site-verification', gscCode, true);
   if (gaId) {
     const ga = `  <script async src="https://www.googletagmanager.com/gtag/js?id=${gaId}"></script>\n  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${gaId}');</script>`;

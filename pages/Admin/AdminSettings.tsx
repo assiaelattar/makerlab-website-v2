@@ -27,6 +27,11 @@ export const AdminSettings: React.FC = () => {
     const [isUploadingSocialImage, setIsUploadingSocialImage] = useState(false);
     const [googleAnalyticsId, setGoogleAnalyticsId] = useState('');
     const [gscVerification, setGscVerification] = useState('');
+    const [socialProofConfig, setSocialProofConfig] = useState({
+        enabled: true,
+        frequency_seconds: 45,
+        max_age_days: 2
+    });
 
     useEffect(() => {
         if (!isLoading && settings) {
@@ -35,6 +40,7 @@ export const AdminSettings: React.FC = () => {
             if (settings.socialImage) setSocialImage(settings.socialImage);
             if (settings.googleAnalyticsId) setGoogleAnalyticsId(settings.googleAnalyticsId);
             if (settings.gscVerification) setGscVerification(settings.gscVerification);
+            if (settings.socialProofConfig) setSocialProofConfig(settings.socialProofConfig);
         }
     }, [settings, isLoading]);
 
@@ -48,6 +54,7 @@ export const AdminSettings: React.FC = () => {
         if (socialImage) await updateSetting('socialImage', socialImage);
         if (googleAnalyticsId.trim()) await updateSetting('googleAnalyticsId', googleAnalyticsId.trim());
         if (gscVerification.trim()) await updateSetting('gscVerification', gscVerification.trim());
+        await updateSetting('socialProofConfig', socialProofConfig);
         alert('Configuration enregistrée!');
     };
 
@@ -272,6 +279,54 @@ export const AdminSettings: React.FC = () => {
                         <p className="text-[10px] text-green-400 font-medium">
                             Exemple : <code className="bg-green-100 px-1 rounded">&lt;meta name="google-site-verification" content="<strong>CE CODE ICI</strong>"&gt;</code>
                         </p>
+                    </div>
+                </div>
+
+                <div className="border-t-4 border-black border-dashed my-8"></div>
+
+                {/* ── Social Proof Config ── */}
+                <h2 className="font-display font-bold text-2xl mb-2 flex items-center gap-3">
+                    <Sparkles className="text-brand-orange" size={24} />
+                    Preuve Sociale (Notifications Toast)
+                </h2>
+                <p className="text-sm text-gray-500 mb-6 font-medium">
+                    Contrôlez les notifications qui apparaissent en bas de l'écran pour rassurer les parents.
+                </p>
+
+                <div className="p-6 bg-orange-50 border-4 border-black rounded-3xl space-y-6">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="font-black uppercase text-sm">Activer les notifications</p>
+                            <p className="text-xs text-gray-500">Affiche "Sofia vient de réserver..."</p>
+                        </div>
+                        <button 
+                            onClick={() => setSocialProofConfig(prev => ({ ...prev, enabled: !prev.enabled }))}
+                            className={`w-14 h-8 rounded-full border-2 border-black transition-all relative ${socialProofConfig.enabled ? 'bg-brand-green' : 'bg-gray-300'}`}
+                        >
+                            <div className={`absolute top-1 w-5 h-5 bg-white border-2 border-black rounded-full transition-all ${socialProofConfig.enabled ? 'left-7' : 'left-1'}`} />
+                        </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-[10px] font-black uppercase text-gray-400 mb-2">Fréquence d'apparition (secondes)</label>
+                            <input 
+                                type="number"
+                                value={socialProofConfig.frequency_seconds}
+                                onChange={(e) => setSocialProofConfig(prev => ({ ...prev, frequency_seconds: parseInt(e.target.value) || 30 }))}
+                                className="w-full border-4 border-black p-3 rounded-none font-bold outline-none focus:bg-white transition-all shadow-neo-sm"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-black uppercase text-gray-400 mb-2">Ancienneté maximale affichée (jours)</label>
+                            <input 
+                                type="number"
+                                value={socialProofConfig.max_age_days || 2}
+                                onChange={(e) => setSocialProofConfig(prev => ({ ...prev, max_age_days: parseInt(e.target.value) || 1 }))}
+                                className="w-full border-4 border-black p-3 rounded-none font-bold outline-none focus:bg-white transition-all shadow-neo-sm"
+                            />
+                            <p className="text-[10px] text-gray-400 mt-2 font-bold italic">Le système dira "Il y a X heures/jours" aléatoirement dans cette limite.</p>
+                        </div>
                     </div>
                 </div>
 

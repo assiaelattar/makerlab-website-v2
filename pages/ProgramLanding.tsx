@@ -166,7 +166,7 @@ const PASSection: React.FC<{ lp: any; theme: any; programStations: StationPole[]
           <Reveal>
             <div className="text-center mb-10 md:mb-20">
               <span className="inline-block px-4 py-1 bg-red-500 text-white font-black text-[10px] uppercase tracking-[0.3em] rounded-full mb-6 italic rotate-[-2deg]">1. IDENTIFICATION</span>
-              <h2 className="font-black text-4xl md:text-7xl mb-6 md:mb-8 uppercase text-white shimmer-text italic leading-none">{lp.problemHeadline || "Le Problème."}</h2>
+              <h2 className="font-black text-4xl md:text-6xl mb-6 md:mb-8 uppercase text-white shimmer-text italic leading-none">{lp.problemHeadline || "Le Problème."}</h2>
               <p className="text-lg md:text-2xl text-gray-400 font-bold max-w-2xl mx-auto italic leading-relaxed">{lp.problemBody}</p>
             </div>
           </Reveal>
@@ -179,7 +179,7 @@ const PASSection: React.FC<{ lp: any; theme: any; programStations: StationPole[]
           <Reveal>
             <div className="p-8 md:p-20 relative overflow-hidden">
                <div className="absolute top-0 right-0 p-4 md:p-8 opacity-20 rotate-12"><AlertTriangle className="text-black w-32 h-32 md:w-60 md:h-60" /></div>
-               <h3 className="font-black text-3xl md:text-7xl uppercase text-black mb-6 md:mb-8 italic leading-none tracking-tighter">
+               <h3 className="font-black text-3xl md:text-6xl uppercase text-black mb-6 md:mb-8 italic leading-none tracking-tighter">
                  {lp.agitationHeadline || "L'Avenir est à risque."}
                </h3>
                <p className="text-black font-black text-lg md:text-2xl leading-relaxed max-w-3xl italic relative z-10">{lp.agitationBody}</p>
@@ -200,7 +200,7 @@ const PASSection: React.FC<{ lp: any; theme: any; programStations: StationPole[]
           <Reveal>
             <div className="text-center mb-12 md:mb-20">
               <span className="inline-block px-4 py-1 bg-green-500 text-black font-black text-[10px] uppercase tracking-[0.3em] rounded-full mb-6 italic rotate-[2deg]">2. LA RÉVÉLATION</span>
-              <h2 className="font-black text-4xl md:text-7xl mb-6 md:mb-8 uppercase text-white shimmer-text italic leading-none tracking-tighter">{lp.solutionHeadline || "Entrez dans l'Incubateur."}</h2>
+              <h2 className="font-black text-4xl md:text-6xl mb-6 md:mb-8 uppercase text-white shimmer-text italic leading-none tracking-tighter">{lp.solutionHeadline || "Entrez dans l'Incubateur."}</h2>
               <p className="text-lg md:text-2xl text-gray-400 font-bold max-w-3xl mx-auto italic leading-relaxed">{lp.solutionBody}</p>
             </div>
           </Reveal>
@@ -281,34 +281,68 @@ const BABSection: React.FC<{ lp: any; theme: any }> = ({ lp, theme }) => (
 );
 
 const ContrastSection: React.FC<{ lp: any; theme: any }> = ({ lp, theme }) => (
-  <section className="py-20 md:py-32 px-6 bg-white relative overflow-hidden noise-bg">
-     <div className="max-w-4xl mx-auto relative z-10">
+  <section className="py-24 md:py-44 px-6 bg-white relative overflow-hidden noise-bg">
+     <div className="max-w-5xl mx-auto relative z-10">
         <Reveal>
-           <div className="text-center mb-10 md:mb-20">
-              <h2 className="font-black text-5xl md:text-8xl uppercase text-black italic leading-none tracking-tighter mb-4">LE CHOIX.<br/><span className="text-orange-500">EST CLAIR.</span></h2>
-              <p className="text-gray-400 font-bold text-sm md:text-xl uppercase tracking-widest">Ne comparez pas l'incomparable.</p>
+           <div className="text-center mb-16 md:mb-28">
+              <h2 className="font-black text-5xl md:text-7xl uppercase text-black italic leading-[0.9] tracking-tighter mb-8 decoration-orange-500 decoration-8 underline-offset-8">LE CHOIX.<br/><span className="text-orange-500">EST CLAIR.</span></h2>
+              <p className="text-gray-500 font-bold text-sm md:text-xl uppercase tracking-[0.4em] max-w-2xl mx-auto leading-relaxed">Arrêtez de comparer des jouets à de la véritable ingénierie.</p>
            </div>
         </Reveal>
-        <Reveal delay={200}>
-           <div className="bg-black border-[10px] border-black rounded-[3.5rem] overflow-hidden shadow-[25px_25px_0_0_rgba(0,0,0,0.1)]">
-              <div className="grid grid-cols-12 bg-gray-900 border-b-6 border-black p-8">
-                 <div className="col-span-4 font-black text-[10px] text-gray-500 uppercase tracking-widest">CRITÈRE MAJEUR</div>
-                 <div className="col-span-4 font-black text-[12px] text-orange-500 uppercase tracking-widest text-center italic">MAKERLAB</div>
-                 <div className="col-span-4 font-black text-[10px] text-gray-700 uppercase tracking-widest text-center">AUTRES</div>
-              </div>
-              {(lp.comparisonRows || []).map((row: any, i: number) => (
-                <div key={row.id} className="grid grid-cols-12 p-8 border-b-4 border-white/5 last:border-0 hover:bg-white/5 transition-all group">
-                   <div className="col-span-4 font-black text-xs md:text-sm text-gray-400 uppercase italic group-hover:text-white transition-colors">{row.feature}</div>
-                   <div className="col-span-4 font-black text-sm md:text-lg text-white text-center flex items-center justify-center gap-3">
-                      <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center shrink-0 border-2 border-black"><CheckCircle2 size={14} className="text-black" strokeWidth={4} /></div>
-                      {row.us}
+
+        <div className="space-y-12">
+           {(lp.comparisonRows || []).map((row: any, i: number) => (
+             <Reveal key={row.id || i} delay={i * 100}>
+                <div className="group">
+                   {/* Criterion Title */}
+                   <div className="flex items-center gap-4 mb-6">
+                      <div className="h-px flex-1 bg-black/10"></div>
+                      <h3 className="font-black text-sm md:text-xl uppercase italic text-black whitespace-nowrap px-4 border-2 border-black py-2 rounded-xl bg-gray-50">{row.feature}</h3>
+                      <div className="h-px flex-1 bg-black/10"></div>
                    </div>
-                   <div className="col-span-4 font-bold text-xs md:text-sm text-gray-600 text-center flex items-center justify-center gap-2 opacity-50">
-                      <X size={18} className="text-red-900" />
-                      {row.them}
+
+                   {/* Versus Cards */}
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
+                      {/* US (MakerLab) */}
+                      <div className="bg-white border-4 md:border-6 border-black rounded-[2rem] md:rounded-[3rem] p-8 md:p-10 shadow-[8px_8px_0_0_#000] transition-all hover:-translate-y-2 hover:shadow-[15px_15px_0_0_#f97316]">
+                         <div className="flex items-start gap-4 md:gap-6">
+                            <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-green-500 flex items-center justify-center shrink-0 border-3 md:border-4 border-black shadow-neo-sm">
+                               <CheckCircle2 size={32} className="text-black" strokeWidth={3} />
+                            </div>
+                            <div className="space-y-2">
+                               <p className="font-black text-[10px] uppercase tracking-widest text-orange-500">MAKERLAB ACADEMY</p>
+                               <p className="font-bold text-lg md:text-2xl text-black leading-tight">{row.us}</p>
+                            </div>
+                         </div>
+                      </div>
+
+                      {/* THEM (Others) */}
+                      <div className="bg-gray-100 border-4 border-black rounded-[2rem] p-8 md:p-10 opacity-70 grayscale hover:grayscale-0 hover:opacity-100 transition-all flex items-center italic">
+                         <div className="flex items-start gap-4 md:gap-6">
+                            <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-white border-2 border-black flex items-center justify-center shrink-0 opacity-40">
+                               <X size={32} className="text-red-500" strokeWidth={3} />
+                            </div>
+                            <div className="space-y-1">
+                               <p className="font-black text-[10px] uppercase tracking-widest text-gray-400">LA CONCURRENCE</p>
+                               <p className="font-bold text-sm md:text-lg text-gray-600 leading-tight">{row.them}</p>
+                            </div>
+                         </div>
+                      </div>
                    </div>
                 </div>
-              ))}
+             </Reveal>
+           ))}
+        </div>
+
+        <Reveal delay={400}>
+           <div className="mt-20 md:mt-32 p-8 md:p-12 bg-black rounded-[3rem] md:rounded-[4rem] text-center border-8 border-black shadow-[20px_20px_0_0_rgba(0,0,0,0.1)] relative overflow-hidden group">
+              <div className="absolute inset-0 bg-orange-500/5 group-hover:bg-orange-500/10 transition-colors" />
+              <Shield className="mx-auto text-orange-500 mb-6 group-hover:scale-110 transition-transform" size={48} />
+              <h4 className="font-black text-2xl md:text-4xl text-white uppercase italic mb-4 leading-none tracking-tighter">UNE EXPÉRIENCE SANS ÉGAL.</h4>
+              <p className="text-gray-400 font-bold text-sm md:text-lg max-w-2xl mx-auto italic mb-8">Nous ne faisons pas que des ateliers. Nous formons la prochaine génération d'ingénieurs et de créateurs technologiques.</p>
+              <div className="inline-flex items-center gap-2 px-6 py-2 bg-orange-500 text-black font-black text-[10px] md:text-xs uppercase tracking-widest rounded-full">
+                 🏆 Leader de l'éducation Tech au Maroc
+              </div>
            </div>
         </Reveal>
      </div>
@@ -470,7 +504,7 @@ export const ProgramLanding: React.FC = () => {
         </div>
 
         {/* ══ HERO ══ */}
-        <section ref={heroRef} className="relative min-h-[90vh] flex flex-col justify-center noise-bg px-6 py-24 text-center overflow-hidden" style={{ background: theme.gradient }}>
+        <section ref={heroRef} className="relative min-h-[85vh] flex flex-col justify-center noise-bg px-6 py-20 lg:py-40 text-center overflow-hidden" style={{ background: theme.gradient }}>
            <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 50% 50%, var(--theme-primary), transparent 70%)' }}></div>
            <Reveal>
               <div className="flex flex-col items-center gap-6 mb-12">
@@ -483,13 +517,13 @@ export const ProgramLanding: React.FC = () => {
            </Reveal>
            <Reveal delay={100}>
               <p className="text-orange-500 font-black text-xs md:text-sm uppercase tracking-[0.4em] mb-4 md:mb-6 italic">{t('heroPreHeadline')}</p>
-              <h1 className="font-black text-5xl md:text-8xl lg:text-9xl leading-[0.8] mb-6 md:mb-10 shimmer-text italic tracking-tighter uppercase">{lp.heroHeadline || t('heroHeadline')}</h1>
-              <p className="text-lg md:text-3xl text-gray-400 font-black max-w-4xl mx-auto mb-10 md:mb-16 leading-tight italic uppercase">{lp.heroSubHeadline || t('heroSubHeadline')}</p>
+              <h1 className="font-black text-5xl md:text-6xl lg:text-7xl leading-[1] md:leading-[1.1] mb-6 md:mb-10 shimmer-text italic tracking-tighter uppercase">{lp.heroHeadline || t('heroHeadline')}</h1>
+              <p className="text-lg md:text-xl lg:text-2xl text-gray-400 font-black max-w-4xl mx-auto mb-10 md:mb-16 leading-tight italic uppercase">{lp.heroSubHeadline || t('heroSubHeadline')}</p>
            </Reveal>
            <Reveal delay={300}>
               <button 
                 onClick={() => missionsRef.current?.scrollIntoView({ behavior: 'smooth' })} 
-                className="cta-pulse w-full md:w-auto px-6 py-6 md:px-16 md:py-8 bg-white text-black font-black text-xl md:text-3xl uppercase tracking-widest border-4 md:border-8 border-black rounded-3xl md:rounded-[3rem] shadow-[8px_8px_0_0_#000] md:shadow-[12px_12px_0_0_#000] hover:translate-x-2 hover:translate-y-2 hover:shadow-none transition-all active:scale-95"
+                className="cta-pulse w-full md:w-auto px-6 py-6 md:px-12 md:py-6 bg-white text-black font-black text-xl md:text-2xl uppercase tracking-widest border-4 md:border-6 border-black rounded-3xl md:rounded-[3rem] shadow-[8px_8px_0_0_#000] md:shadow-[10px_10px_0_0_#000] hover:translate-x-2 hover:translate-y-2 hover:shadow-none transition-all active:scale-95"
               >
                  {lp.heroCtaText || "REJOINDRE LA MISSION"}
               </button>
@@ -614,7 +648,7 @@ export const ProgramLanding: React.FC = () => {
         <section className="py-24 md:py-40 px-6 text-center noise-bg relative overflow-hidden" style={{ background: theme.gradient }}>
            <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none"><Rocket className="w-96 h-96 md:w-[500px] md:h-[500px]" strokeWidth={0.5}/></div>
            <Reveal>
-              <h2 className="font-black text-4xl md:text-8xl mb-8 md:mb-12 uppercase italic shimmer-text leading-none relative z-10">{lp.finalCtaHeadline || "DEVENIR UN MAKEMAKER."}</h2>
+              <h2 className="font-black text-4xl md:text-7xl mb-8 md:mb-12 uppercase italic shimmer-text leading-none relative z-10">{lp.finalCtaHeadline || "DEVENIR UN MAKEMAKER."}</h2>
               <button 
                 onClick={() => missionsRef.current?.scrollIntoView({ behavior: 'smooth' })} 
                 className="w-full md:w-auto px-6 py-6 md:px-16 md:py-8 bg-orange-500 text-black font-black text-2xl md:text-4xl italic uppercase tracking-widest border-4 md:border-8 border-black rounded-3xl md:rounded-[3.5rem] shadow-[8px_8px_0_0_#000] md:shadow-[15px_15px_0_0_#000] hover:translate-x-1 hover:translate-y-1 md:hover:translate-x-3 md:hover:translate-y-3 hover:shadow-none transition-all scale-100 md:scale-110 active:scale-95 relative z-10"
