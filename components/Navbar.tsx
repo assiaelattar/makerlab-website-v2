@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Zap, Home, BookOpen, PenTool, UserPlus, Presentation, Users, Info, Lock, Star, Sparkles } from 'lucide-react';
+import { createPortal } from 'react-dom';
 import { Button } from './Button';
 
 interface NavbarProps {
@@ -14,6 +15,7 @@ export const Navbar: React.FC<NavbarProps> = ({ scrolled = false }) => {
   const navLinks = [
     { name: 'Home', path: '/', icon: Home },
     { name: 'Programs', path: '/programs', icon: Zap },
+    { name: 'Maker Wall', path: '/maker-wall', icon: Star },
     { name: 'Kids & Families', path: '/kids-families', icon: Users },
     { name: 'Schools', path: '/schools', icon: Presentation },
     { name: 'About', path: '/about', icon: Info },
@@ -23,13 +25,24 @@ export const Navbar: React.FC<NavbarProps> = ({ scrolled = false }) => {
 
   const isActive = (path: string) => location.pathname === path;
 
+  // Close mobile menu on route change and robustly reset scroll
+  useEffect(() => {
+    setIsOpen(false);
+  }, [location.pathname]);
+
   // Lock body scroll when mobile menu is open
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.setProperty('overflow', 'hidden', 'important');
     } else {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = '';
+      document.body.style.removeProperty('overflow');
     }
+    
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.removeProperty('overflow');
+    };
   }, [isOpen]);
 
   // Don't show public navbar on Admin pages (AdminLayout handles its own)
@@ -64,7 +77,7 @@ export const Navbar: React.FC<NavbarProps> = ({ scrolled = false }) => {
           </Link>
 
           {/* Desktop Nav */}
-          <div className="hidden lg:flex items-center gap-4 xl:gap-6">
+          <div className="hidden xl:flex items-center gap-4 xl:gap-6">
             {navLinks.filter(link => link.name !== 'Home').map((link) => (
               <Link
                 key={link.name}
@@ -91,7 +104,7 @@ export const Navbar: React.FC<NavbarProps> = ({ scrolled = false }) => {
 
           {/* Mobile Menu Toggle */}
           <button
-            className={`lg:hidden text-black p-2 bg-gray-100 rounded-none border-4 border-black hover:bg-gray-200 transition-all shadow-neo-sm ${scrolled ? 'scale-90' : ''}`}
+            className={`xl:hidden text-black p-2 bg-gray-100 rounded-none border-4 border-black hover:bg-gray-200 transition-all shadow-neo-sm ${scrolled ? 'scale-90' : ''}`}
             onClick={() => setIsOpen(!isOpen)}
             aria-label="Menu"
           >
@@ -102,19 +115,19 @@ export const Navbar: React.FC<NavbarProps> = ({ scrolled = false }) => {
     </nav>
 
       {/* Mobile Menu Overlay */}
-      {isOpen && (
-        <div className="fixed inset-0 z-[120] bg-white/20 backdrop-blur-xl flex flex-col justify-center items-center p-6 lg:hidden">
+      {isOpen && createPortal(
+        <div className="fixed inset-0 z-[120] bg-white/20 backdrop-blur-xl flex flex-col justify-center items-center p-6 xl:hidden pointer-events-auto">
           <div className="absolute inset-0 bg-brand-red/80 mix-blend-multiply pointer-events-none"></div>
           
           {/* Close Button absolute positioning */}
           <button
-            className="absolute top-6 right-6 text-black p-3 bg-white rounded-none border-4 border-black hover:bg-gray-100 shadow-neo transition-transform hover:translate-y-1 hover:translate-x-1 hover:shadow-none"
+            className="absolute top-6 right-6 text-black p-3 bg-white rounded-none border-4 border-black hover:bg-gray-100 shadow-neo transition-transform hover:translate-y-1 hover:translate-x-1 hover:shadow-none pointer-events-auto"
             onClick={() => setIsOpen(false)}
           >
             <X size={32} strokeWidth={3} />
           </button>
 
-          <div className="w-full max-w-sm flex flex-col gap-4 overflow-y-auto max-h-[80vh] py-4 relative z-10">
+          <div className="w-full max-w-sm flex flex-col gap-4 overflow-y-auto max-h-[80vh] py-4 relative z-10 pointer-events-auto my-auto custom-scrollbar">
             {navLinks.map((link, index) => (
               <Link
                 key={link.name}
@@ -130,9 +143,9 @@ export const Navbar: React.FC<NavbarProps> = ({ scrolled = false }) => {
               </Link>
             ))}
 
-            <div className="h-2"></div>
+            <div className="h-2 shrink-0"></div>
 
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 shrink-0 pb-12">
               <Link to="/quiz" onClick={() => setIsOpen(false)}>
                 <Button variant="primary" className="w-full justify-center py-4 text-base border-4 border-black bg-brand-orange text-black hover:bg-brand-orange/90 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] uppercase tracking-wider">
                   <Sparkles size={20} className="mr-2 animate-pulse" strokeWidth={3} />
@@ -152,12 +165,9 @@ export const Navbar: React.FC<NavbarProps> = ({ scrolled = false }) => {
                 </Button>
               </Link>
             </div>
-
-            <div className="mt-4 text-center">
-              <p className="font-bold text-xs text-black/60">MakerLab Academy © 2026</p>
-            </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

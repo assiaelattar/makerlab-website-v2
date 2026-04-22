@@ -429,3 +429,19 @@ export interface Enrollment {
   type?: 'annual' | 'session' | 'trial';
   createdAt: string;
 }
+
+export interface MakerProject {
+  id?: string;
+  status: 'pending' | 'approved';
+  createdAt: string;
+  makerNames: string[];
+  projectTitle: string;
+  slug: string;
+  category: string;
+  pitch: string;
+  coverImage: string;
+  gallery: string[];
+  techStack: string[];
+  liveLink?: string;
+  repoLink?: string;
+}

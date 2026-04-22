@@ -55,6 +55,10 @@ import { MerciPage } from './pages/MerciPage';
 import { DecouvrirPage } from './pages/DecouvrirPage';
 import { AdminLaunchCenter } from './pages/Admin/AdminLaunchCenter';
 
+import { SubmitProject } from './pages/SubmitProject';
+import { MakerWall } from './pages/MakerWall';
+import { ProjectDetail } from './pages/ProjectDetail';
+import { AdminMakerWall } from './pages/Admin/AdminMakerWall';
 const ScrollToTop = () => {
   const { pathname } = useLocation();
   React.useEffect(() => {
@@ -108,6 +112,21 @@ const GlobalAnalytics: React.FC = () => {
   }, [settings.gscVerification]);
 
   return null;
+};
+
+const PublicHeader: React.FC<{ scrolled: boolean }> = ({ scrolled }) => {
+  const location = useLocation();
+  if (location.pathname.startsWith('/admin')) return null;
+
+  return (
+    <div className="sticky top-0 z-[100] w-full flex flex-col pointer-events-none">
+      <div className="pointer-events-auto">
+        <AnnouncementBar />
+        <Navbar scrolled={scrolled} />
+      </div>
+      <div className="h-1 bg-brand-orange transition-all duration-300 pointer-events-none self-start" style={{ width: scrolled ? '100.1%' : '0%' }}></div>
+    </div>
+  );
 };
 
 const App: React.FC = () => {
@@ -180,20 +199,42 @@ const App: React.FC = () => {
                 <Route path="/merci"     element={<MerciPage />} />
                 <Route path="/decouvrir" element={<DecouvrirPage />} />
 
+                {/* ── Admin Routes (Isolated from public layout) ── */}
+                <Route path="/admin" element={<AdminLogin />} />
+                <Route path="/admin" element={<AdminLayout />}>
+                  <Route path="dashboard" element={<AdminDashboard />} />
+                  <Route path="setup" element={<AdminLaunchCenter />} />
+                  <Route path="content" element={<AdminContent />} />
+                  <Route path="programs" element={<AdminDashboard />} />
+                  <Route path="bookings" element={<AdminBookings />} />
+                  <Route path="calendar" element={<AdminCalendar />} />
+                  <Route path="media" element={<AdminMedia />} />
+                  <Route path="settings" element={<AdminSettings />} />
+                  <Route path="blogs" element={<AdminBlogs />} />
+                  <Route path="landing-pages" element={<AdminLandingPages />} />
+                  <Route path="missions" element={<AdminMissions />} />
+                  <Route path="leads" element={<AdminLeadMagnet />} />
+                  <Route path="program/:id" element={<ProgramEditor />} />
+                  <Route path="maker-wall" element={<AdminMakerWall />} />
+                  
+                  {/* School Partner Admin Routes */}
+                  <Route path="workshop-catalog" element={<WorkshopCatalog />} />
+                  <Route path="workshop/:id" element={<WorkshopEditor />} />
+                  <Route path="partners" element={<SchoolPartners />} />
+                  <Route path="partner/:id" element={<SchoolPartnerEditor />} />
+                  <Route path="periods" element={<PeriodManager />} />
+                  <Route path="offers" element={<Offers />} />
+                  <Route path="offer/:id" element={<OfferEditor />} />
+                  <Route path="landing/:id" element={<AdminLandingEditor />} />
+                </Route>
+
                 {/* ── Everything else uses the standard layout shell ── */}
                 <Route path="*" element={
                   <div className="font-sans text-brand-dark min-h-screen flex flex-col bg-transparent relative">
                     <BackgroundElements />
                     
                     {/* Unified Sticky Header Container */}
-                    <div className="sticky top-0 z-[100] w-full flex flex-col pointer-events-none">
-                      <div className="pointer-events-auto">
-                        <AnnouncementBar />
-                        <Navbar scrolled={scrolled} />
-                      </div>
-                      {/* Scroll Progress Bar */}
-                      <div className="h-1 bg-brand-orange transition-all duration-300 pointer-events-none self-start" style={{ width: scrolled ? '100.1%' : '0%' }}></div>
-                    </div>
+                    <PublicHeader scrolled={scrolled} />
 
                     <main className="flex-grow relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
                       <Routes>
@@ -211,34 +252,11 @@ const App: React.FC = () => {
                         <Route path="/contact" element={<Contact />} />
                         <Route path="/booking/:id" element={<BookingPage />} />
                         <Route path="/about" element={<About />} />
+                        <Route path="/submit" element={<SubmitProject />} />
+                        <Route path="/maker-wall" element={<MakerWall />} />
+                        <Route path="/maker-wall/:slug" element={<ProjectDetail />} />
 
-                        {/* Admin Routes */}
-                        <Route path="/admin" element={<AdminLogin />} />
-                        <Route path="/admin" element={<AdminLayout />}>
-                          <Route path="dashboard" element={<AdminDashboard />} />
-                          <Route path="setup" element={<AdminLaunchCenter />} />
-                          <Route path="content" element={<AdminContent />} />
-                          <Route path="programs" element={<AdminDashboard />} />
-                          <Route path="bookings" element={<AdminBookings />} />
-                          <Route path="calendar" element={<AdminCalendar />} />
-                          <Route path="media" element={<AdminMedia />} />
-                          <Route path="settings" element={<AdminSettings />} />
-                          <Route path="blogs" element={<AdminBlogs />} />
-                          <Route path="landing-pages" element={<AdminLandingPages />} />
-                          <Route path="missions" element={<AdminMissions />} />
-                          <Route path="leads" element={<AdminLeadMagnet />} />
-                          <Route path="program/:id" element={<ProgramEditor />} />
-                          
-                          {/* School Partner Admin Routes */}
-                          <Route path="workshop-catalog" element={<WorkshopCatalog />} />
-                          <Route path="workshop/:id" element={<WorkshopEditor />} />
-                          <Route path="partners" element={<SchoolPartners />} />
-                          <Route path="partner/:id" element={<SchoolPartnerEditor />} />
-                          <Route path="periods" element={<PeriodManager />} />
-                          <Route path="offers" element={<Offers />} />
-                          <Route path="offer/:id" element={<OfferEditor />} />
-                          <Route path="landing/:id" element={<AdminLandingEditor />} />
-                        </Route>
+
 
                         <Route path="/s/:slug" element={<SchoolLanding />} />
 

@@ -140,6 +140,7 @@ export const AdminLayout: React.FC = () => {
     { label: 'Périodes & Offres',    path: '/admin/periods',          icon: Ticket },
 
     { type: 'header', label: 'Contenu & Admin' },
+    { label: 'Maker Wall Queue',    path: '/admin/maker-wall',       icon: Sparkles },
     { label: 'Blog & SEO',          path: '/admin/blogs',            icon: PenTool },
     { label: 'Médiathèque',          path: '/admin/media',            icon: ImageIcon },
     { label: 'Configuration',       path: '/admin/settings',         icon: Settings },
