@@ -53,7 +53,7 @@ export const Home: React.FC = () => {
   const currentMessage = dynamicMessages[heroTextIndex];
 
   return (
-    <div className="min-h-screen overflow-x-hidden pt-8 md:pt-16">
+    <div className="min-h-screen overflow-x-hidden pt-4 md:pt-16">
       <SEO 
         title="Cours de Robotique & Codage Enfants Casablanca"
         description="MakerLab Academy : Ateliers de robotique, codage Python, et impression 3D pour enfants et ados à Casablanca. Apprenez en construisant de vrais projets !"
@@ -76,19 +76,19 @@ export const Home: React.FC = () => {
               <span className="text-sm md:text-base tracking-wide uppercase font-display">Hey Future Tech Leader !</span>
             </div>
 
-            <h1 className="font-display font-black text-4xl md:text-6xl lg:text-7xl text-black mb-8 leading-[1.1] tracking-tight uppercase">
-              <span className={`block text-2xl md:text-4xl text-gray-800 mb-2 transition-all duration-300 ${isFading ? 'opacity-0 -translate-y-2' : 'opacity-100 translate-y-0'}`}>
+            <h1 className="font-display font-black text-3xl md:text-6xl lg:text-7xl text-black mb-6 leading-[1.1] tracking-tight uppercase">
+              <span className={`block text-xl md:text-4xl text-gray-800 mb-1 transition-all duration-300 ${isFading ? 'opacity-0 -translate-y-2' : 'opacity-100 translate-y-0'}`}>
                 {currentMessage.passive} —
               </span>
-              <span className={`block my-4 text-7xl md:text-8xl lg:text-[140px] leading-[0.8] text-${currentMessage.color} drop-shadow-[5px_5px_0px_rgba(0,0,0,1)] transition-all duration-300 ${isFading ? 'opacity-0 scale-90 blur-sm' : 'opacity-100 scale-100 blur-0'} hover:scale-105 origin-left`}>
+              <span className={`block my-2 md:my-4 text-5xl sm:text-6xl md:text-8xl lg:text-[140px] leading-[0.85] text-${currentMessage.color} drop-shadow-[3px_3px_0px_rgba(0,0,0,1)] md:drop-shadow-[5px_5px_0px_rgba(0,0,0,1)] transition-all duration-300 ${isFading ? 'opacity-0 scale-90 blur-sm' : 'opacity-100 scale-100 blur-0'} hover:scale-105 origin-left`}>
                 {currentMessage.action}
               </span>
-              <span className={`block mt-4 transition-all duration-300 delay-100 ${isFading ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'}`}>
+              <span className={`block mt-2 md:mt-4 text-2xl md:text-4xl transition-all duration-300 delay-100 ${isFading ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'}`}>
                 {currentMessage.result}
               </span>
             </h1>
 
-            <p className="text-lg md:text-2xl text-gray-900 mb-10 max-w-lg mx-auto lg:mx-0 font-bold leading-relaxed">
+            <p className="text-base md:text-2xl text-gray-900 mb-8 max-w-lg mx-auto lg:mx-0 font-bold leading-relaxed">
               Transforme ton week-end. Choisis une mission de <span className="font-black bg-brand-red px-2 border-2 border-black rounded-none mx-1 text-white shadow-neo-sm transform -rotate-2 inline-block">3 heures</span> et repars avec ton propre projet tech.
             </p>
 
@@ -107,7 +107,7 @@ export const Home: React.FC = () => {
           </div>
 
           {/* Right Visuals - Kinetic Bento Accordion */}
-          <div className="lg:col-span-5 relative flex justify-center lg:justify-end mt-12 lg:mt-0 h-[500px] md:h-[650px] w-full">
+          <div className="lg:col-span-5 relative flex justify-center lg:justify-end mt-8 lg:mt-0 h-[280px] sm:h-[400px] md:h-[500px] md:h-[650px] w-full">
             <KineticHero 
               images1={settings?.hero_images?.home_bento_1} 
               images2={settings?.hero_images?.home_bento_2} 
@@ -118,54 +118,54 @@ export const Home: React.FC = () => {
       </section>
 
       {/* TARGET AUDIENCES SECTION (Pour qui ?) */}
-      <section className="py-24 px-4 bg-white relative border-y-4 border-black">
+      <section className="py-12 md:py-24 px-4 bg-white relative border-y-4 border-black">
         <div className="absolute inset-0 z-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#000 2px, transparent 2px)', backgroundSize: '20px 20px' }}></div>
         <div className="container mx-auto relative z-10">
           <ScrollReveal>
-            <div className="text-center mb-16">
-              <h2 className="font-display font-black text-5xl md:text-6xl mb-6 uppercase tracking-tight">Pour qui ?</h2>
+            <div className="text-center mb-8 md:mb-16">
+              <h2 className="font-display font-black text-3xl md:text-6xl mb-4 md:mb-6 uppercase tracking-tight">Pour qui ?</h2>
             </div>
           </ScrollReveal>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
 
-            <Link to="/ecoles" className="group flex flex-col items-start bg-brand-blue p-8 border-4 border-black shadow-neo hover:translate-x-1 hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all">
-              <div className="w-16 h-16 bg-white border-4 border-black rounded-none mb-6 flex items-center justify-center shadow-neo-sm group-hover:rotate-12 transition-transform">
-                <CheckCircle size={32} strokeWidth={3} className="text-black" />
+            <Link to="/ecoles" className="group flex flex-col items-start bg-brand-blue p-5 md:p-8 border-4 border-black shadow-neo hover:translate-x-1 hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all">
+              <div className="w-10 h-10 md:w-16 md:h-16 bg-white border-4 border-black rounded-none mb-3 md:mb-6 flex items-center justify-center shadow-neo-sm group-hover:rotate-12 transition-transform">
+                <CheckCircle size={20} strokeWidth={3} className="text-black md:w-8 md:h-8" />
               </div>
-              <h3 className="font-display font-black text-2xl mb-3 text-white tracking-wide">Écoles & Institutions</h3>
-              <p className="text-gray-50 font-medium text-base leading-relaxed">
+              <h3 className="font-display font-black text-base md:text-2xl mb-1 md:mb-3 text-white tracking-wide">Écoles & Institutions</h3>
+              <p className="text-gray-50 font-medium text-xs md:text-base leading-relaxed hidden md:block">
                 Installation de Makerspaces, visites et formations pour professeurs.
               </p>
             </Link>
 
-            <Link to="/programs" className="group flex flex-col items-start bg-brand-green p-8 border-4 border-black shadow-neo hover:translate-x-1 hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all">
-              <div className="w-16 h-16 bg-white border-4 border-black rounded-none mb-6 flex items-center justify-center shadow-neo-sm group-hover:rotate-12 transition-transform">
-                <Rocket size={32} strokeWidth={3} className="text-black" />
+            <Link to="/programs" className="group flex flex-col items-start bg-brand-green p-5 md:p-8 border-4 border-black shadow-neo hover:translate-x-1 hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all">
+              <div className="w-10 h-10 md:w-16 md:h-16 bg-white border-4 border-black rounded-none mb-3 md:mb-6 flex items-center justify-center shadow-neo-sm group-hover:rotate-12 transition-transform">
+                <Rocket size={20} strokeWidth={3} className="text-black md:w-8 md:h-8" />
               </div>
-              <h3 className="font-display font-black text-2xl mb-3 text-white tracking-wide">Enfants & Ados</h3>
-              <p className="text-gray-50 font-medium text-base leading-relaxed">
-                Programmes StemQuest, MakerLab Academy, et ateliers interactifs ("No Legos").
+              <h3 className="font-display font-black text-base md:text-2xl mb-1 md:mb-3 text-white tracking-wide">Enfants & Ados</h3>
+              <p className="text-gray-50 font-medium text-xs md:text-base leading-relaxed hidden md:block">
+                Programmes StemQuest, MakerLab Academy, et ateliers interactifs.
               </p>
             </Link>
 
-            <Link to="/adultes" className="group flex flex-col items-start bg-brand-red text-white p-8 border-4 border-black shadow-neo hover:translate-x-1 hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all">
-              <div className="w-16 h-16 bg-white border-4 border-black rounded-none mb-6 flex items-center justify-center shadow-neo-sm group-hover:rotate-12 transition-transform">
-                <Cpu size={32} strokeWidth={3} className="text-black" />
+            <Link to="/adultes" className="group flex flex-col items-start bg-brand-red text-white p-5 md:p-8 border-4 border-black shadow-neo hover:translate-x-1 hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all">
+              <div className="w-10 h-10 md:w-16 md:h-16 bg-white border-4 border-black rounded-none mb-3 md:mb-6 flex items-center justify-center shadow-neo-sm group-hover:rotate-12 transition-transform">
+                <Cpu size={20} strokeWidth={3} className="text-black md:w-8 md:h-8" />
               </div>
-              <h3 className="font-display font-black text-2xl mb-3 text-white tracking-wide">Adultes & Pros</h3>
-              <p className="text-white font-medium text-base leading-relaxed">
+              <h3 className="font-display font-black text-base md:text-2xl mb-1 md:mb-3 text-white tracking-wide">Adultes & Pros</h3>
+              <p className="text-white font-medium text-xs md:text-base leading-relaxed hidden md:block">
                 Formations pointues en IA, CAO, Impression 3D, et Business tech.
               </p>
             </Link>
 
-            <Link to="/store" className="group flex flex-col items-start bg-brand-orange text-black p-8 border-4 border-black shadow-neo hover:translate-x-1 hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all">
-              <div className="w-16 h-16 bg-white border-4 border-black rounded-none mb-6 flex items-center justify-center shadow-neo-sm group-hover:rotate-12 transition-transform">
-                <Terminal size={32} strokeWidth={3} className="text-black" />
+            <Link to="/store" className="group flex flex-col items-start bg-brand-orange text-black p-5 md:p-8 border-4 border-black shadow-neo hover:translate-x-1 hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all">
+              <div className="w-10 h-10 md:w-16 md:h-16 bg-white border-4 border-black rounded-none mb-3 md:mb-6 flex items-center justify-center shadow-neo-sm group-hover:rotate-12 transition-transform">
+                <Terminal size={20} strokeWidth={3} className="text-black md:w-8 md:h-8" />
               </div>
-              <h3 className="font-display font-black text-2xl mb-3 text-black tracking-wide">Le Store (Familles)</h3>
-              <p className="text-black font-medium text-base leading-relaxed">
-                Achetez nos kits éducatifs ou réservez un atelier Masterclass de fabrication.
+              <h3 className="font-display font-black text-base md:text-2xl mb-1 md:mb-3 text-black tracking-wide">Le Store</h3>
+              <p className="text-black font-medium text-xs md:text-base leading-relaxed hidden md:block">
+                Achetez nos kits éducatifs ou réservez un atelier Masterclass.
               </p>
             </Link>
 
@@ -193,14 +193,14 @@ export const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* PARENTS SECTION - Enhanced with Colors */}
-      <section className="py-24 px-4 bg-white relative border-t-4 border-black">
+      {/* PARENTS SECTION */}
+      <section className="py-12 md:py-24 px-4 bg-white relative border-t-4 border-black">
         <div className="container mx-auto">
           <ScrollReveal>
-            <div className="text-center mb-20">
-              <div className="inline-block bg-brand-green border-2 border-black px-4 py-1 rounded-full font-bold text-sm mb-4 uppercase tracking-widest shadow-neo-sm">Pour les Parents</div>
-              <h2 className="font-display font-bold text-4xl md:text-6xl mb-6">Pourquoi ils adorent ?</h2>
-              <p className="text-gray-500 text-xl max-w-2xl mx-auto">
+            <div className="text-center mb-10 md:mb-20">
+              <div className="inline-block bg-brand-green border-2 border-black px-4 py-1 rounded-full font-bold text-xs md:text-sm mb-3 md:mb-4 uppercase tracking-widest shadow-neo-sm">Pour les Parents</div>
+              <h2 className="font-display font-bold text-3xl md:text-6xl mb-4 md:mb-6">Pourquoi ils adorent ?</h2>
+              <p className="text-gray-500 text-base md:text-xl max-w-2xl mx-auto">
                 Transformez le temps d'écran passif en temps d'apprentissage actif et créatif.
               </p>
             </div>
@@ -252,14 +252,14 @@ export const Home: React.FC = () => {
 
 
       {/* METHOD GRID */}
-      <section className="py-24 px-4 bg-gray-50 relative">
+      <section className="py-12 md:py-24 px-4 bg-gray-50 relative">
         <div className="container mx-auto relative z-10">
           <ScrollReveal>
             <div className="flex flex-col md:flex-row justify-between items-end mb-16">
               <div className="text-center md:text-left w-full">
-                <span className="font-bold text-brand-red uppercase tracking-widest mb-2 block">Comment ça marche ?</span>
-                <h2 className="font-display font-bold text-4xl md:text-6xl mb-6">La Méthode Sprint</h2>
-                <p className="text-xl text-gray-500 max-w-2xl mx-auto md:mx-0">
+                <span className="font-bold text-brand-red uppercase tracking-widest mb-2 block text-sm md:text-base">Comment ça marche ?</span>
+                <h2 className="font-display font-bold text-3xl md:text-6xl mb-4 md:mb-6">La Méthode Sprint</h2>
+                <p className="text-base md:text-xl text-gray-500 max-w-2xl mx-auto md:mx-0">
                   3 heures pour passer de "Je ne sais pas faire" à "Regarde ce que j'ai fait".
                 </p>
               </div>
@@ -317,12 +317,12 @@ export const Home: React.FC = () => {
       <section className="py-20 px-4 mb-10">
         <ScrollReveal>
           <div className="container mx-auto">
-            <div className="bg-brand-red rounded-[2.5rem] md:rounded-[4rem] border-4 border-black p-8 md:p-24 text-center relative overflow-hidden shadow-neo-xl group hover:shadow-none hover:translate-y-2 transition-all duration-500">
+            <div className="bg-brand-red rounded-[2rem] md:rounded-[4rem] border-4 border-black p-6 md:p-24 text-center relative overflow-hidden shadow-neo-xl group hover:shadow-none hover:translate-y-2 transition-all duration-500">
               {/* Animated BG */}
               <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
 
               <div className="relative z-10">
-                <h2 className="font-display font-bold text-4xl md:text-7xl text-white mb-8 drop-shadow-md leading-tight">
+                <h2 className="font-display font-bold text-3xl md:text-7xl text-white mb-6 md:mb-8 drop-shadow-md leading-tight">
                   Prêt à impressionner <br /> tes amis ?
                 </h2>
                 <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">

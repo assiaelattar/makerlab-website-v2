@@ -96,7 +96,7 @@ export const ChatAssistant: React.FC = () => {
       
       {/* Floating Window */}
       {isOpen && (
-        <div className="mb-4 w-[350px] md:w-[400px] h-[550px] bg-white/95 backdrop-blur-xl border-4 border-black rounded-[2.5rem] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-10 duration-300">
+        <div className="mb-4 w-[calc(100vw-3rem)] md:w-[400px] max-h-[70vh] md:h-[550px] bg-white/95 backdrop-blur-xl border-4 border-black rounded-[2rem] md:rounded-[2.5rem] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] md:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-10 duration-300">
           
           {/* Header */}
           <div className="bg-brand-red p-5 border-b-4 border-black flex justify-between items-center">
@@ -176,7 +176,7 @@ export const ChatAssistant: React.FC = () => {
       {/* Floating Toggle Button */}
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-16 h-16 rounded-full border-4 border-black flex items-center justify-center shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none ${
+        className={`w-14 h-14 md:w-16 md:h-16 rounded-full border-4 border-black flex items-center justify-center shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none ${
             isOpen ? 'bg-red-400' : 'bg-brand-orange'
         }`}
       >

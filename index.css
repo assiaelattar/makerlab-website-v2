@@ -22,6 +22,30 @@ body {
   scrollbar-color: #e87722 #f1f1f1;
 }
 
+/* ── Mobile Global Fixes ── */
+html, body {
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: pan-y;
+}
+
+/* Prevent any element from causing horizontal scroll on mobile */
+.container {
+  max-width: 100%;
+}
+
+/* Improve tap target sizes on mobile */
+@media (max-width: 768px) {
+  button, a {
+    min-height: 36px;
+  }
+  
+  /* Reduce excessive section padding on mobile site-wide */
+  section {
+    scroll-margin-top: 80px;
+  }
+}
+
 /* Subtle Paper Grain Overlay */
 body::before {
   content: "";

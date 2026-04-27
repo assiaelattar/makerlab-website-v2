@@ -31,7 +31,7 @@ export const AnnouncementBar: React.FC = () => {
 
     return (
         <div
-            className="w-full py-2 border-b-4 border-black relative z-[200] flex items-center overflow-hidden h-12"
+            className="w-full py-1 md:py-2 border-b-4 border-black relative z-[200] flex items-center overflow-hidden h-8 md:h-12"
             style={{ backgroundColor: config.bgColor || '#00E5FF', color: config.textColor || '#000000' }}
         >
             {config.animationStyle === 'slide' ? (

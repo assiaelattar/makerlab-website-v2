@@ -69,14 +69,14 @@ export const SocialProofToast: React.FC = () => {
     return (
         <div 
             className={`
-                fixed z-[600] transition-all duration-700 transform
+                fixed z-[600] transition-all duration-500 transform
                 /* Desktop: Bottom-Left */
-                md:bottom-8 md:left-8 md:translate-x-0
-                /* Mobile: Top-Center to avoid WA overlap */
-                bottom-auto top-4 left-4 right-4 md:right-auto md:w-auto
+                md:bottom-8 md:left-8 md:translate-x-0 md:w-auto
+                /* Mobile: Above the chat button, bottom-right area */
+                bottom-[88px] left-3 right-3
                 ${isVisible 
                     ? 'translate-y-0 opacity-100' 
-                    : 'md:translate-y-12 -translate-y-20 opacity-0'
+                    : 'translate-y-4 opacity-0 pointer-events-none'
                 }
             `}
         >
