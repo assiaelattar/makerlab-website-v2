@@ -52,10 +52,10 @@ export const STEMQuestEnrollment: React.FC = () => {
     status: 'pending'
   });
 
-  // Force scroll to top on mount
+  // Force scroll to top on mount AND on every step change
   useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+  }, [step]);
 
   // Fetch Settings
   useEffect(() => {
@@ -222,27 +222,27 @@ ${method === 'virement' ? 'Je vous envoie la preuve de virement ci-joint.' : 'Je
         image="/logo-full.png"
       />
 
-      {/* Hero Header */}
-      <header className="bg-[#2D1B8C] text-white pt-10 pb-20 md:pt-16 md:pb-32 px-4 relative overflow-hidden">
+      {/* Hero Header — compact on mobile */}
+      <header className="bg-[#2D1B8C] text-white pt-6 pb-16 md:pt-16 md:pb-32 px-4 relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-full opacity-10">
-          <div className="absolute top-10 left-10 w-24 h-24 md:w-32 md:h-32 rounded-full border-8 border-white animate-pulse" />
-          <div className="absolute bottom-10 right-10 w-48 h-48 md:w-64 md:h-64 rounded-full border-8 border-white animate-float" />
+          <div className="absolute top-4 left-4 w-12 h-12 md:w-32 md:h-32 rounded-full border-4 md:border-8 border-white animate-pulse" />
+          <div className="absolute bottom-4 right-4 w-24 h-24 md:w-64 md:h-64 rounded-full border-4 md:border-8 border-white animate-float" />
         </div>
 
         <div className="container mx-auto max-w-4xl relative z-10 text-center">
-          <div className="inline-flex items-center gap-2 bg-yellow-400 text-[#2D1B8C] px-3 py-1.5 md:px-4 md:py-2 rounded-full font-black text-[10px] md:text-sm uppercase tracking-wider mb-4 md:mb-6 shadow-lg animate-bounce">
-            <Star size={14} fill="currentColor" className="md:w-[18px] md:h-[18px]" />
+          <div className="inline-flex items-center gap-2 bg-yellow-400 text-[#2D1B8C] px-3 py-1 md:px-4 md:py-2 rounded-full font-black text-[9px] md:text-sm uppercase tracking-wider mb-2 md:mb-6 shadow-lg">
+            <Star size={10} fill="currentColor" className="md:w-[18px] md:h-[18px]" />
             Merci pour votre visite !
-            <Star size={14} fill="currentColor" className="md:w-[18px] md:h-[18px]" />
+            <Star size={10} fill="currentColor" className="md:w-[18px] md:h-[18px]" />
           </div>
-          <h1 className="text-2xl sm:text-3xl md:text-6xl font-black uppercase leading-tight mb-4 md:mb-6">
+          <h1 className="text-xl sm:text-2xl md:text-6xl font-black uppercase leading-tight mb-2 md:mb-6">
             {isPersonalized ? (
-              <>Bonjour {formData.parentName.split(' ')[0]} ! <br /> <span className="text-yellow-400">{formData.childName} est un futur Maker !</span></>
+              <>Bonjour {formData.parentName.split(' ')[0]} ! <br className="hidden md:block" /> <span className="text-yellow-400">{formData.childName} est un futur Maker !</span></>
             ) : (
-              <>Prêt à transformer <br /> <span className="text-yellow-400">votre enfant en Maker ?</span></>
+              <>Prêt à transformer <br className="hidden md:block" /> <span className="text-yellow-400">votre enfant en Maker ?</span></>
             )}
           </h1>
-          <p className="text-base md:text-2xl text-purple-100 font-medium max-w-2xl mx-auto leading-relaxed px-4">
+          <p className="text-sm md:text-2xl text-purple-100 font-medium max-w-2xl mx-auto leading-relaxed px-2 hidden md:block">
             {isPersonalized ? (
               <>Nous avons adoré voir l'énergie et la créativité de {formData.childName} lors de son atelier d'essai ! 🚀</>
             ) : (

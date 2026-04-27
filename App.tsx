@@ -68,7 +68,8 @@ import { AdminSTEMQuestSettings } from './pages/Admin/AdminSTEMQuestSettings';
 const ScrollToTop = () => {
   const { pathname } = useLocation();
   React.useEffect(() => {
-    window.scrollTo(0, 0);
+    // Use 'instant' behavior to prevent any browser scroll restoration interference
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
   }, [pathname]);
   return null;
 };
@@ -246,7 +247,7 @@ const App: React.FC = () => {
                     {/* Unified Sticky Header Container */}
                     <PublicHeader scrolled={scrolled} />
 
-                    <main className="flex-grow relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <main className="flex-grow relative z-10 animate-in fade-in duration-300">
                       <Routes>
                         <Route path="/" element={<Home />} />
                         <Route path="/programs" element={<Programs />} />
