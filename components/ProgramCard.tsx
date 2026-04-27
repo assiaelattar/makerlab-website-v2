@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowRight, Clock, Trophy, Zap, Star, Calendar } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowRight, Clock, Trophy, Star, Calendar } from 'lucide-react';
 import { Program, Mission } from '../types';
 import { AiImage } from './AiImage';
 
@@ -23,6 +23,7 @@ export const ProgramCard: React.FC<Props> = ({ program, index = 0 }) => {
 
   const theme = colors[index % colors.length];
 
+  const navigate = useNavigate();
   const [transform, setTransform] = useState('');
   const [isHovered, setIsHovered] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -110,11 +111,10 @@ export const ProgramCard: React.FC<Props> = ({ program, index = 0 }) => {
           <span>XP: +{('stats' in program && program.stats?.[0]?.value) || 300}</span>
         </div>
 
-        {/* Overlay on hover */}
+        {/* Overlay on hover — shows arrow to detail page */}
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-sm">
-          <span className="bg-brand-orange text-black border-2 border-black px-6 py-3 rounded-xl font-bold transform translate-y-8 group-hover:translate-y-0 transition-transform duration-300 shadow-neo flex items-center gap-2">
-            <Zap size={20} className="fill-black" strokeWidth={3} />
-            Lancer la mission
+          <span className="bg-white text-black border-2 border-black px-5 py-2.5 rounded-xl font-bold transform translate-y-8 group-hover:translate-y-0 transition-transform duration-300 shadow-neo flex items-center gap-2 text-sm uppercase tracking-widest">
+            <ArrowRight size={16} strokeWidth={3} /> Voir détails
           </span>
         </div>
       </div>
@@ -182,15 +182,16 @@ export const ProgramCard: React.FC<Props> = ({ program, index = 0 }) => {
 
           <button 
             onClick={() => {
+              let path = '';
               if (!('date' in program) && (program as Program).bookingType === 'external' && (program as Program).externalBookingUrl) {
                 window.open((program as Program).externalBookingUrl, '_blank');
+                return;
               } else if ('date' in program) {
-                // If it's a mission, we point to the Make & Go booking flow
-                const targetId = 'kids-2'; 
-                window.location.href = `#/booking/${targetId}?missionId=${program.id}`;
+                path = `/booking/kids-2?missionId=${program.id}`;
               } else {
-                window.location.href = `#/booking/${program.id}`;
+                path = `/booking/${program.id}`;
               }
+              navigate(path);
             }}
             className={`w-full ${theme.badge} p-4 rounded-none border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all flex items-center justify-center gap-2 font-black uppercase tracking-widest`}
           >

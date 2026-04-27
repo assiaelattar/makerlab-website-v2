@@ -78,17 +78,15 @@ export const Programs: React.FC = () => {
       />
       <div className="container mx-auto">
         <ScrollReveal>
-          {/* HEADER SECTION */}
-          <section className="relative pb-12">
-            <div className="bg-brand-red border-4 border-black px-4 py-16 md:py-24 text-center relative overflow-hidden group shadow-neo-xl">
-              {/* Abstract Background for Header */}
+          {/* HEADER SECTION — compact on mobile */}
+          <section className="relative pb-6 md:pb-12">
+            <div className="bg-brand-red border-4 border-black px-4 py-8 md:py-24 text-center relative overflow-hidden group shadow-neo-xl">
               <div className="absolute inset-0 z-0 bg-[url('https://www.transparenttextures.com/patterns/diagmonds-light.png')] opacity-20"></div>
-
               <div className="container mx-auto relative z-10">
-                <h1 className="font-display font-black text-5xl md:text-8xl text-white mb-6 uppercase tracking-tight leading-[0.9] drop-shadow-[6px_6px_0px_rgba(0,0,0,1)]">
-                  Trouve ta <br /> <span className="text-white underline decoration-brand-orange">Mission.</span>
+                <h1 className="font-display font-black text-3xl md:text-8xl text-white mb-2 md:mb-6 uppercase tracking-tight leading-[0.9] drop-shadow-[3px_3px_0px_rgba(0,0,0,1)] md:drop-shadow-[6px_6px_0px_rgba(0,0,0,1)]">
+                  Trouve ta <span className="text-white underline decoration-brand-orange">Mission.</span>
                 </h1>
-                <p className="text-xl md:text-2xl text-white font-bold max-w-2xl mx-auto leading-relaxed group-hover:scale-105 transition-transform duration-500">
+                <p className="text-sm md:text-2xl text-white/80 font-bold max-w-2xl mx-auto">
                   Filtre ton expérience MakerLAB par âge et technologie.
                 </p>
               </div>
@@ -96,16 +94,16 @@ export const Programs: React.FC = () => {
           </section>
         </ScrollReveal>
 
-        {/* MISSION FINDER UI */}
-        <section className="mb-16 -mt-10 relative z-20 container mx-auto flex flex-col md:flex-row gap-6 items-center justify-center">
+        {/* MISSION FINDER UI — compact on mobile */}
+        <section className="mb-8 md:mb-16 -mt-4 md:-mt-10 relative z-20 container mx-auto flex flex-col md:flex-row gap-3 md:gap-6 items-start md:items-center justify-center">
             {/* Category Filter */}
-            <div className="bg-white border-4 border-black p-4 shadow-neo flex flex-wrap gap-2 justify-center">
-                <span className="w-full text-center text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Thématique</span>
+            <div className="bg-white border-4 border-black p-3 md:p-4 shadow-neo flex flex-wrap gap-1.5 md:gap-2 justify-center w-full md:w-auto">
+                <span className="w-full text-center text-[9px] font-black uppercase tracking-widest text-gray-400 mb-1">Thématique</span>
                 {categories.map(cat => (
                     <button 
                         key={cat}
                         onClick={() => setSelectedCategory(cat)}
-                        className={`px-4 py-2 border-2 border-black font-black text-sm uppercase transition-all shadow-neo-sm hover:-translate-y-1 ${selectedCategory === cat ? 'bg-brand-blue text-white rotate-1 scale-110 active:rotate-0' : 'bg-white text-black hover:bg-gray-100'}`}
+                        className={`px-2.5 py-1.5 md:px-4 md:py-2 border-2 border-black font-black text-[10px] md:text-sm uppercase transition-all shadow-neo-sm hover:-translate-y-0.5 ${selectedCategory === cat ? 'bg-brand-blue text-white rotate-1 scale-105' : 'bg-white text-black hover:bg-gray-100'}`}
                     >
                         {cat === 'All' ? 'Tous' : cat}
                     </button>
@@ -113,13 +111,13 @@ export const Programs: React.FC = () => {
             </div>
 
             {/* Age Filter */}
-            <div className="bg-white border-4 border-black p-4 shadow-neo flex flex-wrap gap-2 justify-center">
-                <span className="w-full text-center text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Âge</span>
+            <div className="bg-white border-4 border-black p-3 md:p-4 shadow-neo flex flex-wrap gap-1.5 md:gap-2 justify-center w-full md:w-auto">
+                <span className="w-full text-center text-[9px] font-black uppercase tracking-widest text-gray-400 mb-1">Âge</span>
                 {ages.map(age => (
                     <button 
                         key={age}
                         onClick={() => setSelectedAge(age)}
-                        className={`px-4 py-2 border-2 border-black font-black text-sm uppercase transition-all shadow-neo-sm hover:-translate-y-1 ${selectedAge === age ? 'bg-brand-orange text-black -rotate-1 scale-110 active:rotate-0' : 'bg-white text-black hover:bg-gray-100'}`}
+                        className={`px-2.5 py-1.5 md:px-4 md:py-2 border-2 border-black font-black text-[10px] md:text-sm uppercase transition-all shadow-neo-sm hover:-translate-y-0.5 ${selectedAge === age ? 'bg-brand-orange text-black -rotate-1 scale-105' : 'bg-white text-black hover:bg-gray-100'}`}
                     >
                         {age === 'All' ? 'Tous' : age}
                     </button>
