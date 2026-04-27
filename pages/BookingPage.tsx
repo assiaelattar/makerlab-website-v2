@@ -140,30 +140,41 @@ export const BookingPage: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen pt-20 md:pt-32 pb-20 px-4 bg-[#fcfaf7] relative overflow-hidden">
-            {/* Subtle Texture/Paper Effect */}
+        <div className="min-h-screen pt-16 md:pt-32 pb-16 px-3 md:px-4 bg-[#fcfaf7] relative overflow-hidden">
             <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/natural-paper.png")' }}></div>
             
             <div className="max-w-6xl mx-auto relative z-10">
-                <button onClick={() => navigate(-1)} className="group flex items-center gap-3 font-black uppercase tracking-[0.2em] text-[10px] mb-12 text-black/40 hover:text-black transition-colors">
+                <button onClick={() => navigate(-1)} className="group flex items-center gap-3 font-black uppercase tracking-[0.2em] text-[10px] mb-4 md:mb-12 text-black/40 hover:text-black transition-colors">
                     <div className="bg-white border-2 border-black/10 p-2 rounded-xl group-hover:scale-110 transition-transform"><ArrowLeft size={14} strokeWidth={4} /></div> 
                     Retour
                 </button>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 items-start">
-                    {/* Left: Info Card */}
-                    <div className="lg:col-span-4 space-y-6 md:space-y-8 md:sticky md:top-32">
-                        <div className={`p-6 md:p-10 border-2 border-black/5 rounded-[2rem] md:rounded-[3rem] shadow-2xl relative overflow-hidden transition-all ${type === 'trial' ? 'bg-brand-blue text-white' : 'bg-brand-red text-white'}`}>
-                            {/* Decorative Glow */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-12 items-start">
+
+                    {/* Mobile-only: Compact info banner shown ABOVE form */}
+                    <div className={`lg:hidden flex items-center gap-3 p-4 rounded-2xl border-2 border-white/10 ${type === 'trial' ? 'bg-brand-blue' : 'bg-brand-red'} text-white`}>
+                        <div className="shrink-0 bg-white/20 p-2.5 rounded-xl">
+                            {type === 'trial' ? <span className="text-xl">🎁</span> : <span className="text-xl">📅</span>}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="font-black text-[10px] uppercase tracking-widest opacity-70">{type === 'trial' ? 'Session Offerte' : type === 'annual' ? 'Parcours Annuel' : 'Workshop'}</p>
+                            <p className="font-black text-sm uppercase truncate">{bookingTitle}</p>
+                        </div>
+                        <div className="shrink-0 bg-white/20 px-3 py-1.5 rounded-full">
+                            <p className="font-black text-xs italic">{type === 'trial' ? 'GRATUIT' : bookingPrice}</p>
+                        </div>
+                    </div>
+
+                    {/* Left: Full Info Card — desktop only */}
+                    <div className="hidden lg:block lg:col-span-4 space-y-8 sticky top-32">
+                        <div className={`p-10 border-2 border-black/5 rounded-[3rem] shadow-2xl relative overflow-hidden transition-all ${type === 'trial' ? 'bg-brand-blue text-white' : 'bg-brand-red text-white'}`}>
                             <div className="absolute -top-20 -right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-                            
                             <div className="relative z-10">
                                 <div className="mb-6 inline-block bg-white/20 backdrop-blur-md text-white px-4 py-1.5 rounded-full font-black text-[10px] uppercase tracking-[0.2em]">
                                     {type === 'trial' ? '🎁 Session Offerte' : type === 'annual' ? '🏆 Parcours Annuel' : (selectedTrack ? '📦 Pack Maker' : '📅 Workshop')}
                                 </div>
-                                <h2 className="font-display font-black text-4xl md:text-5xl mb-6 leading-[0.9] uppercase italic tracking-tighter">{bookingTitle}</h2>
+                                <h2 className="font-display font-black text-5xl mb-6 leading-[0.9] uppercase italic tracking-tighter">{bookingTitle}</h2>
                                 <p className="font-bold opacity-80 mb-10 text-lg leading-relaxed italic">{bookingDesc.substring(0, 160)}...</p>
-                                
                                 <div className="space-y-4 pt-8 border-t border-white/10 text-sm">
                                     <div className="flex items-center gap-4">
                                         <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center"><Baby size={20} strokeWidth={3} /></div>
@@ -189,7 +200,6 @@ export const BookingPage: React.FC = () => {
                                 </div>
                             </div>
                         </div>
-
                         <div className="bg-white p-8 border-2 border-black/5 rounded-[2.5rem] shadow-xl italic font-bold text-base text-black/50 leading-relaxed text-center">
                              "La technologie ne doit pas être juste consommée, elle doit être créée. Rejoins l'aventure MakerLab !"
                         </div>
@@ -197,30 +207,30 @@ export const BookingPage: React.FC = () => {
 
                     {/* Right: Form */}
                     <div className="lg:col-span-8">
-                        <form onSubmit={handleSubmit} className="bg-white border-2 border-black/5 rounded-[2.5rem] md:rounded-[4rem] shadow-2xl p-6 md:p-16 space-y-8 md:space-y-12">
+                        <form onSubmit={handleSubmit} className="bg-white border-2 border-black/5 rounded-2xl md:rounded-[4rem] shadow-xl md:shadow-2xl p-4 md:p-16 space-y-5 md:space-y-12">
                             <div className="text-center md:text-left">
-                                <h3 className="font-display font-black text-2xl md:text-6xl uppercase tracking-tighter mb-2 md:mb-4 text-black italic leading-none">
+                                <h3 className="font-display font-black text-xl md:text-6xl uppercase tracking-tighter mb-1 md:mb-4 text-black italic leading-none">
                                     {type === 'trial' ? "L'AVENTURE COMMENCE." : type === 'annual' ? "PRÊT POUR L'ANNÉE ?" : "REJOINDRE LA MISSION"}
                                 </h3>
-                                <p className="text-black/40 font-black text-[9px] md:text-xs uppercase tracking-[0.3em] md:tracking-[0.4em]">Complétez les informations ci-dessous</p>
+                                <p className="text-black/40 font-black text-[9px] md:text-xs uppercase tracking-[0.3em]">Complétez les informations ci-dessous</p>
                             </div>
                             
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
-                                <div className="space-y-3">
-                                    <label className="block pl-2 font-black text-xs uppercase tracking-widest text-black/40">Nom du Parent</label>
-                                    <input required type="text" value={formData.parentName} onChange={e => setFormData({...formData, parentName: e.target.value})} placeholder="Fatima Zahra" className="w-full bg-gray-50/50 border-2 border-black/5 p-5 font-bold focus:bg-white focus:border-brand-blue outline-none transition-all rounded-2xl" />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4 md:gap-y-8">
+                                <div className="space-y-1.5 md:space-y-3">
+                                    <label className="block pl-1 font-black text-[10px] md:text-xs uppercase tracking-widest text-black/40">Nom du Parent</label>
+                                    <input required type="text" value={formData.parentName} onChange={e => setFormData({...formData, parentName: e.target.value})} placeholder="Fatima Zahra" className="w-full bg-gray-50 border-2 border-black/10 p-3 md:p-5 font-bold focus:bg-white focus:border-brand-blue outline-none transition-all rounded-xl md:rounded-2xl text-sm md:text-base" />
                                 </div>
-                                <div className="space-y-3">
-                                    <label className="block pl-2 font-black text-xs uppercase tracking-widest text-black/40">Prénom de l'enfant</label>
-                                    <input required type="text" value={formData.childName} onChange={e => setFormData({...formData, childName: e.target.value})} placeholder="Youssef" className="w-full bg-gray-50/50 border-2 border-black/5 p-5 font-bold focus:bg-white focus:border-brand-blue outline-none transition-all rounded-2xl" />
+                                <div className="space-y-1.5 md:space-y-3">
+                                    <label className="block pl-1 font-black text-[10px] md:text-xs uppercase tracking-widest text-black/40">Prénom de l'enfant</label>
+                                    <input required type="text" value={formData.childName} onChange={e => setFormData({...formData, childName: e.target.value})} placeholder="Youssef" className="w-full bg-gray-50 border-2 border-black/10 p-3 md:p-5 font-bold focus:bg-white focus:border-brand-blue outline-none transition-all rounded-xl md:rounded-2xl text-sm md:text-base" />
                                 </div>
-                                <div className="space-y-3">
-                                    <label className="block pl-2 font-black text-xs uppercase tracking-widest text-black/40">Email de contact</label>
-                                    <input required type="email" value={formData.parentEmail} onChange={e => setFormData({...formData, parentEmail: e.target.value})} placeholder="parent@email.com" className="w-full bg-gray-50/50 border-2 border-black/5 p-5 font-bold focus:bg-white focus:border-brand-blue outline-none transition-all rounded-2xl" />
+                                <div className="space-y-1.5 md:space-y-3">
+                                    <label className="block pl-1 font-black text-[10px] md:text-xs uppercase tracking-widest text-black/40">Email de contact</label>
+                                    <input required type="email" value={formData.parentEmail} onChange={e => setFormData({...formData, parentEmail: e.target.value})} placeholder="parent@email.com" className="w-full bg-gray-50 border-2 border-black/10 p-3 md:p-5 font-bold focus:bg-white focus:border-brand-blue outline-none transition-all rounded-xl md:rounded-2xl text-sm md:text-base" />
                                 </div>
-                                <div className="space-y-3">
-                                    <label className="block pl-2 font-black text-xs uppercase tracking-widest text-black/40">WhatsApp</label>
-                                    <input required type="tel" value={formData.parentPhone} onChange={e => setFormData({...formData, parentPhone: e.target.value})} placeholder="06..." className="w-full bg-gray-50/50 border-2 border-black/5 p-5 font-bold focus:bg-white focus:border-brand-blue outline-none transition-all rounded-2xl" />
+                                <div className="space-y-1.5 md:space-y-3">
+                                    <label className="block pl-1 font-black text-[10px] md:text-xs uppercase tracking-widest text-black/40">WhatsApp</label>
+                                    <input required type="tel" value={formData.parentPhone} onChange={e => setFormData({...formData, parentPhone: e.target.value})} placeholder="06..." className="w-full bg-gray-50 border-2 border-black/10 p-3 md:p-5 font-bold focus:bg-white focus:border-brand-blue outline-none transition-all rounded-xl md:rounded-2xl text-sm md:text-base" />
                                 </div>
 
                                 {type === 'trial' ? (
@@ -264,15 +274,15 @@ export const BookingPage: React.FC = () => {
                                     </div>
                                 )}
                                 
-                                <div className="space-y-3 md:col-span-2 lg:col-span-1">
-                                    <label className="block pl-2 font-black text-xs uppercase tracking-widest text-black/40">Âge de l'enfant</label>
-                                    <input required type="text" value={formData.childAge} onChange={e => setFormData({...formData, childAge: e.target.value})} placeholder="ex: 11 ans" className="w-full bg-gray-50/50 border-2 border-black/5 p-5 font-bold focus:bg-white focus:border-brand-blue outline-none transition-all rounded-2xl" />
+                                <div className="space-y-1.5 md:space-y-3 md:col-span-2 lg:col-span-1">
+                                    <label className="block pl-1 font-black text-[10px] md:text-xs uppercase tracking-widest text-black/40">Âge de l'enfant</label>
+                                    <input required type="text" value={formData.childAge} onChange={e => setFormData({...formData, childAge: e.target.value})} placeholder="ex: 11 ans" className="w-full bg-gray-50 border-2 border-black/10 p-3 md:p-5 font-bold focus:bg-white focus:border-brand-blue outline-none transition-all rounded-xl md:rounded-2xl text-sm md:text-base" />
                                 </div>
                             </div>
 
-                            <div className="space-y-3 pt-8 border-t border-black/5">
-                                <label className="block pl-2 font-black text-[10px] uppercase tracking-widest text-black/40">Message / Questions (optionnel)</label>
-                                <textarea placeholder="Un besoin spécifique ? Une passion particulière ?" value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} className="w-full bg-gray-50/50 border-2 border-black/5 p-8 font-bold focus:bg-white focus:border-brand-blue outline-none transition-all rounded-[2.5rem] min-h-[150px]" />
+                            <div className="space-y-2 pt-4 md:pt-8 border-t border-black/5">
+                                <label className="block pl-1 font-black text-[10px] uppercase tracking-widest text-black/40">Message / Questions (optionnel)</label>
+                                <textarea placeholder="Un besoin spécifique ? Une passion particulière ?" value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} className="w-full bg-gray-50 border-2 border-black/10 p-3 md:p-8 font-bold focus:bg-white focus:border-brand-blue outline-none transition-all rounded-2xl md:rounded-[2.5rem] min-h-[100px] md:min-h-[150px] text-sm md:text-base" />
                             </div>
 
                             <div className="pt-4 md:pt-8">

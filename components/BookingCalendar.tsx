@@ -62,13 +62,13 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
   const formatDateKey = (date: Date) => date.toISOString().split('T')[0];
 
   return (
-    <div className="bg-white border-2 border-black/10 rounded-[3rem] shadow-xl p-8 overflow-hidden">
-      <div className="flex flex-col lg:flex-row gap-12">
+    <div className="bg-white border-2 border-black/10 rounded-2xl md:rounded-[3rem] shadow-xl p-4 md:p-8 overflow-hidden">
+      <div className="flex flex-col gap-6 md:gap-12 lg:flex-row">
         
         {/* Left Side: Calendar Grid */}
         <div className="flex-1">
-          <div className="flex justify-between items-center mb-8">
-            <h3 className="font-display font-black text-2xl uppercase tracking-tighter text-black/80">
+          <div className="flex justify-between items-center mb-4 md:mb-8">
+            <h3 className="font-display font-black text-base md:text-2xl uppercase tracking-tighter text-black/80">
               {currentDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
             </h3>
             <div className="flex gap-3">
@@ -89,13 +89,13 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-7 gap-2 mb-4">
+          <div className="grid grid-cols-7 gap-1 md:gap-2 mb-2 md:mb-4">
             {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map(d => (
-              <div key={d} className="text-center text-[11px] font-black uppercase opacity-30 py-2 tracking-widest">{d}</div>
+              <div key={d} className="text-center text-[9px] md:text-[11px] font-black uppercase opacity-30 py-1 md:py-2 tracking-widest">{d}</div>
             ))}
           </div>
 
-          <div className="grid grid-cols-7 gap-3">
+          <div className="grid grid-cols-7 gap-1 md:gap-3">
             {daysInMonth.map((date, idx) => {
               if (!date) return <div key={`empty-${idx}`} className="aspect-square" />;
               
@@ -117,7 +117,7 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
                     ${isToday(date) && !isSelected ? 'ring-2 ring-brand-red ring-offset-2' : ''}
                   `}
                 >
-                  <span className="font-black text-xl md:text-2xl">{date.getDate()}</span>
+                  <span className="font-black text-sm md:text-2xl">{date.getDate()}</span>
                   {isAvailable && !pastDate && !isSelected && (
                     <div className="absolute bottom-2 w-1.5 h-1.5 bg-brand-blue rounded-full" />
                   )}
@@ -129,9 +129,9 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
 
         {/* Right Side: Time Slots */}
         <div className="w-full lg:w-72 flex flex-col">
-          <div className="flex items-center gap-3 mb-6 bg-gray-50 p-4 rounded-2xl border border-black/5">
-            <Clock size={20} className="text-brand-blue" />
-            <h4 className="font-black text-xs uppercase tracking-[0.2em] text-black/60">Horaires</h4>
+          <div className="flex items-center gap-3 mb-4 md:mb-6 bg-gray-50 p-3 md:p-4 rounded-2xl border border-black/5">
+            <Clock size={16} className="text-brand-blue md:w-5 md:h-5" />
+            <h4 className="font-black text-[10px] md:text-xs uppercase tracking-[0.2em] text-black/60">Horaires</h4>
           </div>
 
           <div className="flex-1 space-y-4 max-h-[400px] overflow-y-auto pr-2 scrollbar-hide">
