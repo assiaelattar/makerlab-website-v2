@@ -297,7 +297,7 @@ export const BookingPage: React.FC = () => {
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <div className="w-6 h-6 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center"><Info size={12} strokeWidth={3} /></div>
-                                        <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Réponse < 24h</span>
+                                        <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Réponse {"<"} 24h</span>
                                     </div>
                                 </div>
                             </div>
