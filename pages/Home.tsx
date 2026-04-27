@@ -107,7 +107,7 @@ export const Home: React.FC = () => {
           </div>
 
           {/* Right Visuals - Kinetic Bento Accordion */}
-          <div className="lg:col-span-5 relative flex justify-center lg:justify-end mt-8 lg:mt-0 h-[280px] sm:h-[400px] md:h-[500px] md:h-[650px] w-full">
+          <div className="lg:col-span-5 relative flex justify-center lg:justify-end mt-6 lg:mt-0 h-[480px] sm:h-[500px] md:h-[650px] w-full">
             <KineticHero 
               images1={settings?.hero_images?.home_bento_1} 
               images2={settings?.hero_images?.home_bento_2} 

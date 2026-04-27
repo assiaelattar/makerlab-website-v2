@@ -80,7 +80,7 @@ export const SocialProofToast: React.FC = () => {
                 }
             `}
         >
-            <div className="bg-white border-4 border-black p-4 shadow-[8px_8px_0_0_rgba(0,0,0,1)] flex items-center gap-3 max-w-sm md:max-w-[300px] relative">
+        <div className="hidden md:block bg-white border-4 border-black p-4 shadow-[8px_8px_0_0_rgba(0,0,0,1)] flex items-center gap-3 max-w-sm md:max-w-[300px] relative">
                 <div className="w-10 h-10 bg-brand-red text-white border-2 border-black flex items-center justify-center shrink-0 -rotate-3 shadow-neo-sm">
                     {current.icon}
                 </div>
