@@ -795,7 +795,6 @@ ${method === 'virement' ? 'Je vous envoie la preuve de virement ci-joint.' : 'Je
                     </button>
                     <button onClick={() => setStep(5)} className="w-full text-center font-black uppercase text-[10px] md:text-xs text-gray-400 hover:text-black transition-colors">Modifier le mode de paiement</button>
                  </div>
-              </div>
           </div>
         )}
 
