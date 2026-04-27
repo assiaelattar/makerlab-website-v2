@@ -61,8 +61,7 @@ export const Home: React.FC = () => {
       />
 
       {/* HERO SECTION */}
-      <section className="relative pb-20 md:pb-32 px-4 overflow-visible">
-        {/* Background Decorative Elements */}
+      <section className="relative pb-10 md:pb-32 px-4 overflow-visible">
         <div className="absolute inset-0 z-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#000 2px, transparent 2px)', backgroundSize: '40px 40px' }}></div>
         <div className="absolute top-20 right-0 w-96 h-96 bg-brand-red/40 rounded-none blur-3xl mix-blend-multiply filter opacity-70 animate-blob pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand-blue/40 rounded-none blur-3xl mix-blend-multiply filter opacity-70 animate-blob animation-delay-2000 pointer-events-none"></div>
@@ -70,35 +69,86 @@ export const Home: React.FC = () => {
         <div className="container mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center relative z-10">
 
           {/* Left Content */}
-          <div className="lg:col-span-7 text-center lg:text-left flex flex-col items-center lg:items-start pt-8 lg:pr-16 z-20 relative">
-            <div className="inline-flex items-center gap-2 bg-white border-4 border-black px-4 py-1.5 md:px-6 md:py-2 rounded-none font-bold mb-8 rotate-[-2deg] shadow-neo hover:rotate-0 transition-transform cursor-default">
-              <span className="text-xl">👋</span>
-              <span className="text-sm md:text-base tracking-wide uppercase font-display">Hey Future Tech Leader !</span>
+          <div className="lg:col-span-7 text-center lg:text-left flex flex-col items-center lg:items-start pt-4 lg:pt-8 lg:pr-16 z-20 relative">
+
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 bg-white border-4 border-black px-3 py-1 md:px-6 md:py-2 rounded-none font-bold mb-4 md:mb-8 rotate-[-2deg] shadow-neo hover:rotate-0 transition-transform cursor-default">
+              <span className="text-base md:text-xl">👋</span>
+              <span className="text-xs md:text-base tracking-wide uppercase font-display">Hey Future Tech Leader !</span>
             </div>
 
-            <h1 className="font-display font-black text-3xl md:text-6xl lg:text-7xl text-black mb-6 leading-[1.1] tracking-tight uppercase">
-              <span className={`block text-xl md:text-4xl text-gray-800 mb-1 transition-all duration-300 ${isFading ? 'opacity-0 -translate-y-2' : 'opacity-100 translate-y-0'}`}>
+            {/* Animated Heading */}
+            <h1 className="font-display font-black text-black w-full mb-3 md:mb-6 leading-tight tracking-tight uppercase">
+              {/* Passive line */}
+              <span className={`block text-base md:text-4xl text-gray-500 mb-1 transition-all duration-300 ${isFading ? 'opacity-0 -translate-y-2' : 'opacity-100 translate-y-0'}`}>
                 {currentMessage.passive} —
               </span>
-              <span className={`block my-2 md:my-4 text-5xl sm:text-6xl md:text-8xl lg:text-[140px] leading-[0.85] text-${currentMessage.color} drop-shadow-[3px_3px_0px_rgba(0,0,0,1)] md:drop-shadow-[5px_5px_0px_rgba(0,0,0,1)] transition-all duration-300 ${isFading ? 'opacity-0 scale-90 blur-sm' : 'opacity-100 scale-100 blur-0'} hover:scale-105 origin-left`}>
-                {currentMessage.action}
+
+              {/* ACTION WORD */}
+              <span className={`block my-1.5 md:my-4 transition-all duration-300 ${isFading ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
+                {/* Mobile: full-width colored block with the word */}
+                <span
+                  className="md:hidden flex items-center justify-center w-full text-white font-black text-[72px] leading-none py-3 border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all duration-300"
+                  style={{ backgroundColor: currentMessage.color === 'brand-blue' ? '#2563a8' : currentMessage.color === 'brand-green' ? '#27a060' : currentMessage.color === 'brand-orange' ? '#e87722' : '#c0272d' }}
+                >
+                  {currentMessage.action}
+                </span>
+                {/* Desktop: large drop-shadow text */}
+                <span className={`hidden md:inline text-8xl lg:text-[140px] leading-[0.85] drop-shadow-[5px_5px_0px_rgba(0,0,0,1)] hover:scale-105 origin-left transition-all duration-300`}
+                  style={{ color: currentMessage.color === 'brand-blue' ? '#2563a8' : currentMessage.color === 'brand-green' ? '#27a060' : currentMessage.color === 'brand-orange' ? '#e87722' : '#c0272d' }}
+                >
+                  {currentMessage.action}
+                </span>
               </span>
-              <span className={`block mt-2 md:mt-4 text-2xl md:text-4xl transition-all duration-300 delay-100 ${isFading ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'}`}>
+
+              {/* Result line */}
+              <span className={`block mt-1 md:mt-4 text-xl md:text-4xl transition-all duration-300 delay-100 ${isFading ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'}`}>
                 {currentMessage.result}
               </span>
             </h1>
 
-            <p className="text-base md:text-2xl text-gray-900 mb-8 max-w-lg mx-auto lg:mx-0 font-bold leading-relaxed">
+            {/* Description — desktop only */}
+            <p className="hidden md:block text-2xl text-gray-900 mb-10 max-w-lg font-bold leading-relaxed">
               Transforme ton week-end. Choisis une mission de <span className="font-black bg-brand-red px-2 border-2 border-black rounded-none mx-1 text-white shadow-neo-sm transform -rotate-2 inline-block">3 heures</span> et repars avec ton propre projet tech.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+            {/* Mobile: horizontal swipeable mini cards */}
+            <div className="md:hidden w-full mb-4 -mx-4">
+              <div className="flex gap-3 overflow-x-auto pb-2 pl-4 pr-4 snap-x snap-mandatory" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                {[
+                  { label: 'Coding', color: '#2563a8', img: settings?.hero_images?.home_bento_2?.[0] },
+                  { label: 'Robotique', color: '#c0272d', img: settings?.hero_images?.home_bento_1?.[0] },
+                  { label: 'Design 3D', color: '#e87722', img: settings?.hero_images?.home_bento_3?.[0] },
+                  { label: 'Maker Lab', color: '#27a060', img: settings?.hero_images?.home_bento_2?.[1] },
+                ].map((card) => (
+                  <div
+                    key={card.label}
+                    className="snap-start shrink-0 w-[130px] h-[90px] border-4 border-black rounded-xl overflow-hidden relative shadow-[4px_4px_0_0_rgba(0,0,0,1)]"
+                    style={{ backgroundColor: card.color }}
+                  >
+                    {card.img && <img src={card.img} alt={card.label} className="w-full h-full object-cover mix-blend-overlay opacity-70" />}
+                    <div className="absolute inset-0 flex flex-col justify-end p-2">
+                      <span className="font-black text-white text-[10px] uppercase tracking-widest">{card.label}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="text-center text-[9px] text-gray-400 font-black uppercase tracking-widest mt-1.5">◀ swipe ▶</p>
+            </div>
+
+            {/* CTAs */}
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
               <Link to="/quiz" className="w-full sm:w-auto">
-                <Button size="lg" variant="primary" className="w-full text-xl py-5 uppercase tracking-wider bg-brand-orange text-black border-black hover:bg-brand-orange/90 flex items-center gap-2">
-                  <Sparkles className="shrink-0 animate-pulse" strokeWidth={3} size={22} /> Trouver ma mission
+                <Button size="lg" variant="primary" className="w-full text-base md:text-xl py-4 md:py-5 uppercase tracking-wider bg-brand-orange text-black border-black hover:bg-brand-orange/90 flex items-center gap-2">
+                  <Sparkles className="shrink-0 animate-pulse" strokeWidth={3} size={20} /> Trouver ma mission
                 </Button>
               </Link>
-              <Link to="/programs" className="w-full sm:w-auto">
+              {/* Mobile: text link instead of second full button */}
+              <Link to="/programs" className="md:hidden text-center font-black uppercase tracking-widest text-sm py-2 underline underline-offset-4 text-gray-500">
+                Voir les missions →
+              </Link>
+              {/* Desktop: full outline button */}
+              <Link to="/programs" className="hidden md:block w-full sm:w-auto">
                 <Button size="lg" variant="outline" className="w-full text-xl py-5 bg-white hover:bg-gray-100 border-4 border-black uppercase tracking-wider">
                   Voir les Missions <ArrowRight className="ml-2" strokeWidth={3} />
                 </Button>
@@ -106,12 +156,12 @@ export const Home: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Visuals - Kinetic Bento Accordion */}
-          <div className="lg:col-span-5 relative flex justify-center lg:justify-end mt-6 lg:mt-0 h-[480px] sm:h-[500px] md:h-[650px] w-full">
-            <KineticHero 
-              images1={settings?.hero_images?.home_bento_1} 
-              images2={settings?.hero_images?.home_bento_2} 
-              images3={settings?.hero_images?.home_bento_3} 
+          {/* Right Visuals — desktop only, mobile uses swipeable strip above */}
+          <div className="hidden lg:flex lg:col-span-5 relative justify-end mt-6 lg:mt-0 h-[650px] w-full">
+            <KineticHero
+              images1={settings?.hero_images?.home_bento_1}
+              images2={settings?.hero_images?.home_bento_2}
+              images3={settings?.hero_images?.home_bento_3}
             />
           </div>
         </div>
