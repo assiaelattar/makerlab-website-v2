@@ -8,10 +8,12 @@ import { ParallaxGallery } from '../components/ParallaxGallery';
 import { useSettings } from '../contexts/SettingsContext';
 import { StatsBanner } from '../components/StatsBanner';
 import { PhotoGallery } from '../components/PhotoGallery';
+import { SlidersHorizontal, ChevronDown, X } from 'lucide-react';
 
 export const Programs: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = React.useState<string>('All');
   const [selectedAge, setSelectedAge] = React.useState<string>('All');
+  const [showFilters, setShowFilters] = React.useState(false);
   
   const { programs } = usePrograms();
   const { missions } = useMissions();
@@ -94,31 +96,49 @@ export const Programs: React.FC = () => {
           </section>
         </ScrollReveal>
 
-        {/* MISSION FINDER UI — compact on mobile */}
-        <section className="mb-8 md:mb-16 -mt-4 md:-mt-10 relative z-20 container mx-auto flex flex-col md:flex-row gap-3 md:gap-6 items-start md:items-center justify-center">
-            {/* Category Filter */}
+        {/* ── MOBILE: Filter toggle button ───────────────────────────── */}
+        <div className="md:hidden flex items-center justify-between mb-3 px-0">
+          <button
+            onClick={() => setShowFilters(v => !v)}
+            className="flex items-center gap-2 bg-black text-white font-black text-xs uppercase tracking-widest px-4 py-2.5 border-2 border-black shadow-[3px_3px_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
+          >
+            <SlidersHorizontal size={13} strokeWidth={3} />
+            Filtrer
+            {(selectedCategory !== 'All' || selectedAge !== 'All') && (
+              <span className="bg-brand-orange text-black rounded-full w-4 h-4 text-[9px] flex items-center justify-center font-black">
+                {(selectedCategory !== 'All' ? 1 : 0) + (selectedAge !== 'All' ? 1 : 0)}
+              </span>
+            )}
+            <ChevronDown size={13} strokeWidth={3} className={`transition-transform duration-200 ${showFilters ? 'rotate-180' : ''}`} />
+          </button>
+          {(selectedCategory !== 'All' || selectedAge !== 'All') && (
+            <button
+              onClick={() => { setSelectedCategory('All'); setSelectedAge('All'); }}
+              className="flex items-center gap-1 text-xs font-black text-brand-red uppercase tracking-wider"
+            >
+              <X size={12} strokeWidth={3} /> Effacer
+            </button>
+          )}
+        </div>
+
+        {/* MISSION FINDER UI — collapsible on mobile, always visible on desktop */}
+        <section className={`mb-6 md:mb-16 relative z-20 container mx-auto flex-col md:flex-row gap-3 md:gap-6 items-start md:items-center justify-center md:-mt-10 ${
+          showFilters ? 'flex' : 'hidden md:flex'
+        }`}>
             <div className="bg-white border-4 border-black p-3 md:p-4 shadow-neo flex flex-wrap gap-1.5 md:gap-2 justify-center w-full md:w-auto">
                 <span className="w-full text-center text-[9px] font-black uppercase tracking-widest text-gray-400 mb-1">Thématique</span>
                 {categories.map(cat => (
-                    <button 
-                        key={cat}
-                        onClick={() => setSelectedCategory(cat)}
-                        className={`px-2.5 py-1.5 md:px-4 md:py-2 border-2 border-black font-black text-[10px] md:text-sm uppercase transition-all shadow-neo-sm hover:-translate-y-0.5 ${selectedCategory === cat ? 'bg-brand-blue text-white rotate-1 scale-105' : 'bg-white text-black hover:bg-gray-100'}`}
-                    >
+                    <button key={cat} onClick={() => setSelectedCategory(cat)}
+                        className={`px-2.5 py-1.5 md:px-4 md:py-2 border-2 border-black font-black text-[10px] md:text-sm uppercase transition-all shadow-neo-sm ${selectedCategory === cat ? 'bg-brand-blue text-white rotate-1 scale-105' : 'bg-white text-black hover:bg-gray-100'}`}>
                         {cat === 'All' ? 'Tous' : cat}
                     </button>
                 ))}
             </div>
-
-            {/* Age Filter */}
             <div className="bg-white border-4 border-black p-3 md:p-4 shadow-neo flex flex-wrap gap-1.5 md:gap-2 justify-center w-full md:w-auto">
                 <span className="w-full text-center text-[9px] font-black uppercase tracking-widest text-gray-400 mb-1">Âge</span>
                 {ages.map(age => (
-                    <button 
-                        key={age}
-                        onClick={() => setSelectedAge(age)}
-                        className={`px-2.5 py-1.5 md:px-4 md:py-2 border-2 border-black font-black text-[10px] md:text-sm uppercase transition-all shadow-neo-sm hover:-translate-y-0.5 ${selectedAge === age ? 'bg-brand-orange text-black -rotate-1 scale-105' : 'bg-white text-black hover:bg-gray-100'}`}
-                    >
+                    <button key={age} onClick={() => setSelectedAge(age)}
+                        className={`px-2.5 py-1.5 md:px-4 md:py-2 border-2 border-black font-black text-[10px] md:text-sm uppercase transition-all shadow-neo-sm ${selectedAge === age ? 'bg-brand-orange text-black -rotate-1 scale-105' : 'bg-white text-black hover:bg-gray-100'}`}>
                         {age === 'All' ? 'Tous' : age}
                     </button>
                 ))}
