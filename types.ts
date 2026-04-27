@@ -444,4 +444,19 @@ export interface MakerProject {
   techStack: string[];
   liveLink?: string;
   repoLink?: string;
+  assetLink?: string; // New: Folder link for assets (Drive/Dropbox/etc)
+  questId?: string; // Links the submission to a specific template
+}
+
+export interface MakerQuest {
+  id?: string;
+  title: string;
+  slug: string;
+  category: string;
+  description: string;
+  guide: string;
+  materials: string[];
+  coverImage: string;
+  active: boolean;
+  createdAt: string;
 }

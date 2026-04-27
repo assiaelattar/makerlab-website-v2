@@ -33,8 +33,8 @@ export const Programs: React.FC = () => {
     
     // Simple age mapping if not explicitly in the data
     const matchesAge = selectedAge === 'All' || 
-      (selectedAge === '7-11 ans' && (p.ageRange?.includes('7') || !p.ageRange)) ||
-      (selectedAge === '12-17 ans' && (p.ageRange?.includes('12') || p.ageRange?.includes('17'))) ||
+      (selectedAge === '7-11 ans' && (p.ageGroup?.includes('7') || !p.ageGroup)) ||
+      (selectedAge === '12-17 ans' && (p.ageGroup?.includes('12') || p.ageGroup?.includes('17'))) ||
       (selectedAge === 'Adultes' && (p.category === 'Business' || p.category === 'Entrepreneuriat'));
     
     return matchesCategory && matchesAge;

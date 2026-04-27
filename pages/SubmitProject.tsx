@@ -1,17 +1,24 @@
 import React, { useState } from 'react';
-import { Upload, Rocket, CheckCircle, Plus, X, Loader2 } from 'lucide-react';
+import { Upload, Rocket, CheckCircle, Check, Plus, X, Loader2, Target, Box } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import { db, storage } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import imageCompression from 'browser-image-compression';
 
 export const SubmitProject: React.FC = () => {
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const questId = searchParams.get('questId');
+  const questTitle = searchParams.get('questTitle');
+
   const [formData, setFormData] = useState({
     projectTitle: '',
     category: 'Web App',
     pitch: '',
     liveLink: '',
     repoLink: '',
+    assetLink: '', // New field for folder assets
   });
 
   const [makerNames, setMakerNames] = useState<string[]>(['']);
@@ -23,6 +30,17 @@ export const SubmitProject: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Quest Checklist State
+  const [checks, setChecks] = useState<Record<string, boolean>>({
+    vercel: false,
+    firebase: false,
+    mockups: false,
+    dpi: false,
+    sublimation: false
+  });
+
+  const allChecked = !questId || Object.values(checks).every(v => v);
 
   const categories = ['Web App', 'Print on Demand', 'Hardware / Robotics', '3D Design', 'Game Dev', 'Other'];
 
@@ -96,7 +114,7 @@ export const SubmitProject: React.FC = () => {
       const slug = createSlug(formData.projectTitle, finalMakers);
 
       // 3. Save to Firestore
-      await addDoc(collection(db, 'projects'), {
+      const projectPayload: any = {
         ...formData,
         makerNames: finalMakers,
         techStack: finalTech,
@@ -105,7 +123,13 @@ export const SubmitProject: React.FC = () => {
         slug,
         status: 'pending',
         createdAt: serverTimestamp()
-      });
+      };
+      
+      if (questId) {
+        projectPayload.questId = questId;
+      }
+
+      await addDoc(collection(db, 'projects'), projectPayload);
 
       setSubmitted(true);
     } catch (err: any) {
@@ -146,9 +170,19 @@ export const SubmitProject: React.FC = () => {
           <h1 className="text-4xl md:text-5xl font-black font-display tracking-tight text-brand-dark mb-4">
             Launch Your <span className="text-brand-orange">Project</span>
           </h1>
-          <p className="text-xl text-gray-500 font-medium">
+          <p className="text-xl text-gray-500 font-medium mb-6">
             Submit your creation to the Maker Wall portfolio.
           </p>
+          
+          {questTitle && (
+            <div className="inline-flex items-center gap-3 bg-brand-orange/10 border-2 border-brand-orange px-6 py-3 rounded-xl shadow-neo-sm animate-in fade-in slide-in-from-top-4">
+               <Target className="text-brand-orange shrink-0" size={24} strokeWidth={3} />
+               <div className="text-left leading-tight">
+                  <p className="font-bold text-xs uppercase text-brand-orange tracking-widest">Sujet du Projet</p>
+                  <p className="font-display font-black text-lg text-black uppercase">{questTitle}</p>
+               </div>
+            </div>
+          )}
         </div>
 
         <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
@@ -308,6 +342,59 @@ export const SubmitProject: React.FC = () => {
                 </div>
               </div>
 
+              {/* Asset Link (Crucial for Quests) */}
+              <div className={`p-6 rounded-2xl border-2 transition-all ${questId ? 'bg-orange-50 border-brand-orange shadow-neo-sm' : 'bg-gray-50 border-gray-100'}`}>
+                <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wider flex items-center justify-between">
+                  <span>Lien des Assets (Drive / Dropbox) {questId && <span className="text-brand-orange">* REQUIS POUR LE DÉFI</span>}</span>
+                  <Box className={questId ? 'text-brand-orange' : 'text-gray-400'} size={18} />
+                </label>
+                <input
+                  required={!!questId}
+                  type="url"
+                  className="w-full px-5 py-4 bg-white border border-gray-200 rounded-xl focus:ring-4 focus:ring-brand-orange/20 focus:border-brand-orange transition-all font-medium placeholder-gray-400"
+                  placeholder="Lien vers votre dossier Google Drive / Dropbox contenant les fichiers sources..."
+                  value={formData.assetLink}
+                  onChange={(e) => setFormData({...formData, assetLink: e.target.value})}
+                />
+                {questId && <p className="mt-2 text-xs font-bold text-brand-orange/80">⚠️ Veuillez vous assurer que le partage du lien est configuré sur "Tous ceux disposant du lien".</p>}
+              </div>
+
+              {/* Final Checklist for Quests */}
+              {questId && (
+                <div className="p-6 bg-brand-dark text-white rounded-2xl border-4 border-black shadow-neo-sm">
+                   <div className="flex items-center gap-2 mb-6 border-b border-white/20 pb-4">
+                      <CheckCircle className="text-brand-green" size={24} strokeWidth={3} />
+                      <h3 className="font-display font-black text-xl uppercase italic">Checklist de Lancement</h3>
+                   </div>
+                   <div className="space-y-4">
+                      {[
+                        { id: 'vercel', label: 'Mon lien Vercel est actif et fonctionne.' },
+                        { id: 'firebase', label: 'Firebase est connecté et affiche mes produits.' },
+                        { id: 'mockups', label: 'Mes Mockups commerciaux sont prêts.' },
+                        { id: 'dpi', label: 'Mes fichiers print sont en 300 DPI.' },
+                        { id: 'sublimation', label: 'Le design respecte les règles de sublimation (fond blanc/clair).' }
+                      ].map(item => (
+                        <label key={item.id} className="flex items-start gap-3 cursor-pointer group">
+                           <div className="relative flex items-center justify-center mt-0.5">
+                              <input 
+                                type="checkbox" 
+                                checked={(checks as any)[item.id]} 
+                                onChange={() => setChecks(prev => ({ ...prev, [item.id]: !(prev as any)[item.id] }))}
+                                className="sr-only"
+                              />
+                              <div className={`w-6 h-6 border-2 border-white rounded transition-colors flex items-center justify-center ${(checks as any)[item.id] ? 'bg-brand-green border-brand-green' : 'bg-transparent group-hover:border-brand-green'}`}>
+                                 {(checks as any)[item.id] && <Check className="w-4 h-4 text-brand-dark stroke-[4]" />}
+                              </div>
+                           </div>
+                           <span className={`text-sm font-bold transition-colors ${(checks as any)[item.id] ? 'text-white' : 'text-white/60 group-hover:text-white'}`}>
+                              {item.label}
+                           </span>
+                        </label>
+                      ))}
+                   </div>
+                </div>
+              )}
+
               {/* Honeypot (Hidden) */}
               <div className="opacity-0 absolute -z-50 h-0 w-0 overflow-hidden">
                 <input type="text" tabIndex={-1} value={honeyPot} onChange={e => setHoneyPot(e.target.value)} autoComplete="off" />
@@ -315,9 +402,9 @@ export const SubmitProject: React.FC = () => {
 
               <div className="pt-6">
                 <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full flex items-center justify-center gap-3 bg-brand-orange hover:bg-[#e65a12] active:bg-[#cc5010] text-white py-5 rounded-2xl font-bold text-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
+                   type="submit"
+                   disabled={isSubmitting || !allChecked}
+                   className={`w-full flex items-center justify-center gap-3 py-5 rounded-2xl font-bold text-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 disabled:grayscale disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none ${allChecked ? 'bg-brand-orange hover:bg-[#e65a12]' : 'bg-gray-400'}`}
                 >
                   {isSubmitting ? (
                     <>

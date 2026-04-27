@@ -1,16 +1,32 @@
 import React, { useEffect, useState } from 'react';
-import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { MakerProject, MakerQuest } from '../../types';
+import { Check, X, Edit3, Trash2, ExternalLink, Image as ImageIcon, Target, Box } from 'lucide-react';
+import { onSnapshot, query, collection, orderBy, doc, updateDoc, deleteDoc, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase';
-import { MakerProject } from '../../types';
-import { Check, X, Edit3, Trash2, ExternalLink, Image as ImageIcon } from 'lucide-react';
 
 export const AdminMakerWall: React.FC = () => {
   const [projects, setProjects] = useState<MakerProject[]>([]);
+  const [quests, setQuests] = useState<Record<string, string>>({}); // id -> title mapping
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editPitch, setEditPitch] = useState('');
 
   useEffect(() => {
+    // Fetch Quests for mapping
+    const fetchQuests = async () => {
+      try {
+        const qSnap = await getDocs(collection(db, 'maker_quests'));
+        const mapping: Record<string, string> = {};
+        qSnap.forEach(doc => {
+          mapping[doc.id] = doc.data().title;
+        });
+        setQuests(mapping);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchQuests();
+
     const q = query(collection(db, 'projects'), orderBy('createdAt', 'desc'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const fetched = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as MakerProject));
@@ -111,11 +127,18 @@ export const AdminMakerWall: React.FC = () => {
                       </div>
                       <div>
                         <h3 className="font-bold text-brand-dark mb-1">{project.projectTitle}</h3>
-                        <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-md font-bold uppercase tracking-wider">
-                          {project.category}
-                        </span>
-                        <div className="mt-2 text-xs text-gray-400">
-                          {new Date(project.createdAt?.seconds * 1000).toLocaleDateString() || 'N/A'}
+                        <div className="flex flex-wrap gap-1 mb-2">
+                           <span className="text-[10px] px-2 py-0.5 bg-gray-100 text-gray-600 rounded-md font-bold uppercase tracking-wider border border-gray-200">
+                             {project.category}
+                           </span>
+                           {project.questId && (
+                              <span className="text-[10px] px-2 py-0.5 bg-orange-50 text-brand-orange rounded-md font-black uppercase tracking-wider border border-brand-orange/30 flex items-center gap-1">
+                                <Target size={10} strokeWidth={3} /> {quests[project.questId] || 'Quest'}
+                              </span>
+                           )}
+                        </div>
+                        <div className="mt-2 text-xs text-gray-400 font-medium">
+                           {project.createdAt?.seconds ? new Date(project.createdAt.seconds * 1000).toLocaleDateString() : 'Pending...'}
                         </div>
                       </div>
                     </div>
@@ -135,6 +158,11 @@ export const AdminMakerWall: React.FC = () => {
                       {project.repoLink && (
                         <a href={project.repoLink} target="_blank" rel="noopener noreferrer" className="text-sm flex items-center gap-1.5 text-gray-600 hover:text-gray-900 font-medium">
                           <ExternalLink className="w-4 h-4"/> Repo / Figma
+                        </a>
+                      )}
+                      {project.assetLink && (
+                        <a href={project.assetLink} target="_blank" rel="noopener noreferrer" className="text-sm flex items-center gap-1.5 text-brand-orange hover:text-[#e65a12] font-black uppercase tracking-tight">
+                          <Box className="w-4 h-4"/> Assets (Drive)
                         </a>
                       )}
                     </div>

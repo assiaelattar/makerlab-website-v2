@@ -6,7 +6,7 @@ import {
   Rocket, Copy, ExternalLink, CheckCircle2, 
   Target, ChevronRight, Sparkles, ShieldCheck, 
   AlertTriangle, Phone, Image as ImageIcon,
-  Zap, ArrowRight, MousePointer2, RefreshCw, QrCode, X, Download
+  Zap, ArrowRight, MousePointer2, RefreshCw, QrCode, X, Download, Settings
 } from 'lucide-react';
 import { Button } from '../../components/Button';
 
@@ -163,6 +163,20 @@ export const AdminLaunchCenter: React.FC = () => {
                 icon={<ImageIcon />} 
                 title="Galerie Photos" 
                 desc="Gérez vos assets social proof" 
+                color="indigo"
+             />
+             <QuickLink 
+                to="/admin/generate-enrollment" 
+                icon={<Sparkles className="text-yellow-500" />} 
+                title="Générateur Post-Trial" 
+                desc="Créez un lien personnalisé" 
+                color="orange"
+             />
+             <QuickLink 
+                to="/admin/stemquest-settings" 
+                icon={<Settings className="text-[#2D1B8C]" />} 
+                title="Schedules & Tarifs" 
+                desc="Gérez les créneaux STEMQuest" 
                 color="indigo"
              />
           </div>

@@ -4,7 +4,7 @@ import { useLocation } from 'react-router-dom';
 interface SEOProps {
   title?: string;
   description?: string;
-  keywords?: string;
+  keywords?: string | string[];
   image?: string;
   url?: string;
   schemaType?: 'Organization' | 'Course' | 'Event';
@@ -51,7 +51,7 @@ export const SEO: React.FC<SEOProps> = ({
     };
 
     updateMeta('description', description || baseDescription);
-    updateMeta('keywords', keywords || baseKeywords);
+    updateMeta('keywords', Array.isArray(keywords) ? keywords.join(', ') : (keywords || baseKeywords));
     
     // OG Tags
     updateProperty('og:title', title ? `${title} | MakerLab Academy` : baseTitle);

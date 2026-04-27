@@ -1,19 +1,23 @@
 
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
-import { Trash2, CheckCircle, Clock, Baby, User, Calendar, Mail, Phone, Filter, MessageCircle } from 'lucide-react';
+import { Trash2, CheckCircle, Clock, Baby, User, Calendar, Mail, Phone, Filter, MessageCircle, Sparkles } from 'lucide-react';
 
 interface Booking {
     id: string;
     programTitle: string;
-    bookingType: 'workshop' | 'trial';
+    bookingType: 'workshop' | 'trial' | 'enrollment';
     parentName: string;
-    parentEmail: string;
+    parentEmail?: string;
     parentPhone: string;
     childName: string;
-    childAge: string;
-    preferredDate: string;
+    childAge?: string;
+    childAgeGroup?: string;
+    preferredDate?: string;
+    selectedSlot?: string;
+    feedback?: string;
     notes?: string;
     status: 'pending' | 'confirmed' | 'cancelled';
     selectedPack?: string;
@@ -21,12 +25,14 @@ interface Booking {
     itemPrice?: string;
     missionId?: string;
     trackId?: string;
-    createdAt: string;
+    isConversion?: boolean;
+    trialId?: string;
+    createdAt: any;
 }
 
 export const AdminBookings: React.FC = () => {
     const [bookings, setBookings] = useState<Booking[]>([]);
-    const [filter, setFilter] = useState<'all' | 'workshop' | 'trial'>('all');
+    const [filter, setFilter] = useState<'all' | 'workshop' | 'trial' | 'enrollment'>('all');
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -67,6 +73,7 @@ export const AdminBookings: React.FC = () => {
                         className="font-bold outline-none bg-transparent uppercase text-xs"
                     >
                         <option value="all">Tous les types</option>
+                        <option value="enrollment">Inscriptions STEMQuest</option>
                         <option value="workshop">Workshops Payants</option>
                         <option value="trial">Ateliers d'Essai</option>
                     </select>
@@ -89,37 +96,46 @@ export const AdminBookings: React.FC = () => {
                             className={`bg-white border-4 border-black rounded-3xl p-6 shadow-neo-sm hover:shadow-neo transition-all relative overflow-hidden ${
                                 booking.status === 'confirmed' ? 'border-brand-green' : 
                                 booking.status === 'cancelled' ? 'opacity-60 border-gray-300' : ''
-                            }`}
+                            } ${booking.isConversion ? 'border-l-[12px] border-l-[#2D1B8C]' : ''}`}
                         >
                             {/* Type Badge */}
-                            <div className={`absolute top-0 right-0 px-4 py-1 font-black text-[10px] uppercase border-b-2 border-l-2 border-black ${
-                                booking.bookingType === 'trial' ? 'bg-brand-blue' : 'bg-brand-red text-white'
+                             <div className={`absolute top-0 right-0 px-4 py-1 font-black text-[10px] uppercase border-b-2 border-l-2 border-black ${
+                                booking.bookingType === 'trial' ? 'bg-brand-blue text-white' : 
+                                booking.bookingType === 'enrollment' ? (booking.isConversion ? 'bg-[#2D1B8C] text-white' : 'bg-pink-500 text-white') : 'bg-brand-red text-white'
                             }`}>
-                                {booking.bookingType === 'trial' ? 'Essai Gratuit' : 'Workshop Payant'}
+                                {booking.bookingType === 'trial' ? 'Essai Gratuit' : 
+                                 booking.bookingType === 'enrollment' ? (booking.isConversion ? '🚀 Conversion Post-Trial' : 'Inscription STEMQuest') : 'Workshop Payant'}
                             </div>
 
                             <div className="flex flex-col lg:flex-row gap-8">
                                 {/* Program & Child */}
                                 <div className="lg:w-1/3">
                                     <h3 className="font-display font-black text-xl uppercase mb-1 leading-tight">{booking.programTitle}</h3>
+                                    {booking.isConversion && (
+                                        <div className="bg-[#2D1B8C] text-white px-2 py-0.5 text-[9px] font-black uppercase rounded mb-2 inline-block shadow-neo-sm">
+                                            🚀 Lead Converti
+                                        </div>
+                                    )}
                                     {booking.itemTitle && booking.itemTitle !== booking.programTitle && (
                                         <div className="bg-brand-orange/20 border-2 border-brand-orange text-black px-3 py-1 text-[10px] font-black uppercase mb-4 inline-block rounded-md">
                                             🎯 {booking.itemTitle}
                                         </div>
                                     )}
                                     <div className="space-y-2">
-                                        <div className="flex items-center gap-2 font-bold text-sm">
+                                         <div className="flex items-center gap-2 font-bold text-sm">
                                             <Baby size={16} className="text-brand-red" />
-                                            <span>{booking.childName} ({booking.childAge})</span>
+                                            <span>{booking.childName} {booking.childAgeGroup ? `(${booking.childAgeGroup})` : (booking.childAge ? `(${booking.childAge})` : '')}</span>
                                         </div>
-                                        <div className="flex items-center gap-2 font-bold text-sm">
-                                            <Calendar size={16} className="text-brand-red" />
-                                            <span>Session : {booking.preferredDate}</span>
-                                        </div>
+                                        {(booking.preferredDate || booking.selectedSlot) && (
+                                            <div className="flex items-center gap-2 font-bold text-sm">
+                                                <Calendar size={16} className="text-brand-red" />
+                                                <span>Session : {booking.selectedSlot || booking.preferredDate}</span>
+                                            </div>
+                                        )}
                                     </div>
                                     
                                     <div className="mt-4 p-3 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl text-xs flex items-center gap-2 font-bold text-gray-400">
-                                        <Clock size={14} /> Reçu le {new Date(booking.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
+                                        <Clock size={14} /> Reçu le {booking.createdAt?.seconds ? new Date(booking.createdAt.seconds * 1000).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) : (booking.createdAt ? new Date(booking.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) : 'Date inconnue')}
                                     </div>
                                 </div>
 
@@ -131,15 +147,11 @@ export const AdminBookings: React.FC = () => {
                                             <User size={18} />
                                             <span>{booking.parentName}</span>
                                         </div>
-                                        <div className="flex items-center gap-3 font-bold text-brand-red hover:underline underline-offset-4">
-                                            <Mail size={18} />
-                                            <a href={`mailto:${booking.parentEmail}`}>{booking.parentEmail}</a>
-                                        </div>
-                                        <div className="flex items-center gap-3 font-bold group">
+                                         <div className="flex items-center gap-3 font-bold group">
                                             <Phone size={18} />
                                             <a href={`tel:${booking.parentPhone}`} className="hover:text-brand-red">{booking.parentPhone}</a>
                                             <a 
-                                                href={`https://wa.me/212${booking.parentPhone.replace(/\s+/g, '').replace(/^\+212/, '').replace(/^0/, '')}`} 
+                                                href={`https://wa.me/${booking.parentPhone.replace(/\s+/g, '').replace(/^\+/, '').replace(/^0/, '212')}`} 
                                                 target="_blank" 
                                                 rel="noopener noreferrer"
                                                 className="bg-green-500 text-white p-1 rounded-lg hover:scale-110 transition-transform shadow-neo-sm ml-2"
@@ -148,6 +160,12 @@ export const AdminBookings: React.FC = () => {
                                                 <MessageCircle size={14} fill="currentColor" />
                                             </a>
                                         </div>
+                                        {booking.parentEmail && (
+                                            <div className="flex items-center gap-3 font-bold text-brand-red hover:underline underline-offset-4">
+                                                <Mail size={18} />
+                                                <a href={`mailto:${booking.parentEmail}`}>{booking.parentEmail}</a>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
@@ -176,17 +194,38 @@ export const AdminBookings: React.FC = () => {
                                         )}
                                     </div>
 
-                                    {booking.notes && (
-                                        <div className="w-full bg-brand-red/10 p-3 rounded-xl border-2 border-black/5 text-xs italic font-medium">
-                                            "{booking.notes}"
+                                     {(booking.notes || booking.feedback || (booking as any).visitDate) && (
+                                        <div className="w-full bg-brand-red/10 p-3 rounded-xl border-2 border-black/5 text-xs italic font-medium space-y-1">
+                                            {(booking as any).visitDate && <div className="font-bold text-black uppercase not-italic">📅 RDV Visite: {(booking as any).visitDate}</div>}
+                                            {booking.notes || booking.feedback ? `"${booking.notes || booking.feedback}"` : null}
                                         </div>
                                     )}
 
-                                    <div className="flex gap-2 w-full lg:w-auto">
+                                    {(booking as any).paymentProof && (
+                                        <a 
+                                          href={(booking as any).paymentProof} 
+                                          target="_blank" 
+                                          rel="noopener noreferrer"
+                                          className="text-[10px] font-black uppercase text-[#2D1B8C] underline decoration-2 underline-offset-2 hover:text-brand-orange transition-colors"
+                                        >
+                                          Voir Reçu Virement ↗
+                                        </a>
+                                    )}
+
+                                     <div className="flex gap-2 w-full lg:w-auto">
+                                        {booking.bookingType === 'trial' && booking.status === 'confirmed' && (
+                                            <Link 
+                                                to={`/admin/generate-enrollment?parentName=${encodeURIComponent(booking.parentName)}&parentPhone=${encodeURIComponent(booking.parentPhone)}&childName=${encodeURIComponent(booking.childName)}&ageGroup=${encodeURIComponent(booking.childAgeGroup || booking.childAge || '')}`}
+                                                className="flex-1 lg:flex-none bg-yellow-400 text-black px-4 py-3 border-4 border-black font-black uppercase text-xs flex items-center gap-2 shadow-neo-sm hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
+                                            >
+                                                <Sparkles size={16} /> Générer Inscription
+                                            </Link>
+                                        )}
                                         {booking.status === 'pending' && (
                                             <button 
                                                 onClick={() => updateStatus(booking.id, 'confirmed')}
                                                 className="flex-1 lg:flex-none bg-brand-green text-white p-3 border-4 border-black shadow-neo-sm hover:shadow-none translate-x-0.5 translate-y-0.5 hover:translate-x-1 hover:translate-y-1 transition-all"
+                                                title="Confirmer / Terminé"
                                             >
                                                 <CheckCircle size={20} />
                                             </button>

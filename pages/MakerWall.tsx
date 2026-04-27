@@ -2,11 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { db } from '../firebase';
-import { MakerProject } from '../types';
-import { ExternalLink, Rocket } from 'lucide-react';
+import { MakerProject, MakerQuest } from '../types';
+import { ExternalLink, Rocket, Target, ArrowRight } from 'lucide-react';
 
 export const MakerWall: React.FC = () => {
   const [projects, setProjects] = useState<MakerProject[]>([]);
+  const [quests, setQuests] = useState<MakerQuest[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('All');
 
@@ -15,14 +16,23 @@ export const MakerWall: React.FC = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const q = query(
+        const qProjects = query(
           collection(db, 'projects'),
           where('status', '==', 'approved'),
           orderBy('createdAt', 'desc')
         );
-        const snapshot = await getDocs(q);
-        const fetched = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as MakerProject));
-        setProjects(fetched);
+        const snapshotProjects = await getDocs(qProjects);
+        const fetchedProjects = snapshotProjects.docs.map(doc => ({ id: doc.id, ...doc.data() } as MakerProject));
+        setProjects(fetchedProjects);
+
+        const qQuests = query(
+          collection(db, 'maker_quests'),
+          where('active', '==', true),
+          orderBy('createdAt', 'desc')
+        );
+        const snapshotQuests = await getDocs(qQuests);
+        const fetchedQuests = snapshotQuests.docs.map(doc => ({ id: doc.id, ...doc.data() } as MakerQuest));
+        setQuests(fetchedQuests);
       } catch (err) {
         console.error('Error fetching maker projects', err);
       } finally {
@@ -51,6 +61,41 @@ export const MakerWall: React.FC = () => {
              <Rocket className="w-5 h-5"/> Submit Your Project
           </Link>
         </div>
+
+        {/* ── ACTIVE QUESTS CAROUSEL ────────────────────────────────────── */}
+        {quests.length > 0 && (
+          <div className="mb-16">
+            <div className="flex items-center justify-between mb-8">
+               <h2 className="text-3xl font-black font-display uppercase flex items-center gap-3">
+                  <Target className="text-brand-orange" size={32} strokeWidth={3} /> Défis du moment
+               </h2>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+               {quests.slice(0, 3).map(quest => (
+                 <Link 
+                   key={quest.id} 
+                   to={`/maker-wall/quest/${quest.slug}`}
+                   className="group block bg-white rounded-[2rem] border-4 border-black overflow-hidden shadow-neo hover:shadow-none hover:translate-y-1 hover:translate-x-1 transition-all"
+                 >
+                    <div className="aspect-video relative border-b-4 border-black">
+                       <img src={quest.coverImage} alt={quest.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                       <div className="absolute top-4 left-4">
+                          <span className="bg-[#00E5FF] px-3 py-1 font-black text-xs uppercase border-2 border-black rounded border-b-[3px]">{quest.category}</span>
+                       </div>
+                    </div>
+                    <div className="p-6">
+                       <h3 className="font-display font-black text-xl uppercase leading-tight mb-2 group-hover:text-brand-orange transition-colors line-clamp-2">{quest.title}</h3>
+                       <p className="text-sm font-bold text-gray-500 line-clamp-2 mb-4">{quest.description}</p>
+                       <div className="flex items-center text-brand-orange font-black text-xs uppercase tracking-widest group-hover:gap-2 transition-all">
+                          Relever ce défi <ArrowRight size={16} className="ml-1" strokeWidth={3} />
+                       </div>
+                    </div>
+                 </Link>
+               ))}
+            </div>
+          </div>
+        )}
 
         {/* Filters */}
         <div className="flex flex-wrap items-center justify-center gap-3">

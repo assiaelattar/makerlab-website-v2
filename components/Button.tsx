@@ -3,12 +3,14 @@ import React from 'react';
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'accent' | 'outline';
   size?: 'sm' | 'md' | 'lg';
+  loading?: boolean;
 }
 
 export const Button: React.FC<ButtonProps> = ({
   children,
   variant = 'primary',
   size = 'md',
+  loading = false,
   className = '',
   ...props
 }) => {
@@ -58,7 +60,9 @@ export const Button: React.FC<ButtonProps> = ({
       }}
       {...props}
     >
-      {children}
+      {loading ? (
+        <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+      ) : children}
     </button>
   );
 };

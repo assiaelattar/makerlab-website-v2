@@ -13,6 +13,7 @@ import { AdminDashboard } from './pages/Admin/AdminDashboard';
 import { AdminSettings } from './pages/Admin/AdminSettings';
 import { AdminContent } from './pages/Admin/AdminContent';
 import { AdminMedia } from './pages/Admin/AdminMedia';
+import { AdminEnrollmentGenerator } from './pages/Admin/AdminEnrollmentGenerator';
 import { ProgramEditor } from './pages/Admin/ProgramEditor';
 import { AdminLayout } from './components/AdminLayout';
 import { WorkshopCatalog } from './pages/Admin/WorkshopCatalog';
@@ -55,10 +56,15 @@ import { MerciPage } from './pages/MerciPage';
 import { DecouvrirPage } from './pages/DecouvrirPage';
 import { AdminLaunchCenter } from './pages/Admin/AdminLaunchCenter';
 
+import { STEMQuestEnrollment } from './pages/STEMQuestEnrollment';
 import { SubmitProject } from './pages/SubmitProject';
 import { MakerWall } from './pages/MakerWall';
 import { ProjectDetail } from './pages/ProjectDetail';
 import { AdminMakerWall } from './pages/Admin/AdminMakerWall';
+import { AdminMakerQuests } from './pages/Admin/AdminMakerQuests';
+import { MakerQuestDetail } from './pages/MakerQuestDetail';
+import { AdminSTEMQuestSettings } from './pages/Admin/AdminSTEMQuestSettings';
+
 const ScrollToTop = () => {
   const { pathname } = useLocation();
   React.useEffect(() => {
@@ -191,6 +197,7 @@ const App: React.FC = () => {
                 {/* ── Standalone marketing funnel (no Navbar / Footer) ── */}
                 <Route path="/lp/:id" element={<ProgramLanding />} />
                 <Route path="/thanks" element={<ThankYou />} />
+                <Route path="/stemquest-enrollment/:id?" element={<STEMQuestEnrollment />} />
 
                 {/* ── Make & Go lead funnel — /quiz + /apply both go here ── */}
                 <Route path="/quiz"   element={<MakeAndGo />} />
@@ -210,12 +217,14 @@ const App: React.FC = () => {
                   <Route path="calendar" element={<AdminCalendar />} />
                   <Route path="media" element={<AdminMedia />} />
                   <Route path="settings" element={<AdminSettings />} />
+                  <Route path="stemquest-settings" element={<AdminSTEMQuestSettings />} />
                   <Route path="blogs" element={<AdminBlogs />} />
                   <Route path="landing-pages" element={<AdminLandingPages />} />
                   <Route path="missions" element={<AdminMissions />} />
                   <Route path="leads" element={<AdminLeadMagnet />} />
                   <Route path="program/:id" element={<ProgramEditor />} />
                   <Route path="maker-wall" element={<AdminMakerWall />} />
+                  <Route path="maker-quests" element={<AdminMakerQuests />} />
                   
                   {/* School Partner Admin Routes */}
                   <Route path="workshop-catalog" element={<WorkshopCatalog />} />
@@ -226,6 +235,7 @@ const App: React.FC = () => {
                   <Route path="offers" element={<Offers />} />
                   <Route path="offer/:id" element={<OfferEditor />} />
                   <Route path="landing/:id" element={<AdminLandingEditor />} />
+                  <Route path="generate-enrollment" element={<AdminEnrollmentGenerator />} />
                 </Route>
 
                 {/* ── Everything else uses the standard layout shell ── */}
@@ -254,6 +264,7 @@ const App: React.FC = () => {
                         <Route path="/about" element={<About />} />
                         <Route path="/submit" element={<SubmitProject />} />
                         <Route path="/maker-wall" element={<MakerWall />} />
+                        <Route path="/maker-wall/quest/:slug" element={<MakerQuestDetail />} />
                         <Route path="/maker-wall/:slug" element={<ProjectDetail />} />
 
 
