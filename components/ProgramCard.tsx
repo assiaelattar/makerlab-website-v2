@@ -65,35 +65,43 @@ export const ProgramCard: React.FC<Props> = ({ program, index = 0 }) => {
     >
 
       {/* ══════════════════════════════════════════════
-          MOBILE — compact collapsed row
+          MOBILE — medium horizontal card with visible image
       ══════════════════════════════════════════════ */}
-      <div className="md:hidden flex items-stretch min-h-[76px]">
-        {/* Colored thumbnail */}
-        <div className={`w-[88px] shrink-0 ${theme.bg} relative overflow-hidden border-r-2 border-black`}>
-          <img src={imgSrc} alt={title} className="w-full h-full object-cover opacity-60 mix-blend-multiply" />
+      <div className="md:hidden flex items-stretch h-[140px]">
+        {/* Left: prominent image */}
+        <div className="w-[42%] shrink-0 relative overflow-hidden border-r-4 border-black">
+          <img src={imgSrc} alt={title} className="w-full h-full object-cover" />
+          {/* Category badge */}
+          <div className="absolute top-2 left-2 bg-white text-black border-2 border-black text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 shadow-[2px_2px_0_rgba(0,0,0,1)]">
+            {program.category}
+          </div>
           {/* XP pill */}
-          <div className="absolute bottom-1 left-1 bg-black/70 text-white text-[7px] font-black px-1.5 py-0.5 flex items-center gap-0.5">
-            <Star size={7} className="fill-brand-orange text-brand-orange" /> +{xp}
+          <div className="absolute bottom-2 left-2 bg-black/80 text-white text-[8px] font-black px-2 py-0.5 flex items-center gap-1 backdrop-blur-sm">
+            <Star size={8} className="fill-brand-orange text-brand-orange" /> +{xp}
           </div>
         </div>
 
-        {/* Text info */}
-        <div className="flex-1 px-3 py-2 min-w-0 flex flex-col justify-center">
-          <span className="text-[8px] font-black uppercase tracking-widest text-gray-400 mb-0.5 truncate">{program.category}</span>
-          <h3 className="font-black text-sm leading-tight line-clamp-1 uppercase tracking-tight mb-1.5">{title}</h3>
-          <div className="flex items-center gap-2.5">
-            <span className="font-black text-sm" style={{ color: theme.hex }}>{program.price}</span>
-            <span className="text-[9px] text-gray-400 flex items-center gap-0.5"><Clock size={8} strokeWidth={3} /> {program.duration}</span>
+        {/* Right: info + expand */}
+        <div className={`flex-1 ${theme.bg} ${theme.text} flex flex-col justify-between p-3 min-w-0`}>
+          <div>
+            <h3 className="font-black text-[15px] leading-tight line-clamp-2 uppercase tracking-tight mb-1">{title}</h3>
+            <p className={`text-[10px] ${theme.subtext} line-clamp-1 opacity-80`}>{program.description}</p>
+          </div>
+          <div className="flex items-end justify-between mt-1">
+            <div>
+              <div className="font-black text-lg leading-none mb-0.5">{program.price}</div>
+              <div className={`text-[9px] ${theme.subtext} flex items-center gap-1 opacity-70`}>
+                <Clock size={9} strokeWidth={3} /> {program.duration}
+              </div>
+            </div>
+            <button
+              onClick={(e) => { e.stopPropagation(); setIsExpanded(v => !v); }}
+              className="bg-black/20 backdrop-blur-sm w-9 h-9 flex items-center justify-center border-2 border-white/30 active:scale-90 transition-all"
+            >
+              <ChevronDown size={16} strokeWidth={3} className={`text-white transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+            </button>
           </div>
         </div>
-
-        {/* Expand button */}
-        <button
-          onClick={(e) => { e.stopPropagation(); setIsExpanded(v => !v); }}
-          className={`shrink-0 w-11 flex items-center justify-center border-l-2 border-black ${theme.bg} ${theme.text} active:opacity-80`}
-        >
-          <ChevronDown size={18} strokeWidth={3} className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
-        </button>
       </div>
 
       {/* ══════════════════════════════════════════════
