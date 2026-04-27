@@ -140,7 +140,7 @@ export const BookingPage: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen pt-32 pb-20 px-4 bg-[#fcfaf7] relative overflow-hidden">
+        <div className="min-h-screen pt-20 md:pt-32 pb-20 px-4 bg-[#fcfaf7] relative overflow-hidden">
             {/* Subtle Texture/Paper Effect */}
             <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/natural-paper.png")' }}></div>
             
@@ -150,10 +150,10 @@ export const BookingPage: React.FC = () => {
                     Retour
                 </button>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 items-start">
                     {/* Left: Info Card */}
-                    <div className="lg:col-span-4 space-y-8 sticky top-32">
-                        <div className={`p-10 border-2 border-black/5 rounded-[3rem] shadow-2xl relative overflow-hidden transition-all ${type === 'trial' ? 'bg-brand-blue text-white' : 'bg-brand-red text-white'}`}>
+                    <div className="lg:col-span-4 space-y-6 md:space-y-8 md:sticky md:top-32">
+                        <div className={`p-6 md:p-10 border-2 border-black/5 rounded-[2rem] md:rounded-[3rem] shadow-2xl relative overflow-hidden transition-all ${type === 'trial' ? 'bg-brand-blue text-white' : 'bg-brand-red text-white'}`}>
                             {/* Decorative Glow */}
                             <div className="absolute -top-20 -right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
                             
@@ -197,29 +197,29 @@ export const BookingPage: React.FC = () => {
 
                     {/* Right: Form */}
                     <div className="lg:col-span-8">
-                        <form onSubmit={handleSubmit} className="bg-white border-2 border-black/5 rounded-[4rem] shadow-2xl p-8 md:p-16 space-y-12">
+                        <form onSubmit={handleSubmit} className="bg-white border-2 border-black/5 rounded-[2.5rem] md:rounded-[4rem] shadow-2xl p-6 md:p-16 space-y-8 md:space-y-12">
                             <div className="text-center md:text-left">
-                                <h3 className="font-display font-black text-4xl md:text-6xl uppercase tracking-tighter mb-4 text-black italic leading-none">
+                                <h3 className="font-display font-black text-2xl md:text-6xl uppercase tracking-tighter mb-2 md:mb-4 text-black italic leading-none">
                                     {type === 'trial' ? "L'AVENTURE COMMENCE." : type === 'annual' ? "PRÊT POUR L'ANNÉE ?" : "REJOINDRE LA MISSION"}
                                 </h3>
-                                <p className="text-black/40 font-black text-xs uppercase tracking-[0.4em]">Complétez les informations ci-dessous</p>
+                                <p className="text-black/40 font-black text-[9px] md:text-xs uppercase tracking-[0.3em] md:tracking-[0.4em]">Complétez les informations ci-dessous</p>
                             </div>
                             
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
                                 <div className="space-y-3">
-                                    <label className="block pl-2 font-black text-[10px] uppercase tracking-widest text-black/40">Nom du Parent</label>
+                                    <label className="block pl-2 font-black text-xs uppercase tracking-widest text-black/40">Nom du Parent</label>
                                     <input required type="text" value={formData.parentName} onChange={e => setFormData({...formData, parentName: e.target.value})} placeholder="Fatima Zahra" className="w-full bg-gray-50/50 border-2 border-black/5 p-5 font-bold focus:bg-white focus:border-brand-blue outline-none transition-all rounded-2xl" />
                                 </div>
                                 <div className="space-y-3">
-                                    <label className="block pl-2 font-black text-[10px] uppercase tracking-widest text-black/40">Prénom de l'enfant</label>
+                                    <label className="block pl-2 font-black text-xs uppercase tracking-widest text-black/40">Prénom de l'enfant</label>
                                     <input required type="text" value={formData.childName} onChange={e => setFormData({...formData, childName: e.target.value})} placeholder="Youssef" className="w-full bg-gray-50/50 border-2 border-black/5 p-5 font-bold focus:bg-white focus:border-brand-blue outline-none transition-all rounded-2xl" />
                                 </div>
                                 <div className="space-y-3">
-                                    <label className="block pl-2 font-black text-[10px] uppercase tracking-widest text-black/40">Email de contact</label>
+                                    <label className="block pl-2 font-black text-xs uppercase tracking-widest text-black/40">Email de contact</label>
                                     <input required type="email" value={formData.parentEmail} onChange={e => setFormData({...formData, parentEmail: e.target.value})} placeholder="parent@email.com" className="w-full bg-gray-50/50 border-2 border-black/5 p-5 font-bold focus:bg-white focus:border-brand-blue outline-none transition-all rounded-2xl" />
                                 </div>
                                 <div className="space-y-3">
-                                    <label className="block pl-2 font-black text-[10px] uppercase tracking-widest text-black/40">WhatsApp</label>
+                                    <label className="block pl-2 font-black text-xs uppercase tracking-widest text-black/40">WhatsApp</label>
                                     <input required type="tel" value={formData.parentPhone} onChange={e => setFormData({...formData, parentPhone: e.target.value})} placeholder="06..." className="w-full bg-gray-50/50 border-2 border-black/5 p-5 font-bold focus:bg-white focus:border-brand-blue outline-none transition-all rounded-2xl" />
                                 </div>
 
@@ -254,7 +254,7 @@ export const BookingPage: React.FC = () => {
                                     </div>
                                 ) : (
                                     <div className="space-y-3">
-                                        <label className="block pl-2 font-black text-[10px] uppercase tracking-widest text-black/40">Date souhaitée</label>
+                                        <label className="block pl-2 font-black text-xs uppercase tracking-widest text-black/40">Date souhaitée</label>
                                         <select required value={formData.preferredDate} onChange={e => setFormData({...formData, preferredDate: e.target.value})} className="w-full bg-gray-50/50 border-2 border-black/5 p-5 font-bold focus:bg-white focus:border-brand-blue outline-none transition-all rounded-2xl bg-white">
                                             {activeProgram.schedule?.map(date => (
                                                 <option key={date} value={date}>{date}</option>
@@ -265,7 +265,7 @@ export const BookingPage: React.FC = () => {
                                 )}
                                 
                                 <div className="space-y-3 md:col-span-2 lg:col-span-1">
-                                    <label className="block pl-2 font-black text-[10px] uppercase tracking-widest text-black/40">Âge de l'enfant</label>
+                                    <label className="block pl-2 font-black text-xs uppercase tracking-widest text-black/40">Âge de l'enfant</label>
                                     <input required type="text" value={formData.childAge} onChange={e => setFormData({...formData, childAge: e.target.value})} placeholder="ex: 11 ans" className="w-full bg-gray-50/50 border-2 border-black/5 p-5 font-bold focus:bg-white focus:border-brand-blue outline-none transition-all rounded-2xl" />
                                 </div>
                             </div>
@@ -275,19 +275,31 @@ export const BookingPage: React.FC = () => {
                                 <textarea placeholder="Un besoin spécifique ? Une passion particulière ?" value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} className="w-full bg-gray-50/50 border-2 border-black/5 p-8 font-bold focus:bg-white focus:border-brand-blue outline-none transition-all rounded-[2.5rem] min-h-[150px]" />
                             </div>
 
-                            <div className="pt-8">
+                            <div className="pt-4 md:pt-8">
                                 <button
                                     type="submit"
                                     disabled={isSubmitting}
-                                    className="w-full bg-brand-orange text-black py-8 rounded-[2.5rem] border-4 border-black shadow-[12px_12px_0_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-2 hover:translate-y-2 transition-all font-black uppercase text-2xl italic tracking-widest flex items-center justify-center gap-4 disabled:opacity-50"
+                                    className="w-full bg-brand-orange text-black py-5 md:py-8 rounded-2xl md:rounded-[2.5rem] border-2 md:border-4 border-black shadow-[8px_8px_0_0_rgba(0,0,0,1)] md:shadow-[12px_12px_0_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 md:hover:translate-x-2 md:hover:translate-y-2 transition-all font-black uppercase text-lg md:text-2xl italic tracking-widest flex items-center justify-center gap-3 md:gap-4 disabled:opacity-50"
                                 >
                                     {isSubmitting ? 'TRAITEMENT...' : (type === 'trial' ? "REJOINDRE L'AVENTURE" : "CONFIRMER L'INSCRIPTION")}
-                                    <ArrowRight size={32} strokeWidth={3} />
+                                    <ArrowRight size={24} className="md:w-8 md:h-8" strokeWidth={3} />
                                 </button>
                                 
-                                <p className="text-[10px] text-center font-black opacity-20 uppercase tracking-[0.3em] mt-8">
-                                    En cliquant sur envoyer, vous acceptez nos conditions de réservation.
-                                </p>
+                                {/* Trust Strip */}
+                                <div className="mt-8 flex flex-wrap justify-center gap-4 md:gap-8 border-t border-black/5 pt-8">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center"><CheckCircle2 size={12} strokeWidth={3} /></div>
+                                        <span className="text-[10px] font-black uppercase tracking-widest opacity-40">100% Gratuit</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center"><Zap size={12} strokeWidth={3} /></div>
+                                        <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Sans engagement</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-6 h-6 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center"><Info size={12} strokeWidth={3} /></div>
+                                        <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Réponse < 24h</span>
+                                    </div>
+                                </div>
                             </div>
                         </form>
                     </div>

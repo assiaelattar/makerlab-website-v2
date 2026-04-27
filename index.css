@@ -10,6 +10,16 @@ body {
     linear-gradient(90deg, #f1f5f9 1px, transparent 1px) !important;
   background-size: 40px 40px !important;
   position: relative;
+  color-scheme: light !important;
+}
+
+/* Force light mode for all elements to avoid browser dark mode conflicts */
+:root {
+  color-scheme: light;
+}
+
+* {
+  scrollbar-color: #e87722 #f1f1f1;
 }
 
 /* Subtle Paper Grain Overlay */

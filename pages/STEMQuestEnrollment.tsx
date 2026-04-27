@@ -52,6 +52,11 @@ export const STEMQuestEnrollment: React.FC = () => {
     status: 'pending'
   });
 
+  // Force scroll to top on mount
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // Fetch Settings
   useEffect(() => {
     const fetchSettings = async () => {
@@ -212,50 +217,50 @@ ${method === 'virement' ? 'Je vous envoie la preuve de virement ci-joint.' : 'Je
   return (
     <div className="min-h-screen bg-[#F8F9FA] font-sans">
       <SEO 
-        title="Inscription STEMQuest — MakerLab Academy"
-        description="Confirmez l'inscription de votre enfant au programme STEMQuest."
+        title={formData.childName ? `🚀 ${formData.childName}, ta place à MakerLab t'attend !` : "Inscription STEMQuest — MakerLab Academy"}
+        description={formData.childName ? `Prêt pour l'aventure STEMQuest ? Confirmez l'inscription de ${formData.childName} pour rejoindre nos futurs Makers.` : "Confirmez l'inscription de votre enfant au programme STEMQuest."}
+        image="/logo-full.png"
       />
 
       {/* Hero Header */}
-      <header className="bg-[#2D1B8C] text-white pt-16 pb-32 px-4 relative overflow-hidden">
+      <header className="bg-[#2D1B8C] text-white pt-10 pb-20 md:pt-16 md:pb-32 px-4 relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-full opacity-10">
-          <div className="absolute top-10 left-10 w-32 h-32 rounded-full border-8 border-white animate-pulse" />
-          <div className="absolute bottom-10 right-10 w-64 h-64 rounded-full border-8 border-white animate-float" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full border-[100px] border-white/5 rounded-full" />
+          <div className="absolute top-10 left-10 w-24 h-24 md:w-32 md:h-32 rounded-full border-8 border-white animate-pulse" />
+          <div className="absolute bottom-10 right-10 w-48 h-48 md:w-64 md:h-64 rounded-full border-8 border-white animate-float" />
         </div>
 
         <div className="container mx-auto max-w-4xl relative z-10 text-center">
-          <div className="inline-flex items-center gap-2 bg-yellow-400 text-[#2D1B8C] px-4 py-2 rounded-full font-black text-sm uppercase tracking-wider mb-6 shadow-lg animate-bounce">
-            <Star size={18} fill="currentColor" />
+          <div className="inline-flex items-center gap-2 bg-yellow-400 text-[#2D1B8C] px-3 py-1.5 md:px-4 md:py-2 rounded-full font-black text-[10px] md:text-sm uppercase tracking-wider mb-4 md:mb-6 shadow-lg animate-bounce">
+            <Star size={14} fill="currentColor" className="md:w-[18px] md:h-[18px]" />
             Merci pour votre visite !
-            <Star size={18} fill="currentColor" />
+            <Star size={14} fill="currentColor" className="md:w-[18px] md:h-[18px]" />
           </div>
-          <h1 className="text-4xl md:text-6xl font-black uppercase leading-tight mb-6">
+          <h1 className="text-2xl sm:text-3xl md:text-6xl font-black uppercase leading-tight mb-4 md:mb-6">
             {isPersonalized ? (
               <>Bonjour {formData.parentName.split(' ')[0]} ! <br /> <span className="text-yellow-400">{formData.childName} est un futur Maker !</span></>
             ) : (
               <>Prêt à transformer <br /> <span className="text-yellow-400">votre enfant en Maker ?</span></>
             )}
           </h1>
-          <p className="text-xl md:text-2xl text-purple-100 font-medium max-w-2xl mx-auto leading-relaxed">
+          <p className="text-base md:text-2xl text-purple-100 font-medium max-w-2xl mx-auto leading-relaxed px-4">
             {isPersonalized ? (
-              <>Nous avons adoré voir l'énergie et la créativité de {formData.childName} lors de son atelier d'essai ! 🚀 Voici comment confirmer son inscription.</>
+              <>Nous avons adoré voir l'énergie et la créativité de {formData.childName} lors de son atelier d'essai ! 🚀</>
             ) : (
-              <>L'énergie et la créativité de votre enfant nous ont impressionnés ! 🚀 Voici comment sécuriser sa place pour la rentrée.</>
+              <>L'énergie et la créativité de votre enfant nous ont impressionnés ! 🚀</>
             )}
           </p>
         </div>
       </header>
 
       {/* Progress Bar */}
-      <div className="container mx-auto max-w-4xl -mt-10 md:-mt-12 px-4 relative z-20">
-        <div className="bg-white p-3 md:p-4 rounded-3xl border-4 border-black shadow-neo flex items-center justify-between">
+      <div className="container mx-auto max-w-4xl -mt-8 md:-mt-12 px-4 relative z-20">
+        <div className="bg-white p-2.5 md:p-4 rounded-2xl md:rounded-3xl border-2 md:border-4 border-black shadow-neo flex items-center justify-between">
           {[1, 2, 3, 4, 5, 6].map((s) => (
             <div key={s} className="flex items-center gap-1 md:gap-2 flex-1 last:flex-none">
-              <div className={`w-8 h-8 md:w-10 md:h-10 rounded-xl border-2 flex items-center justify-center font-black transition-all text-sm md:text-base ${
+              <div className={`w-7 h-7 md:w-10 md:h-10 rounded-lg md:rounded-xl border-2 flex items-center justify-center font-black transition-all text-xs md:text-base ${
                 step >= s ? 'bg-[#2D1B8C] border-black text-white shadow-neo-sm scale-110' : 'bg-gray-100 border-gray-200 text-gray-400'
               }`}>
-                {step > s ? <Check size={16} /> : s}
+                {step > s ? <Check size={14} className="md:w-4 md:h-4" /> : s}
               </div>
               {s < 6 && <div className={`h-1 flex-1 rounded-full ${step > s ? 'bg-[#2D1B8C]' : 'bg-gray-200'}`} />}
             </div>
@@ -287,14 +292,14 @@ ${method === 'virement' ? 'Je vous envoie la preuve de virement ci-joint.' : 'Je
         </section>
       )}
 
-      <main className="container mx-auto max-w-4xl py-12 px-4">
+      <main className="container mx-auto max-w-4xl py-8 md:py-12 px-4">
         
         {/* Step 1: Basic Info */}
         {step === 1 && (
           <div className="animate-in fade-in slide-in-from-bottom-8 duration-500">
-            <div className="bg-white border-4 border-black rounded-[40px] p-8 md:p-12 shadow-neo">
-              <h2 className="text-3xl font-black uppercase mb-8 flex items-center gap-4">
-                <div className="w-12 h-12 bg-pink-500 text-white rounded-2xl flex items-center justify-center shadow-neo-sm">1</div>
+            <div className="bg-white border-2 md:border-4 border-black rounded-[30px] md:rounded-[40px] p-6 md:p-12 shadow-neo">
+              <h2 className="text-xl md:text-3xl font-black uppercase mb-6 md:mb-8 flex items-center gap-3 md:gap-4">
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-pink-500 text-white rounded-xl md:rounded-2xl flex items-center justify-center shadow-neo-sm text-lg md:text-xl">1</div>
                 Commençons l'aventure !
               </h2>
               <p className="text-gray-500 font-bold mb-8 italic -mt-6">
@@ -353,9 +358,9 @@ ${method === 'virement' ? 'Je vous envoie la preuve de virement ci-joint.' : 'Je
               <button 
                 onClick={() => formData.parentName && formData.parentPhone && formData.childName && formData.childAgeGroup && setStep(2)}
                 disabled={!formData.parentName || !formData.parentPhone || !formData.childName || !formData.childAgeGroup}
-                className="w-full py-6 bg-[#E87722] text-white font-black text-xl uppercase rounded-3xl border-4 border-black shadow-neo hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+                className="w-full py-5 md:py-6 bg-[#E87722] text-white font-black text-lg md:text-xl uppercase rounded-2xl md:rounded-3xl border-2 md:border-4 border-black shadow-neo hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
               >
-                Continuer vers les packs <ArrowRight size={24} />
+                Continuer vers les packs <ArrowRight size={20} className="md:w-6 md:h-6" />
               </button>
             </div>
           </div>
@@ -636,187 +641,161 @@ ${method === 'virement' ? 'Je vous envoie la preuve de virement ci-joint.' : 'Je
           </div>
         )}
 
-        {/* Step 5: Choose Payment Method */}
+        {/* Step 5: Payment Method Choice */}
         {step === 5 && (
-          <div className="animate-in fade-in slide-in-from-bottom-8 duration-500">
-            <h2 className="text-3xl md:text-4xl font-black uppercase text-center mb-12">Comment souhaitez-vous régler ?</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <button 
-                onClick={() => {
-                  setFormData({...formData, paymentMethod: 'virement'});
-                  setStep(6);
-                }}
-                className={`bg-white border-4 border-black rounded-[40px] p-10 shadow-neo hover:-translate-y-2 transition-all text-left group relative overflow-hidden ${formData.paymentMethod === 'virement' ? 'ring-8 ring-purple-100' : ''}`}
-              >
-                <div className="relative z-10">
-                  <div className="w-16 h-16 bg-blue-100 text-[#2D1B8C] rounded-2xl flex items-center justify-center mb-6 border-2 border-[#2D1B8C]">
-                    <Copy size={32} />
-                  </div>
-                  <h3 className="text-2xl font-black uppercase mb-4">Virement Bancaire</h3>
-                  <p className="font-bold text-gray-500 text-sm leading-relaxed mb-8">
-                    Payez depuis votre application bancaire. Simple, rapide et sécurisé.
-                  </p>
-                  <div className="flex items-center gap-2 text-[#2D1B8C] font-black uppercase text-xs">
-                    Choisir ce mode <ArrowRight size={16} />
-                  </div>
-                </div>
-                <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-blue-50 rounded-full opacity-50 group-hover:scale-150 transition-transform duration-700" />
-              </button>
+          <div className="animate-in fade-in slide-in-from-bottom-8 duration-500 max-w-2xl mx-auto">
+            <div className="bg-white border-2 md:border-4 border-black rounded-[30px] md:rounded-[40px] p-6 md:p-12 shadow-neo text-center">
+              <h2 className="text-xl md:text-3xl font-black uppercase mb-4">Mode de Paiement</h2>
+              <p className="text-gray-500 font-bold mb-8 text-sm md:text-base px-2">
+                Choisissez comment vous souhaitez régler l'inscription de {formData.childName}.
+              </p>
 
-              <button 
-                onClick={() => {
-                  setFormData({...formData, paymentMethod: 'place'});
-                  setStep(6);
-                }}
-                className={`bg-white border-4 border-black rounded-[40px] p-10 shadow-neo hover:-translate-y-2 transition-all text-left group relative overflow-hidden ${formData.paymentMethod === 'place' ? 'ring-8 ring-purple-100' : ''}`}
-              >
-                <div className="relative z-10">
-                  <div className="w-16 h-16 bg-yellow-100 text-[#E87722] rounded-2xl flex items-center justify-center mb-6 border-2 border-[#E87722]">
-                    <Calendar size={32} />
+              <div className="grid grid-cols-1 gap-4 md:gap-6 text-left">
+                <button
+                  onClick={() => { setFormData({ ...formData, paymentMethod: 'virement' }); setStep(6); }}
+                  className="p-5 md:p-10 border-2 md:border-4 border-black rounded-[24px] md:rounded-[40px] shadow-neo-sm hover:shadow-neo hover:-translate-y-1 transition-all flex items-center gap-4 md:gap-8 group relative overflow-hidden"
+                >
+                  <div className="w-12 h-12 md:w-20 md:h-20 bg-blue-50 text-[#2D1B8C] rounded-xl md:rounded-3xl flex items-center justify-center shrink-0 border-2 border-[#2D1B8C] group-hover:bg-[#2D1B8C] group-hover:text-white transition-colors">
+                    <Upload size={24} className="md:w-8 md:h-8" />
                   </div>
-                  <h3 className="text-2xl font-black uppercase mb-4">Paiement sur Place</h3>
-                  <p className="font-bold text-gray-500 text-sm leading-relaxed mb-8">
-                    Venez nous voir au Lab pour régler en espèces ou par chèque.
-                  </p>
-                  <div className="flex items-center gap-2 text-[#E87722] font-black uppercase text-xs">
-                    Choisir ce mode <ArrowRight size={16} />
+                  <div className="relative z-10">
+                    <h3 className="font-black text-base md:text-2xl uppercase">Virement Bancaire</h3>
+                    <p className="text-[10px] md:text-sm text-gray-500 font-bold">Sécurisé et rapide via capture d'écran.</p>
                   </div>
-                </div>
-                <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-yellow-50 rounded-full opacity-50 group-hover:scale-150 transition-transform duration-700" />
-              </button>
+                  <ArrowRight size={20} className="ml-auto text-gray-300 md:group-hover:translate-x-2 transition-transform" />
+                </button>
+
+                <button
+                  onClick={() => { setFormData({ ...formData, paymentMethod: 'place' }); setStep(6); }}
+                  className="p-5 md:p-10 border-2 md:border-4 border-black rounded-[24px] md:rounded-[40px] shadow-neo-sm hover:shadow-neo hover:-translate-y-1 transition-all flex items-center gap-4 md:gap-8 group relative overflow-hidden"
+                >
+                  <div className="w-12 h-12 md:w-20 md:h-20 bg-yellow-50 text-[#E87722] rounded-xl md:rounded-3xl flex items-center justify-center shrink-0 border-2 border-[#E87722] group-hover:bg-[#E87722] group-hover:text-white transition-colors">
+                    <Calendar size={24} className="md:w-8 md:h-8" />
+                  </div>
+                  <div className="relative z-10">
+                    <h3 className="font-black text-base md:text-2xl uppercase">Paiement sur Place</h3>
+                    <p className="text-[10px] md:text-sm text-gray-500 font-bold">Prenez rendez-vous pour nous rendre visite.</p>
+                  </div>
+                  <ArrowRight size={20} className="ml-auto text-gray-300 md:group-hover:translate-x-2 transition-transform" />
+                </button>
+              </div>
+
+              <button onClick={() => setStep(4)} className="mt-8 md:mt-12 flex items-center justify-center gap-2 font-black uppercase text-gray-400 hover:text-black transition-colors text-xs md:text-sm mx-auto">← Retour au récapitulatif</button>
             </div>
-            <button onClick={() => setStep(4)} className="mt-12 mx-auto flex items-center gap-2 font-black uppercase text-gray-400 hover:text-black transition-colors">← Retour au récapitulatif</button>
           </div>
         )}
 
         {/* Step 6: Final Details (Method Execution) */}
         {step === 6 && (
-          <div className="animate-in fade-in slide-in-from-bottom-8 duration-500">
-              <div className="max-w-2xl mx-auto">
-                 {formData.paymentMethod === 'virement' ? (
-                   <div className="space-y-8">
-                      <div className="bg-[#2D1B8C] text-white p-8 md:p-12 rounded-[40px] border-4 border-black shadow-neo relative overflow-hidden">
-                        <div className="relative z-10">
-                          <h2 className="text-2xl md:text-3xl font-black uppercase mb-8 border-b-2 border-white/20 pb-4 flex items-center gap-4">
-                            <Copy size={32} /> Virement Bancaire
-                          </h2>
-                          <div className="space-y-8">
-                            <div className="bg-black/20 p-6 md:p-8 rounded-3xl border-2 border-white/10 relative group">
-                                <p className="text-[10px] font-black uppercase opacity-50 mb-2">RIB (CIH BANK)</p>
-                                <p className="font-mono font-bold text-lg md:text-2xl leading-tight break-all mb-6">230 780 2825423211002900 15</p>
-                                <button 
-                                  onClick={() => { navigator.clipboard.writeText('230780282542321100290015'); alert('RIB Copié !'); }}
-                                  className="w-full py-4 bg-white text-[#2D1B8C] rounded-2xl font-black uppercase text-xs flex items-center justify-center gap-3 hover:bg-yellow-400 transition-colors shadow-neo-sm"
-                                >
-                                  <Copy size={18} /> Copier le RIB
-                                </button>
-                            </div>
-                            <div>
-                                <p className="text-[10px] font-black uppercase opacity-50 mb-1">Bénéficiaire</p>
-                                <p className="font-black text-xl md:text-2xl uppercase tracking-tight">Makerlab Academy</p>
-                            </div>
-                          </div>
+          <div className="animate-in fade-in slide-in-from-bottom-8 duration-500 max-w-2xl mx-auto">
+             {formData.paymentMethod === 'virement' ? (
+               <div className="space-y-6 md:space-y-8">
+                  <div className="bg-[#2D1B8C] text-white p-6 md:p-12 rounded-[30px] md:rounded-[40px] border-2 md:border-4 border-black shadow-neo relative overflow-hidden">
+                    <div className="relative z-10">
+                      <h2 className="text-xl md:text-3xl font-black uppercase mb-6 md:mb-8 border-b-2 border-white/20 pb-4 flex items-center gap-3 md:gap-4">
+                        <Upload size={24} className="md:w-8 md:h-8" /> Virement Bancaire
+                      </h2>
+                      <div className="space-y-6 md:space-y-8">
+                        <div className="bg-black/20 p-5 md:p-8 rounded-2xl md:rounded-3xl border-2 border-white/10 relative group">
+                            <p className="text-[10px] font-black uppercase opacity-50 mb-2 tracking-widest">RIB (CIH BANK)</p>
+                            <p className="font-mono font-bold text-base md:text-2xl leading-tight break-all mb-6 tracking-tight">230 780 2825423211002900 15</p>
+                            <button 
+                              onClick={() => { navigator.clipboard.writeText('230780282542321100290015'); alert('RIB Copié !'); }}
+                              className="w-full py-4 bg-white text-[#2D1B8C] rounded-xl md:rounded-2xl font-black uppercase text-[10px] md:text-xs flex items-center justify-center gap-3 hover:bg-yellow-400 transition-colors shadow-neo-sm"
+                            >
+                              <Copy size={16} /> Copier le RIB
+                            </button>
                         </div>
-                        <ShieldCheck size={180} className="absolute -left-20 -bottom-20 text-white/5 rotate-12" />
+                        <div className="flex justify-between items-center bg-white/5 p-4 rounded-2xl">
+                            <div>
+                                <p className="text-[9px] font-black uppercase opacity-50 mb-1">Bénéficiaire</p>
+                                <p className="font-black text-sm md:text-lg uppercase">Makerlab Academy</p>
+                            </div>
+                            <ShieldCheck size={24} className="text-yellow-400 opacity-50" />
+                        </div>
                       </div>
+                    </div>
+                    <ShieldCheck size={120} className="absolute -right-10 -bottom-10 text-white/5 rotate-12 md:w-48 md:h-48" />
+                  </div>
 
-                      <div className="bg-white border-4 border-black rounded-[40px] p-8 md:p-10 shadow-neo">
-                        <label className="font-black uppercase text-sm tracking-widest text-gray-500 ml-2 mb-4 block text-center">Preuve de virement (Capture)</label>
-                        <label className="flex flex-col items-center justify-center p-12 border-4 border-black border-dashed rounded-3xl cursor-pointer hover:bg-gray-50 transition-all relative overflow-hidden group">
-                           {formData.paymentProof ? (
-                             <div className="text-center">
-                                <CheckCircle2 size={64} className="mx-auto text-green-500 mb-4" />
-                                <p className="font-black uppercase text-sm text-green-500 tracking-widest">Capture uploadée avec succès !</p>
-                             </div>
-                           ) : (
-                             <>
-                                {loading ? (
-                                  <Loader2 size={48} className="animate-spin text-[#2D1B8C]" />
-                                ) : (
-                                  <Upload size={48} className="text-gray-300 group-hover:text-[#2D1B8C] transition-colors" />
-                                )}
-                                <span className="mt-4 text-xs font-black uppercase tracking-widest text-gray-400">Cliquez pour importer le reçu</span>
-                             </>
-                           )}
-                           <input type="file" className="hidden" accept="image/*" onChange={async (e) => {
-                              const file = e.target.files?.[0];
-                              if (!file) return;
-                              setLoading(true);
-                              try {
-                                const refProof = ref(storage, `payment_proofs/${Date.now()}_${file.name}`);
-                                await uploadBytes(refProof, file);
-                                const url = await getDownloadURL(refProof);
-                                setFormData(prev => ({ ...prev, paymentProof: url }));
-                              } catch (err) {
-                                console.error(err);
-                                alert("Erreur upload proof");
-                              } finally {
-                                setLoading(false);
-                              }
-                           }} />
-                        </label>
-                        <p className="mt-6 text-[10px] text-center font-bold text-gray-400 uppercase tracking-widest">Une fois le reçu importé, vous pouvez finaliser votre inscription.</p>
-                      </div>
-                   </div>
-                 ) : (
-                   <div className="bg-white border-4 border-black rounded-[40px] p-8 md:p-12 shadow-neo relative overflow-hidden">
-                      <div className="relative z-10">
-                        <h2 className="text-2xl md:text-3xl font-black uppercase mb-8 text-[#2D1B8C] flex items-center gap-4">
-                          <Calendar size={32} /> Paiement sur Place
-                        </h2>
-                        <p className="font-bold text-gray-600 mb-10 text-base leading-relaxed italic">
-                           "Nous avons hâte de vous rencontrer ! Choisissez une date pour passer au Lab finaliser l'inscription."
-                        </p>
-                        
-                        <div className="space-y-6">
-                          <div>
-                            <label className="font-black uppercase text-xs tracking-widest text-gray-500 ml-2 mb-3 block">Quand passez-vous nous voir ?</label>
+                  <div className="bg-white border-2 md:border-4 border-black rounded-[30px] md:rounded-[40px] p-6 md:p-10 shadow-neo">
+                    <label className="font-black uppercase text-[10px] md:text-sm tracking-widest text-gray-400 md:text-gray-500 mb-4 block text-center">Preuve de virement (Capture)</label>
+                    <label className="flex flex-col items-center justify-center p-8 md:p-12 border-2 md:border-4 border-black border-dashed rounded-2xl md:rounded-3xl cursor-pointer hover:bg-gray-50 transition-all relative overflow-hidden group">
+                       {formData.paymentProof ? (
+                         <div className="text-center">
+                            <CheckCircle2 size={48} className="mx-auto text-green-500 mb-4 md:w-16 md:h-16" />
+                            <p className="font-black uppercase text-[10px] md:text-sm text-green-500 tracking-widest">Capture uploadée avec succès !</p>
+                         </div>
+                       ) : (
+                         <>
+                            {loading ? (
+                              <Loader2 size={32} className="animate-spin text-[#2D1B8C] md:w-12 md:h-12" />
+                            ) : (
+                              <Upload size={32} className="text-gray-300 group-hover:text-[#2D1B8C] transition-colors md:w-12 md:h-12" />
+                            )}
+                            <span className="mt-4 text-[9px] md:text-xs font-black uppercase tracking-[0.2em] text-gray-400 text-center">Cliquez pour importer le reçu</span>
+                         </>
+                       )}
+                       <input type="file" className="hidden" accept="image/*" onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          setLoading(true);
+                          try {
+                            const refProof = ref(storage, `payment_proofs/${Date.now()}_${file.name}`);
+                            await uploadBytes(refProof, file);
+                            const url = await getDownloadURL(refProof);
+                            setFormData(prev => ({ ...prev, paymentProof: url }));
+                          } catch (err) {
+                            console.error(err);
+                            alert("Erreur upload proof");
+                          } finally {
+                            setLoading(false);
+                          }
+                       }} />
+                    </label>
+                    <p className="mt-4 text-[8px] md:text-[10px] text-center font-bold text-gray-400 uppercase tracking-widest leading-relaxed">Une fois le reçu importé, cliquez sur finaliser ci-dessous.</p>
+                  </div>
+               </div>
+             ) : (
+                    <div className="bg-white border-2 md:border-4 border-black rounded-[30px] md:rounded-[40px] p-6 md:p-12 shadow-neo relative overflow-hidden">
+                       <div className="relative z-10">
+                         <h2 className="text-xl md:text-3xl font-black uppercase mb-6 md:mb-8 text-[#2D1B8C] flex items-center gap-3 md:gap-4">
+                           <Calendar size={24} className="md:w-8 md:h-8" /> Paiement sur Place
+                         </h2>
+                         <p className="font-bold text-gray-600 mb-8 md:mb-10 text-sm md:text-base leading-relaxed italic">
+                            "Nous avons hâte de vous rencontrer ! Choisissez une date pour passer au Lab finaliser l'inscription."
+                         </p>
+                         <div className="space-y-4">
+                            <label className="font-black uppercase text-[10px] md:text-sm tracking-widest text-gray-400 md:text-gray-500 ml-2">Date de votre visite</label>
                             <input 
-                              type="text" 
-                              placeholder="Ex: Mardi prochain à 17h30"
-                              className="w-full p-6 bg-gray-50 border-4 border-black rounded-2xl font-bold focus:bg-white outline-none transition-all text-lg shadow-neo-sm"
+                              type="datetime-local" 
+                              className="w-full p-4 md:p-5 bg-gray-50 border-2 md:border-4 border-black rounded-xl md:rounded-2xl font-bold text-sm md:text-lg focus:ring-4 ring-purple-100 outline-none"
                               value={formData.visitDate}
                               onChange={(e) => setFormData({...formData, visitDate: e.target.value})}
                             />
-                          </div>
-                          <div className="bg-blue-50 p-6 rounded-2xl border-2 border-blue-100 flex items-start gap-4 shadow-neo-sm">
-                             <div className="bg-blue-100 p-3 rounded-xl text-[#2D1B8C] shrink-0"><Star size={24} /></div>
-                             <div>
-                                <p className="font-black uppercase text-xs text-[#2D1B8C] mb-1">Kit de Bienvenue</p>
-                                <p className="text-xs font-bold text-blue-600/60 italic">Récupérez le kit Maker de votre enfant lors de votre visite !</p>
-                             </div>
-                          </div>
-                        </div>
-                      </div>
-                      <Wrench size={120} className="absolute -right-12 -bottom-12 text-black/5 -rotate-12" />
-                   </div>
+                            <div className="bg-blue-50 p-4 md:p-6 rounded-2xl border-2 border-blue-100 flex gap-3 md:gap-4">
+                               <Info size={20} className="text-[#2D1B8C] shrink-0" />
+                               <p className="text-[10px] md:text-xs font-bold text-[#2D1B8C] leading-relaxed">
+                                  Le Lab est ouvert du Lundi au Samedi. Nous vous confirmerons le créneau par WhatsApp dès réception.
+                               </p>
+                            </div>
+                         </div>
+                       </div>
+                    </div>
                  )}
 
-                 {/* Action Buttons */}
-                 <div className="mt-12 space-y-4">
+                 <div className="mt-8 md:mt-12 space-y-4 md:space-y-6">
                     <button 
                       onClick={handleSubmit}
-                      disabled={loading || (formData.paymentMethod === 'place' && !formData.visitDate) || (formData.paymentMethod === 'virement' && !formData.paymentProof)}
-                      className="w-full py-8 bg-black text-white font-black text-2xl uppercase rounded-[2.5rem] border-4 border-black shadow-neo flex items-center justify-center gap-4 hover:bg-brand-red transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
+                      disabled={loading || (formData.paymentMethod === 'virement' && !formData.paymentProof) || (formData.paymentMethod === 'place' && !formData.visitDate)}
+                      className="w-full py-5 md:py-8 bg-brand-green text-white font-black text-lg md:text-2xl uppercase rounded-2xl md:rounded-[2.5rem] border-2 md:border-4 border-black shadow-neo hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 md:gap-4"
                     >
-                      {loading ? <Loader2 className="animate-spin" /> : (
-                        <>
-                          Finaliser l'inscription 
-                          <Rocket size={32} className="group-hover:translate-x-2 group-hover:-translate-y-2 transition-transform" />
-                        </>
-                      )}
+                      {loading ? <Loader2 className="animate-spin" /> : <CheckCircle2 size={24} className="md:w-8 md:h-8" />}
+                      Finaliser l'inscription
                     </button>
-
-                    <button 
-                      onClick={() => sendWhatsApp(formData.paymentMethod)}
-                      disabled={loading || (formData.paymentMethod === 'place' && !formData.visitDate)}
-                      className="w-full py-5 bg-[#25D366] text-white font-black text-xl uppercase rounded-3xl border-4 border-black shadow-neo flex items-center justify-center gap-4 hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all disabled:opacity-50"
-                    >
-                      <MessageCircle size={28} fill="currentColor" /> Confirmer via WhatsApp
-                    </button>
+                    <button onClick={() => setStep(5)} className="w-full text-center font-black uppercase text-[10px] md:text-xs text-gray-400 hover:text-black transition-colors">Modifier le mode de paiement</button>
                  </div>
               </div>
-              <button onClick={() => setStep(5)} className="mt-12 mx-auto flex items-center gap-2 font-black uppercase text-gray-400 hover:text-black transition-colors">← Retour au choix</button>
           </div>
         )}
 
