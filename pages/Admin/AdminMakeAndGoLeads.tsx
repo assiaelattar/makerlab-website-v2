@@ -155,7 +155,12 @@ export const AdminMakeAndGoLeads: React.FC = () => {
   useEffect(() => {
     const unsub = onSnapshot(collection(db, COLLECTION), snap => {
       const data = snap.docs.map(d => ({ ...d.data(), id: d.id } as MakeAndGoLead));
-      data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      // Sort by import time (newest first) — importedAt is when WE added it, createdAt is Meta's form date
+      data.sort((a, b) => {
+        const ta = new Date(a.importedAt || a.updatedAt || a.createdAt).getTime();
+        const tb = new Date(b.importedAt || b.updatedAt || b.createdAt).getTime();
+        return tb - ta;
+      });
       setLeads(data);
       setLoading(false);
     });
@@ -226,9 +231,11 @@ export const AdminMakeAndGoLeads: React.FC = () => {
     try {
       for (const lead of newLeads) {
         const id = `mag-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+        const now = new Date().toISOString();
         const full: MakeAndGoLead = {
           ...lead,
           id,
+          importedAt: now,
           lpUrl: generateLPUrl({ ...lead, id } as MakeAndGoLead),
         };
         // Firestore rejects `undefined` — strip all undefined/null fields
