@@ -72,7 +72,7 @@ export const Programs: React.FC = () => {
   const projectsGallery = settings?.home_projects;
 
   return (
-    <div className="min-h-screen py-16 md:py-20 px-4">
+    <div className="min-h-screen py-0 px-4">
       <SEO 
         title="Missions & Ateliers Robotique Casablanca" 
         description="Parcours Ateliers Drone, Stages de Vacances Coding et Camp Robotique à Casablanca. Choisissez votre mission technologique et devenez un Maker !"
@@ -81,11 +81,11 @@ export const Programs: React.FC = () => {
       <div className="container mx-auto">
         <ScrollReveal>
           {/* HEADER SECTION — compact on mobile */}
-          <section className="relative pb-6 md:pb-12">
-            <div className="bg-brand-red border-4 border-black px-4 py-8 md:py-24 text-center relative overflow-hidden group shadow-neo-xl">
+          <section className="relative pb-4 md:pb-12">
+            <div className="bg-brand-red border-4 border-black px-4 py-10 md:py-24 text-center relative overflow-hidden group shadow-neo-xl">
               <div className="absolute inset-0 z-0 bg-[url('https://www.transparenttextures.com/patterns/diagmonds-light.png')] opacity-20"></div>
               <div className="container mx-auto relative z-10">
-                <h1 className="font-display font-black text-3xl md:text-8xl text-white mb-2 md:mb-6 uppercase tracking-tight leading-[0.9] drop-shadow-[3px_3px_0px_rgba(0,0,0,1)] md:drop-shadow-[6px_6px_0px_rgba(0,0,0,1)]">
+                <h1 className="font-display font-black text-4xl md:text-8xl text-white mb-2 md:mb-6 uppercase tracking-tight leading-[0.9] drop-shadow-[3px_3px_0px_rgba(0,0,0,1)] md:drop-shadow-[6px_6px_0px_rgba(0,0,0,1)]">
                   Trouve ta <span className="text-white underline decoration-brand-orange">Mission.</span>
                 </h1>
                 <p className="text-sm md:text-2xl text-white/80 font-bold max-w-2xl mx-auto">
@@ -146,9 +146,9 @@ export const Programs: React.FC = () => {
         </section>
 
         {/* KIDS PROGRAMS */}
-        <div className="mb-24">
-          <h2 className="font-display font-black text-4xl uppercase border-b-8 border-brand-orange pb-4 mb-8 inline-block">Enfants & Familles</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="mb-16 md:mb-24">
+          <h2 className="font-display font-black text-2xl md:text-4xl uppercase border-b-4 md:border-b-8 border-brand-orange pb-3 md:pb-4 mb-6 md:mb-8 inline-block">Enfants & Familles</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-8">
             {kidsPrograms.length > 0 ? (
               kidsPrograms.map((item, index) => (
                 <ScrollReveal key={item.id} delay={index * 100}>
@@ -164,9 +164,9 @@ export const Programs: React.FC = () => {
         </div>
 
         {/* SCHOOL PROGRAMS */}
-        <div className="mb-20">
-          <h2 className="font-display font-black text-4xl uppercase border-b-8 border-brand-red pb-4 mb-8 inline-block">Écoles & Éducation</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="mb-16 md:mb-20">
+          <h2 className="font-display font-black text-2xl md:text-4xl uppercase border-b-4 md:border-b-8 border-brand-red pb-3 md:pb-4 mb-6 md:mb-8 inline-block">Écoles & Éducation</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-8">
             {schoolPrograms.length > 0 ? (
               schoolPrograms.map((program, index) => (
                 <ScrollReveal key={program.id} delay={index * 100}>

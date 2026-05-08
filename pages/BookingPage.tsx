@@ -114,16 +114,15 @@ export const BookingPage: React.FC = () => {
             setIsSubmitting(false);
         }
     };
-
     if (isSuccess) {
         return (
-            <div className="min-h-screen pt-32 pb-20 px-4 bg-brand-red/10">
-                <div className="max-w-2xl mx-auto bg-white border-4 border-black rounded-[2.5rem] shadow-neo-xl p-8 md:p-16 text-center">
-                    <div className="w-24 h-24 bg-brand-green border-4 border-black rounded-full flex items-center justify-center mx-auto mb-8 animate-bounce">
-                        <CheckCircle2 size={48} strokeWidth={3} className="text-white" />
+            <div className="min-h-screen pt-8 md:pt-20 pb-16 px-4 bg-brand-red/10 flex items-start justify-center">
+                <div className="max-w-2xl w-full mx-auto bg-white border-4 border-black rounded-[2rem] shadow-neo-xl p-6 md:p-16 text-center mt-8 md:mt-16">
+                    <div className="w-16 h-16 md:w-24 md:h-24 bg-brand-green border-4 border-black rounded-full flex items-center justify-center mx-auto mb-6 md:mb-8 animate-bounce">
+                        <CheckCircle2 size={36} strokeWidth={3} className="text-white" />
                     </div>
-                    <h2 className="font-display font-black text-4xl mb-6 uppercase">C'est validé !</h2>
-                    <p className="text-xl font-bold mb-8 leading-relaxed">
+                    <h2 className="font-display font-black text-3xl md:text-4xl mb-4 md:mb-6 uppercase">C'est validé !</h2>
+                    <p className="text-base md:text-xl font-bold mb-6 md:mb-8 leading-relaxed">
                         {type === 'trial' 
                             ? `Votre demande d'atelier d'essai pour "${bookingTitle}" a bien été reçue. Notre équipe vous recontactera très vite pour confirmer la date.`
                             : type === 'annual'
@@ -140,7 +139,7 @@ export const BookingPage: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen pt-16 md:pt-32 pb-16 px-3 md:px-4 bg-[#fcfaf7] relative overflow-hidden">
+        <div className="min-h-screen pt-8 md:pt-28 pb-16 px-3 md:px-4 bg-[#fcfaf7] relative overflow-hidden">
             <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/natural-paper.png")' }}></div>
             
             <div className="max-w-6xl mx-auto relative z-10">

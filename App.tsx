@@ -43,7 +43,9 @@ import { AdminBookings } from './pages/Admin/AdminBookings';
 import { AdminBlogs } from './pages/Admin/AdminBlogs';
 import { AdminLandingPages } from './pages/Admin/AdminLandingPages';
 import { AdminLandingEditor } from './pages/Admin/AdminLandingEditor';
+import { AdminReservationLP } from './pages/Admin/AdminReservationLP';
 import { AdminMissions } from './pages/Admin/AdminMissions';
+import { AdminMakeAndGoLeads } from './pages/Admin/AdminMakeAndGoLeads';
 import { ProgramLanding } from './pages/ProgramLanding';
 import { SocialProofToast } from './components/SocialProofToast';
 import { AdminCalendar } from './pages/Admin/AdminCalendar';
@@ -55,6 +57,7 @@ import { PriorityBooking } from './pages/PriorityBooking';
 import { MerciPage } from './pages/MerciPage';
 import { DecouvrirPage } from './pages/DecouvrirPage';
 import { AdminLaunchCenter } from './pages/Admin/AdminLaunchCenter';
+import { ReservationLP } from './pages/ReservationLP';
 
 import { STEMQuestEnrollment } from './pages/STEMQuestEnrollment';
 import { SubmitProject } from './pages/SubmitProject';
@@ -198,6 +201,7 @@ const App: React.FC = () => {
                 {/* ── Standalone marketing funnel (no Navbar / Footer) ── */}
                 <Route path="/lp/:id" element={<ProgramLanding />} />
                 <Route path="/thanks" element={<ThankYou />} />
+                <Route path="/reservation" element={<ReservationLP />} />
                 <Route path="/stemquest-enrollment/:id?" element={<STEMQuestEnrollment />} />
 
                 {/* ── Make & Go lead funnel — /quiz + /apply both go here ── */}
@@ -221,7 +225,9 @@ const App: React.FC = () => {
                   <Route path="stemquest-settings" element={<AdminSTEMQuestSettings />} />
                   <Route path="blogs" element={<AdminBlogs />} />
                   <Route path="landing-pages" element={<AdminLandingPages />} />
+                  <Route path="reservation-lp" element={<AdminReservationLP />} />
                   <Route path="missions" element={<AdminMissions />} />
+                  <Route path="make-and-go-leads" element={<AdminMakeAndGoLeads />} />
                   <Route path="leads" element={<AdminLeadMagnet />} />
                   <Route path="program/:id" element={<ProgramEditor />} />
                   <Route path="maker-wall" element={<AdminMakerWall />} />

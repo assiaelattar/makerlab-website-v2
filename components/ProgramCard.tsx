@@ -67,12 +67,12 @@ export const ProgramCard: React.FC<Props> = ({ program, index = 0 }) => {
       {/* ══════════════════════════════════════════════
           MOBILE — medium horizontal card with visible image
       ══════════════════════════════════════════════ */}
-      <div className="md:hidden flex items-stretch h-[140px]">
+      <div className="md:hidden flex items-stretch min-h-[130px]">
         {/* Left: prominent image */}
-        <div className="w-[42%] shrink-0 relative overflow-hidden border-r-4 border-black">
+        <div className="w-[38%] shrink-0 relative overflow-hidden border-r-4 border-black">
           <img src={imgSrc} alt={title} className="w-full h-full object-cover" />
           {/* Category badge */}
-          <div className="absolute top-2 left-2 bg-white text-black border-2 border-black text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 shadow-[2px_2px_0_rgba(0,0,0,1)]">
+          <div className="absolute top-2 left-2 bg-white text-black border-2 border-black text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 shadow-[2px_2px_0_rgba(0,0,0,1)] leading-none">
             {program.category}
           </div>
           {/* XP pill */}
@@ -84,19 +84,20 @@ export const ProgramCard: React.FC<Props> = ({ program, index = 0 }) => {
         {/* Right: info + expand */}
         <div className={`flex-1 ${theme.bg} ${theme.text} flex flex-col justify-between p-3 min-w-0`}>
           <div>
-            <h3 className="font-black text-[15px] leading-tight line-clamp-2 uppercase tracking-tight mb-1">{title}</h3>
-            <p className={`text-[10px] ${theme.subtext} line-clamp-1 opacity-80`}>{program.description}</p>
+            <h3 className="font-black text-[14px] leading-tight line-clamp-2 uppercase tracking-tight mb-1.5">{title}</h3>
+            <p className={`text-[10px] ${theme.subtext} line-clamp-2 opacity-80 leading-snug`}>{program.description}</p>
           </div>
-          <div className="flex items-end justify-between mt-1">
+          <div className="flex items-end justify-between mt-2">
             <div>
-              <div className="font-black text-lg leading-none mb-0.5">{program.price}</div>
+              <div className="font-black text-base leading-none mb-0.5">{program.price}</div>
               <div className={`text-[9px] ${theme.subtext} flex items-center gap-1 opacity-70`}>
                 <Clock size={9} strokeWidth={3} /> {program.duration}
               </div>
             </div>
             <button
               onClick={(e) => { e.stopPropagation(); setIsExpanded(v => !v); }}
-              className="bg-black/20 backdrop-blur-sm w-9 h-9 flex items-center justify-center border-2 border-white/30 active:scale-90 transition-all"
+              className="bg-black/25 backdrop-blur-sm w-9 h-9 flex items-center justify-center border-2 border-white/30 active:scale-90 transition-all shrink-0 ml-2"
+              aria-label={isExpanded ? 'Réduire' : 'Voir plus'}
             >
               <ChevronDown size={16} strokeWidth={3} className={`text-white transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
             </button>

@@ -28,18 +28,18 @@ export const About: React.FC = () => {
         keywords="STEM education Morocco, activités STEM enfants Maroc, ateliers scientifiques Casablanca, éducation technologique jeunes, MakerLab Academy Casablanca"
       />
       {/* Hero Section */}
-      <section className="relative py-24 overflow-hidden border-b-8 border-black bg-brand-orange/10">
+      <section className="relative py-12 md:py-24 overflow-hidden border-b-8 border-black bg-brand-orange/10">
         <div className="container mx-auto px-4 relative z-10">
           <ScrollReveal>
             <div className="max-w-4xl mx-auto text-center">
-              <h1 className="font-display font-black text-6xl md:text-7xl mb-6 leading-tight uppercase tracking-tighter">
+              <h1 className="font-display font-black text-4xl md:text-7xl mb-4 md:mb-6 leading-tight uppercase tracking-tighter">
                 Who We <span className="text-brand-red">Are</span>
               </h1>
-              <p className="text-2xl font-bold mb-8 leading-relaxed">
+              <p className="text-base md:text-2xl font-bold mb-6 md:mb-8 leading-relaxed">
                 MakerLab Academy is a <span className="bg-brand-blue/20 px-2">STEM education center in Casablanca</span> where kids and teenagers learn by <span className="underline decoration-brand-red decoration-4">building real projects</span>, not just watching or memorizing.
               </p>
-              <div className="bg-black text-white p-6 rounded-2xl border-4 border-black shadow-neo inline-block rotate-1">
-                <p className="font-black text-xl uppercase tracking-widest">
+              <div className="bg-black text-white p-4 md:p-6 rounded-2xl border-4 border-black shadow-neo inline-block rotate-1">
+                <p className="font-black text-sm md:text-xl uppercase tracking-widest">
                   Think like engineers, creators, and innovators.
                 </p>
               </div>
@@ -52,7 +52,7 @@ export const About: React.FC = () => {
       </section>
 
       {/* Philosophy Section */}
-      <section className="py-20 border-b-8 border-black">
+      <section className="py-12 md:py-20 border-b-8 border-black">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
             <ScrollReveal direction="left">
@@ -159,7 +159,7 @@ export const About: React.FC = () => {
       </section>
 
       {/* Stations Section */}
-      <section className="py-20 border-b-8 border-black">
+      <section className="py-12 md:py-20 border-b-8 border-black">
         <div className="container mx-auto px-4">
           <ScrollReveal>
             <div className="mb-16">
@@ -234,7 +234,7 @@ export const About: React.FC = () => {
       </section>
 
       {/* Philosophy & Parents Section */}
-      <section className="py-20 border-b-8 border-black">
+      <section className="py-12 md:py-20 border-b-8 border-black">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
             <ScrollReveal direction="left">
@@ -316,7 +316,7 @@ export const About: React.FC = () => {
       </section>
 
       {/* Call to Action */}
-      <section className="py-24 bg-brand-red relative overflow-hidden">
+      <section className="py-12 md:py-24 bg-brand-red relative overflow-hidden">
         <div className="container mx-auto px-4 text-center relative z-10">
           <ScrollReveal scale={0.9}>
             <div className="max-w-3xl mx-auto">

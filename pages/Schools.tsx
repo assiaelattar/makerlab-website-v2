@@ -30,21 +30,21 @@ export const Schools: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen pt-8 md:pt-16">
+        <div className="min-h-screen pt-0">
 
             {/* HEADER SECTION */}
-            <section className="relative pb-16 px-4">
-                <div className="bg-brand-red px-4 py-20 text-center relative overflow-hidden shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] border-4 border-black">
+            <section className="relative pb-8 md:pb-16 px-4">
+                <div className="bg-brand-red px-4 py-12 md:py-20 text-center relative overflow-hidden shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] border-4 border-black">
                     {settings?.hero_images?.hero_bg_ecoles && (
                         <div className="absolute inset-0 z-0 opacity-40 mix-blend-multiply" style={{ backgroundImage: `url(${settings.hero_images.hero_bg_ecoles})`, backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
                     )}
                     <div className="absolute inset-0 z-0 opacity-10" style={{ backgroundImage: 'radial-gradient(#fff 2px, transparent 2px)', backgroundSize: '30px 30px' }}></div>
 
                     <div className="container mx-auto relative z-10">
-                        <h1 className="font-display font-black text-5xl md:text-7xl text-white mb-6 leading-tight drop-shadow-md uppercase">
+                        <h1 className="font-display font-black text-4xl md:text-7xl text-white mb-4 md:mb-6 leading-tight drop-shadow-md uppercase">
                             MakerLab pour <span className="text-brand-blue drop-shadow-[2px_2px_0px_black]">Écoles</span>
                         </h1>
-                        <p className="text-xl md:text-2xl text-black bg-white inline-block px-4 py-2 border-2 border-black transform rotate-1 max-w-3xl mx-auto font-bold leading-relaxed shadow-neo-sm">
+                        <p className="text-sm md:text-2xl text-black bg-white inline-block px-4 py-2 border-2 border-black transform rotate-1 max-w-3xl mx-auto font-bold leading-relaxed shadow-neo-sm">
                             High-tech educational experiences for your students.
                         </p>
                     </div>

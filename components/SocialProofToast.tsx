@@ -69,18 +69,15 @@ export const SocialProofToast: React.FC = () => {
     return (
         <div 
             className={`
-                fixed z-[600] transition-all duration-500 transform
-                /* Desktop: Bottom-Left */
-                md:bottom-8 md:left-8 md:translate-x-0 md:w-auto
-                /* Mobile: Above the chat button, bottom-right area */
-                bottom-[88px] left-3 right-3
+                hidden md:block
+                fixed z-[600] bottom-8 left-8 transition-all duration-500 transform
                 ${isVisible 
                     ? 'translate-y-0 opacity-100' 
                     : 'translate-y-4 opacity-0 pointer-events-none'
                 }
             `}
         >
-        <div className="hidden md:block bg-white border-4 border-black p-4 shadow-[8px_8px_0_0_rgba(0,0,0,1)] flex items-center gap-3 max-w-sm md:max-w-[300px] relative">
+            <div className="bg-white border-4 border-black p-4 shadow-[8px_8px_0_0_rgba(0,0,0,1)] flex items-center gap-3 max-w-[300px] relative">
                 <div className="w-10 h-10 bg-brand-red text-white border-2 border-black flex items-center justify-center shrink-0 -rotate-3 shadow-neo-sm">
                     {current.icon}
                 </div>
@@ -91,8 +88,7 @@ export const SocialProofToast: React.FC = () => {
                         <span className="uppercase text-[9px] bg-brand-orange/20 px-1 border-b border-brand-orange">{current.mission}</span>
                     </p>
                 </div>
-                {/* Visual anchor dots */}
-                <div className="absolute -top-2 -right-2 w-4 h-4 bg-brand-green rounded-full border-2 border-black hidden md:block" />
+                <div className="absolute -top-2 -right-2 w-4 h-4 bg-brand-green rounded-full border-2 border-black" />
             </div>
         </div>
     );

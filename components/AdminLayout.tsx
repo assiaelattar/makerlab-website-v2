@@ -123,10 +123,12 @@ export const AdminLayout: React.FC = () => {
 
   const navItems = [
     { type: 'header', label: 'Lancement' },
-    { label: 'Centre de Lancement', path: '/admin/setup',           icon: Rocket },
-    { label: 'Landing Pages',       path: '/admin/landing-pages',    icon: Rocket },
-    { label: 'Make & Go Leads',     path: '/admin/leads',            icon: Sparkles, badge: true },
-    
+    { label: 'Centre de Lancement', path: '/admin/setup',              icon: Rocket },
+    { label: 'Landing Pages',       path: '/admin/landing-pages',      icon: Rocket },
+    { label: 'Meta LP Editor',      path: '/admin/reservation-lp',     icon: Sparkles },
+    { label: 'Meta Leads CSV',      path: '/admin/make-and-go-leads',  icon: Target },
+    { label: 'Make & Go Leads',     path: '/admin/leads',              icon: Sparkles, badge: true },
+
     { type: 'header', label: 'Opérations' },
     { label: 'Inscriptions',        path: '/admin/bookings',         icon: CalendarDays },
     { label: 'Missions & Stages',   path: '/admin/missions',         icon: Target },

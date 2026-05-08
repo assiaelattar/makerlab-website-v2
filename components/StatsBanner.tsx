@@ -24,7 +24,7 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({ stats, variant = 'dark
     const v = variantClasses[variant];
 
     return (
-        <section className={`${v.bg} border-y-4 border-black py-14 px-4 relative overflow-hidden`}>
+        <section className={`${v.bg} border-y-4 border-black py-10 md:py-14 px-4 relative overflow-hidden`}>
             {/* Background diagonal pattern */}
             <div
                 className="absolute inset-0 opacity-5 pointer-events-none"
@@ -32,22 +32,22 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({ stats, variant = 'dark
             />
             <div className="container mx-auto relative z-10">
                 {/* Label */}
-                <div className="text-center mb-10">
+                <div className="text-center mb-6 md:mb-10">
                     <div className={`inline-flex items-center gap-2 px-4 py-1.5 border-4 border-black font-black text-sm uppercase tracking-widest shadow-neo-sm ${v.badge}`}>
                         <TrendingUp size={16} strokeWidth={3} /> En chiffres
                     </div>
                 </div>
-                {/* Stats Row */}
-                <div className={`flex flex-wrap justify-center divide-x-0 md:divide-x-4 ${v.divider}`}>
+                {/* Stats — 2-col grid on mobile, flex row on md+ */}
+                <div className={`grid grid-cols-2 md:flex md:flex-wrap md:justify-center border-4 md:border-0 border-black divide-x-0 md:divide-x-4 divide-y-4 md:divide-y-0 ${v.divider}`}>
                     {stats.map((stat, i) => (
-                        <div key={i} className="flex-1 min-w-[160px] text-center px-8 py-4">
+                        <div key={i} className="flex-1 text-center px-3 md:px-8 py-5 md:py-4">
                             {stat.emoji && (
-                                <div className="text-4xl mb-2">{stat.emoji}</div>
+                                <div className="text-2xl md:text-4xl mb-1.5 md:mb-2">{stat.emoji}</div>
                             )}
-                            <div className={`font-display font-black text-5xl md:text-7xl leading-none drop-shadow-[3px_3px_0px_rgba(0,0,0,0.4)] ${v.text}`}>
+                            <div className={`font-display font-black text-3xl md:text-7xl leading-none drop-shadow-[3px_3px_0px_rgba(0,0,0,0.4)] ${v.text}`}>
                                 {stat.value}
                             </div>
-                            <div className={`mt-3 font-bold text-base md:text-lg uppercase tracking-widest ${v.subtext}`}>
+                            <div className={`mt-1.5 md:mt-3 font-bold text-[10px] md:text-lg uppercase tracking-widest ${v.subtext}`}>
                                 {stat.label}
                             </div>
                         </div>

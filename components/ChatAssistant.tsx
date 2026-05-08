@@ -92,20 +92,20 @@ export const ChatAssistant: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-[1000] flex flex-col items-end">
+    <div className="fixed bottom-5 right-4 md:bottom-6 md:right-6 z-[1000] flex flex-col items-end">
       
       {/* Floating Window */}
       {isOpen && (
-        <div className="mb-4 w-[calc(100vw-3rem)] md:w-[400px] max-h-[70vh] md:h-[550px] bg-white/95 backdrop-blur-xl border-4 border-black rounded-[2rem] md:rounded-[2.5rem] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] md:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-10 duration-300">
+        <div className="mb-4 w-[calc(100vw-2rem)] md:w-[400px] max-h-[65vh] md:h-[550px] bg-white/95 backdrop-blur-xl border-4 border-black rounded-[1.5rem] md:rounded-[2.5rem] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] md:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-10 duration-300">
           
           {/* Header */}
-          <div className="bg-brand-red p-5 border-b-4 border-black flex justify-between items-center">
+          <div className="bg-brand-red p-4 md:p-5 border-b-4 border-black flex justify-between items-center shrink-0">
             <div className="flex items-center gap-3">
-              <div className="bg-brand-orange p-2 rounded-xl border-2 border-black rotate-[-3deg] shadow-neo-sm">
-                <Bot size={24} className="text-black" />
+              <div className="bg-brand-orange p-1.5 md:p-2 rounded-xl border-2 border-black rotate-[-3deg] shadow-neo-sm">
+                <Bot size={20} className="text-black" />
               </div>
               <div>
-                <h3 className="text-white font-display font-black tracking-wider uppercase text-lg leading-none">GoBot</h3>
+                <h3 className="text-white font-display font-black tracking-wider uppercase text-base md:text-lg leading-none">GoBot</h3>
                 <div className="flex items-center gap-1.5 mt-1">
                     <span className="w-2 h-2 bg-brand-green rounded-full animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.5)]"></span>
                     <span className="text-[10px] text-brand-green font-bold uppercase tracking-widest">En ligne</span>
@@ -113,20 +113,20 @@ export const ChatAssistant: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center gap-2">
-                <button onClick={handleReset} className="text-white/70 hover:text-brand-orange transition-colors p-1" title="Reset chat">
-                    <RefreshCcw size={18} />
+                <button onClick={handleReset} className="text-white/70 hover:text-brand-orange transition-colors p-1.5" title="Reset chat">
+                    <RefreshCcw size={16} />
                 </button>
-                <button onClick={() => setIsOpen(false)} className="text-white/70 hover:text-white transition-colors p-1" title="Fermer">
-                    <X size={24} />
+                <button onClick={() => setIsOpen(false)} className="text-white/70 hover:text-white transition-colors p-1.5" title="Fermer">
+                    <X size={20} />
                 </button>
             </div>
           </div>
 
           {/* Messages */}
-          <div className="flex-grow overflow-y-auto p-5 space-y-5 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-gray-50/30 custom-scrollbar">
+          <div className="flex-grow overflow-y-auto p-4 md:p-5 space-y-4 md:space-y-5 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-gray-50/30 custom-scrollbar">
             {messages.map((msg, i) => (
               <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[85%] p-4 rounded-2xl border-2 border-black font-bold text-sm shadow-neo-sm ${
+                <div className={`max-w-[85%] p-3 md:p-4 rounded-2xl border-2 border-black font-bold text-sm shadow-neo-sm ${
                     msg.role === 'user' 
                     ? 'bg-brand-blue text-black rounded-tr-none' 
                     : 'bg-white text-black rounded-tl-none border-l-brand-red border-l-4'
@@ -146,7 +146,7 @@ export const ChatAssistant: React.FC = () => {
           </div>
 
           {/* Input */}
-          <div className="p-4 bg-white border-t-4 border-black">
+          <div className="p-3 md:p-4 bg-white border-t-4 border-black shrink-0">
             <div className="flex gap-2 bg-gray-100 p-1 rounded-2xl border-2 border-black shadow-inner">
                 <input
                 type="text"
@@ -154,18 +154,18 @@ export const ChatAssistant: React.FC = () => {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSend()}
                 placeholder="Dis moi ce qui te passionne..."
-                className="flex-grow p-3 bg-transparent font-bold focus:outline-none text-sm placeholder:text-gray-400"
+                className="flex-grow p-2.5 md:p-3 bg-transparent font-bold focus:outline-none text-sm placeholder:text-gray-400"
                 />
                 <button
                 onClick={handleSend}
                 disabled={isTyping}
-                className="bg-brand-orange p-3 border-2 border-black rounded-xl shadow-neo-sm hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all disabled:opacity-50"
+                className="bg-brand-orange p-2.5 md:p-3 border-2 border-black rounded-xl shadow-neo-sm hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all disabled:opacity-50"
                 >
-                <Send size={20} className="text-black" />
+                <Send size={18} className="text-black" />
                 </button>
             </div>
             
-            <div className="mt-3 flex items-center justify-center gap-1 opacity-40 hover:opacity-100 transition-opacity">
+            <div className="mt-2 flex items-center justify-center gap-1 opacity-40 hover:opacity-100 transition-opacity">
                 <Sparkles size={10} className="text-brand-red" />
                 <span className="text-[9px] font-black uppercase tracking-widest">Powered by Gemini AI</span>
             </div>
@@ -176,11 +176,11 @@ export const ChatAssistant: React.FC = () => {
       {/* Floating Toggle Button */}
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-14 h-14 md:w-16 md:h-16 rounded-full border-4 border-black flex items-center justify-center shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none ${
+        className={`w-14 h-14 md:w-16 md:h-16 rounded-full border-4 border-black flex items-center justify-center shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none relative ${
             isOpen ? 'bg-red-400' : 'bg-brand-orange'
         }`}
       >
-        {isOpen ? <X size={32} strokeWidth={3} /> : <MessageCircle size={32} strokeWidth={3} />}
+        {isOpen ? <X size={28} strokeWidth={3} /> : <MessageCircle size={28} strokeWidth={3} />}
         
         {/* Notification Badge */}
         {!isOpen && (

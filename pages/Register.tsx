@@ -97,7 +97,7 @@ export const Register: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen py-16 md:py-24 px-4 bg-white text-black overflow-x-hidden pt-24 md:pt-32">
+    <div className="min-h-screen py-8 md:py-24 px-4 bg-white text-black overflow-x-hidden">
       <SEO 
         title="Conseil & Orientation | MakerLab Academy" 
         description="Aidez votre enfant à choisir le bon parcours technologique. Consultation gratuite avec nos experts en éducation STEM à Casablanca."

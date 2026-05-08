@@ -29,20 +29,36 @@ html, body {
   touch-action: pan-y;
 }
 
-/* Prevent any element from causing horizontal scroll on mobile */
-.container {
-  max-width: 100%;
+/* Prevent horizontal scroll on mobile only — do NOT override desktop container widths */
+@media (max-width: 640px) {
+  .container {
+    max-width: 100%;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
 }
 
-/* Improve tap target sizes on mobile */
+/* Improve tap target sizes on mobile — only interactive elements */
 @media (max-width: 768px) {
-  button, a {
-    min-height: 36px;
+  /* Don't globally force min-height on ALL buttons/links — causes layout issues */
+  nav button, nav a, .btn, [role="button"] {
+    min-height: 40px;
   }
   
   /* Reduce excessive section padding on mobile site-wide */
   section {
-    scroll-margin-top: 80px;
+    scroll-margin-top: 100px;
+  }
+
+  /* Ensure page content never overlaps with sticky header */
+  .page-content-start {
+    padding-top: 0;
+  }
+
+  /* Fix for chat + toast floating overlap on mobile */
+  .chat-fab {
+    bottom: 1.25rem;
+    right: 1.25rem;
   }
 }
 

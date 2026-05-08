@@ -31,18 +31,22 @@ export const AnnouncementBar: React.FC = () => {
 
     return (
         <div
-            className="w-full py-1 md:py-2 border-b-4 border-black relative z-[200] flex items-center overflow-hidden h-8 md:h-12"
-            style={{ backgroundColor: config.bgColor || '#00E5FF', color: config.textColor || '#000000' }}
+            className="w-full border-b-4 border-black relative z-[200] flex items-center overflow-hidden"
+            style={{ 
+                backgroundColor: config.bgColor || '#00E5FF', 
+                color: config.textColor || '#000000',
+                minHeight: '32px'
+            }}
         >
             {config.animationStyle === 'slide' ? (
-                <div className="animate-marquee flex gap-12 items-center min-w-max">
+                <div className="animate-marquee flex gap-12 items-center min-w-max py-1.5">
                     {renderContent()}
                     {renderContent()}
                     {renderContent()}
                     {renderContent()}
                 </div>
             ) : (
-                <div className="w-full flex justify-center">
+                <div className="w-full flex justify-center py-1.5 md:py-2">
                     {renderContent()}
                 </div>
             )}

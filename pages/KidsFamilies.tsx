@@ -23,18 +23,18 @@ export const KidsFamilies: React.FC = () => {
     const galleryImages = settings?.gallery_kids || [];
 
     return (
-        <div className="min-h-screen pt-8 md:pt-16">
+        <div className="min-h-screen pt-0">
             {/* HEADER SECTION */}
-            <section className="relative pb-16 px-4">
-                <div className="bg-brand-red text-white px-4 py-20 text-center relative overflow-hidden border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+            <section className="relative pb-8 md:pb-16 px-4">
+                <div className="bg-brand-red text-white px-4 py-12 md:py-20 text-center relative overflow-hidden border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
                     {/* Abstract Background */}
                     <div className="absolute inset-0 z-0 opacity-20" style={{ backgroundImage: 'radial-gradient(var(--brand-green) 2px, transparent 2px)', backgroundSize: '30px 30px' }}></div>
 
                     <div className="container mx-auto relative z-10">
-                        <h1 className="font-display font-black text-5xl md:text-7xl text-white mb-6 leading-tight drop-shadow-[4px_4px_0px_rgba(0,0,0,1)] uppercase">
+                        <h1 className="font-display font-black text-4xl md:text-7xl text-white mb-4 md:mb-6 leading-tight drop-shadow-[4px_4px_0px_rgba(0,0,0,1)] uppercase">
                             Enfants &amp; Familles
                         </h1>
-                        <p className="text-xl md:text-2xl text-black max-w-3xl mx-auto font-medium leading-relaxed bg-white border-2 border-black inline-block px-4 py-2 transform -rotate-1 shadow-neo-sm">
+                        <p className="text-sm md:text-2xl text-black max-w-3xl mx-auto font-medium leading-relaxed bg-white border-2 border-black inline-block px-4 py-2 transform -rotate-1 shadow-neo-sm">
                             Des programmes concrets pour apprendre la technologie en s'amusant.
                         </p>
                     </div>
