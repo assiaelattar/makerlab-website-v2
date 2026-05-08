@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   Upload, Link as LinkIcon, Copy, CheckCircle2, Clock, X,
   Users, FileText, ExternalLink, RefreshCw, Filter,
-  ChevronDown, MessageCircle, Camera, UserCheck, Search
+  ChevronDown, MessageCircle, Camera, UserCheck, Search, Download
 } from 'lucide-react';
 import { collection, onSnapshot, doc, setDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
@@ -299,6 +299,74 @@ La place est reservee jusqu'a ce soir uniquement.`
     await deleteDoc(doc(db, COLLECTION, id));
   };
 
+  // ── Export Meta Custom Audience CSV ──────────────────────────────────────────
+  // Format based on: https://web.facebook.com/business/help/2082575038703844
+  // Columns: email, phone, fn, ln, country, value
+  // Value scoring: confirmed=3 | screenshot=2 | link_sent=1 | new=0.1
+  // Phone: must include country code (+212 for Morocco)
+  const exportMetaCSV = () => {
+    const STATUS_VALUE: Record<LeadStatus, number> = {
+      confirmed:  3,
+      screenshot: 2,
+      link_sent:  1,
+      new:        0.1,
+      cancelled:  0,
+    };
+
+    // Build rows — skip cancelled (value=0 rows are useless for Meta)
+    const rows = leads
+      .filter(l => l.status !== 'cancelled')
+      .map(l => {
+        // Normalise phone → +212XXXXXXXXX format
+        const rawPhone = l.phone.replace(/[^0-9]/g, '');
+        let phone = rawPhone;
+        if (rawPhone.startsWith('0') && rawPhone.length === 10) {
+          phone = `+212${rawPhone.slice(1)}`;
+        } else if (rawPhone.startsWith('212')) {
+          phone = `+${rawPhone}`;
+        } else if (!rawPhone.startsWith('+')) {
+          phone = `+212${rawPhone}`;
+        }
+
+        // Split name: first word = fn, rest = ln
+        const nameParts = (l.kidName || l.fullName || '').trim().split(' ');
+        const fn = nameParts[0] || '';
+        const ln = nameParts.slice(1).join(' ') || '';
+
+        const email = l.email || '';
+        const value = STATUS_VALUE[l.status] ?? 0.1;
+        const notes = l.notes ? `"${l.notes.replace(/"/g, "'")}"` : '';
+
+        // Meta CSV row — email,phone,fn,ln,country,value
+        // We also append notes and status as extra cols for our records
+        // (Meta ignores unknown columns)
+        return [
+          email,
+          phone,
+          fn,
+          ln,
+          'MA', // Morocco ISO code
+          value,
+          l.status,
+          notes,
+        ].join(',');
+      });
+
+    // Header — exact column names Meta expects
+    const header = 'email,phone,fn,ln,country,value,_status,_notes';
+    const csv = [header, ...rows].join('\r\n');
+
+    // Trigger download
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const date = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `makerlab_meta_audience_${date}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   // ── Fix all LP URLs (replace localhost/subdomain with makerlab.ma) ──
   const [fixing, setFixing] = useState(false);
   const fixAllUrls = async () => {
@@ -352,6 +420,16 @@ La place est reservee jusqu'a ce soir uniquement.`
               className="flex items-center gap-2 px-4 py-3 bg-yellow-400 text-black font-black uppercase text-xs border-4 border-black rounded-xl shadow-[4px_4px_0_0_black] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all disabled:opacity-50"
             >
               <RefreshCw size={15} className={fixing ? 'animate-spin' : ''} /> Fix URLs
+            </button>
+          )}
+          {/* Export Meta Audience CSV */}
+          {leads.filter(l => l.status !== 'cancelled').length > 0 && (
+            <button
+              onClick={exportMetaCSV}
+              title="Exporter pour Meta Custom Audience (Value-based Lookalike)"
+              className="flex items-center gap-2 px-4 py-3 bg-indigo-600 text-white font-black uppercase text-xs border-4 border-black rounded-xl shadow-[4px_4px_0_0_black] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all"
+            >
+              <Download size={15} /> Export Meta
             </button>
           )}
           <button
@@ -645,6 +723,32 @@ La place est reservee jusqu'a ce soir uniquement.`
           <li>Quand le parent envoie la capture, changez le statut en <strong>Capture Reçue</strong></li>
           <li>Quand le formulaire est rempli et validé, passez en <strong>Confirmé ✅</strong></li>
         </ol>
+      </div>
+
+      {/* Export guide */}
+      <div className="mt-4 bg-violet-50 border-4 border-violet-400 rounded-2xl p-5">
+        <h3 className="font-black text-sm uppercase mb-2 text-violet-900">📤 Export Meta Audience — Value-Based Lookalike</h3>
+        <p className="text-sm text-violet-800 font-medium mb-3">
+          Le bouton <strong>Export Meta</strong> génère un CSV prêt à uploader dans{' '}
+          <strong>Meta Ads Manager → Audiences → Créer → Audience personnalisée → Fichier client</strong>.
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {[
+            { status: 'Confirmé ✅', value: '3', color: 'bg-green-100 text-green-800 border-green-300' },
+            { status: 'Capture Reçue', value: '2', color: 'bg-yellow-100 text-yellow-800 border-yellow-300' },
+            { status: 'Lien Envoyé', value: '1', color: 'bg-blue-100 text-blue-800 border-blue-300' },
+            { status: 'Nouveau', value: '0.1', color: 'bg-gray-100 text-gray-700 border-gray-300' },
+          ].map(r => (
+            <div key={r.status} className={`flex flex-col items-center p-2 rounded-xl border-2 ${r.color}`}>
+              <span className="font-black text-lg">{r.value}</span>
+              <span className="text-[10px] font-black uppercase">{r.status}</span>
+            </div>
+          ))}
+        </div>
+        <p className="text-[10px] text-violet-600 font-bold mt-2">
+          Meta utilisera ces scores pour trouver des audiences similaires à vos meilleurs leads (Confirmés = score 3).
+          Annulés exclus automatiquement.
+        </p>
       </div>
     </div>
   );
