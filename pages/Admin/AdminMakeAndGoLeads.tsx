@@ -43,7 +43,7 @@ const STATUS_CONFIG: Record<LeadStatus, { label: string; color: string; bg: stri
 };
 
 const COLLECTION = 'make-and-go-leads';
-const BASE_URL = typeof window !== 'undefined' ? window.location.origin : 'https://makerlab.ma';
+const BASE_URL = 'https://makerlab.ma'; // always use production domain for shareable links
 
 function generateLPUrl(lead: MakeAndGoLead) {
   const params = new URLSearchParams({
@@ -142,7 +142,10 @@ export const AdminMakeAndGoLeads: React.FC = () => {
   const [search, setSearch] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
-  const [importPreview, setImportPreview] = useState<Omit<MakeAndGoLead, 'id'>[] | null>(null);
+  const [importPreview, setImportPreview] = useState<{
+    newLeads: Omit<MakeAndGoLead, 'id'>[],
+    duplicates: Omit<MakeAndGoLead, 'id'>[],
+  } | null>(null);
   const [importSource, setImportSource] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editingNotes, setEditingNotes] = useState<{ id: string; value: string } | null>(null);
@@ -173,7 +176,30 @@ export const AdminMakeAndGoLeads: React.FC = () => {
         const source = `Meta — ${name} (${date})`;
         setImportSource(source);
         const parsed = parseMetaCSV(text, source);
-        setImportPreview(parsed);
+
+        // ── Deduplication: build a set of existing keys from current Firestore state
+        // Key priority: metaLeadId (Meta's own ID) > phone number
+        const existingMetaIds = new Set(
+          leads.map(l => l.metaLeadId).filter(Boolean)
+        );
+        const existingPhones = new Set(
+          leads.map(l => l.phone.replace(/[^0-9]/g, '')).filter(Boolean)
+        );
+
+        const newLeads: typeof parsed = [];
+        const duplicates: typeof parsed = [];
+
+        for (const lead of parsed) {
+          const normPhone = lead.phone.replace(/[^0-9]/g, '');
+          const isDup =
+            (lead.metaLeadId && existingMetaIds.has(lead.metaLeadId)) ||
+            (normPhone && existingPhones.has(normPhone));
+
+          if (isDup) duplicates.push(lead);
+          else newLeads.push(lead);
+        }
+
+        setImportPreview({ newLeads, duplicates });
       };
       reader.readAsText(file, encoding);
     };
@@ -193,10 +219,12 @@ export const AdminMakeAndGoLeads: React.FC = () => {
 
   const confirmImport = async () => {
     if (!importPreview) return;
+    const { newLeads } = importPreview;
+    if (newLeads.length === 0) { setImportPreview(null); return; }
     setImporting(true);
     let saved = 0;
     try {
-      for (const lead of importPreview) {
+      for (const lead of newLeads) {
         const id = `mag-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
         const full: MakeAndGoLead = {
           ...lead,
@@ -207,14 +235,13 @@ export const AdminMakeAndGoLeads: React.FC = () => {
         const safe = cleanDoc(full) as MakeAndGoLead;
         await setDoc(doc(db, COLLECTION, id), safe);
         saved++;
-        // Small delay to avoid hitting Firestore write limits
         await new Promise(r => setTimeout(r, 80));
       }
       setImportPreview(null);
-      alert(`✅ ${saved} leads importés avec succès !`);
+      alert(`✅ ${saved} nouveau(x) lead(s) importé(s) !`);
     } catch (err: any) {
       const msg = err?.message || JSON.stringify(err);
-      alert(`❌ Erreur import (lead ${saved + 1}/${importPreview.length}) :\n${msg}`);
+      alert(`❌ Erreur import (lead ${saved + 1}/${newLeads.length}) :\n${msg}`);
       console.error('Import error:', err);
     }
     setImporting(false);
@@ -257,6 +284,23 @@ export const AdminMakeAndGoLeads: React.FC = () => {
     await deleteDoc(doc(db, COLLECTION, id));
   };
 
+  // ── Fix all LP URLs (replace localhost/subdomain with makerlab.ma) ──
+  const [fixing, setFixing] = useState(false);
+  const fixAllUrls = async () => {
+    const broken = leads.filter(l =>
+      !l.lpUrl || l.lpUrl.includes('localhost') || !l.lpUrl.startsWith('https://makerlab.ma')
+    );
+    if (broken.length === 0) { alert('\u2705 Tous les liens sont déjà corrects !'); return; }
+    if (!window.confirm(`Corriger ${broken.length} lien(s) vers makerlab.ma ?`)) return;
+    setFixing(true);
+    for (const lead of broken) {
+      const newUrl = generateLPUrl(lead);
+      await updateDoc(doc(db, COLLECTION, lead.id), { lpUrl: newUrl, updatedAt: new Date().toISOString() });
+    }
+    setFixing(false);
+    alert(`\u2705 ${broken.length} lien(s) corrigé(s) !`);
+  };
+
   // ── Filter ──
   const filtered = leads.filter(l => {
     const matchStatus = filterStatus === 'all' || l.status === filterStatus;
@@ -283,7 +327,18 @@ export const AdminMakeAndGoLeads: React.FC = () => {
           <p className="text-gray-500 font-bold mt-2">Import CSV Meta → Générer LP → Gérer les statuts</p>
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex gap-3 flex-wrap">
+          {/* Fix broken URLs (localhost / subdomain) */}
+          {leads.some(l => !l.lpUrl || l.lpUrl.includes('localhost') || !l.lpUrl.startsWith('https://makerlab.ma')) && (
+            <button
+              onClick={fixAllUrls}
+              disabled={fixing}
+              title="Corriger les liens localhost/subdomain vers makerlab.ma"
+              className="flex items-center gap-2 px-4 py-3 bg-yellow-400 text-black font-black uppercase text-xs border-4 border-black rounded-xl shadow-[4px_4px_0_0_black] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all disabled:opacity-50"
+            >
+              <RefreshCw size={15} className={fixing ? 'animate-spin' : ''} /> Fix URLs
+            </button>
+          )}
           <button
             onClick={() => fileRef.current?.click()}
             className="flex items-center gap-2 px-5 py-3 bg-brand-orange text-black font-black uppercase text-sm border-4 border-black rounded-xl shadow-[4px_4px_0_0_black] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all"
@@ -317,35 +372,71 @@ export const AdminMakeAndGoLeads: React.FC = () => {
         <div className="fixed inset-0 z-[200] bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl border-4 border-black shadow-[10px_10px_0_0_black] w-full max-w-2xl max-h-[85vh] overflow-y-auto p-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="font-black text-xl uppercase">Aperçu Import — {importPreview.length} leads</h2>
+              <h2 className="font-black text-xl uppercase">Aperçu Import</h2>
               <button onClick={() => setImportPreview(null)} className="w-9 h-9 border-2 border-black rounded-full flex items-center justify-center hover:bg-gray-100"><X size={18} /></button>
             </div>
-            <p className="text-xs font-bold text-gray-500 uppercase mb-4">Source: {importSource}</p>
-            <div className="space-y-2 mb-6 max-h-[40vh] overflow-y-auto">
-              {importPreview.map((l, i) => (
-                <div key={i} className="bg-gray-50 border-2 border-gray-200 rounded-xl p-3">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <span className="font-black text-sm">{l.fullName}</span>
-                      <span className="ml-3 text-xs text-gray-500 font-mono">{l.phone}</span>
-                    </div>
-                    <span className="text-[10px] bg-gray-200 px-2 py-1 rounded-full font-black uppercase">Nouveau</span>
-                  </div>
-                  <div className="flex gap-2 mt-1.5 flex-wrap">
-                    {l.kidAge && <span className="text-[10px] bg-blue-100 text-blue-700 font-black px-2 py-0.5 rounded-full">👶 {l.kidAge} ans</span>}
-                    {l.slot && <span className="text-[10px] bg-orange-100 text-orange-700 font-black px-2 py-0.5 rounded-full">🕐 {l.slot}</span>}
-                  </div>
-                </div>
-              ))}
+
+            {/* Summary bar */}
+            <div className="flex gap-3 mb-5">
+              <div className="flex-1 bg-green-50 border-2 border-green-400 rounded-xl p-3 text-center">
+                <p className="text-2xl font-black text-green-700">{importPreview.newLeads.length}</p>
+                <p className="text-[10px] font-black uppercase text-green-600">Nouveaux ✅</p>
+              </div>
+              <div className="flex-1 bg-gray-50 border-2 border-gray-300 rounded-xl p-3 text-center">
+                <p className="text-2xl font-black text-gray-400">{importPreview.duplicates.length}</p>
+                <p className="text-[10px] font-black uppercase text-gray-400">Déjà importés ⏭️</p>
+              </div>
             </div>
+
+            <p className="text-xs font-bold text-gray-500 uppercase mb-3">Source: {importSource}</p>
+
+            {/* New leads list */}
+            {importPreview.newLeads.length > 0 ? (
+              <div className="space-y-2 mb-4 max-h-[35vh] overflow-y-auto">
+                <p className="text-[10px] font-black uppercase text-green-600 mb-2">✅ Seront ajoutés :</p>
+                {importPreview.newLeads.map((l, i) => (
+                  <div key={i} className="bg-green-50 border-2 border-green-200 rounded-xl p-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <span className="font-black text-sm">{l.fullName}</span>
+                        <span className="ml-3 text-xs text-gray-500 font-mono">{l.phone}</span>
+                      </div>
+                      <span className="text-[10px] bg-green-200 text-green-800 px-2 py-1 rounded-full font-black uppercase">Nouveau</span>
+                    </div>
+                    <div className="flex gap-2 mt-1.5 flex-wrap">
+                      {l.kidAge && <span className="text-[10px] bg-blue-100 text-blue-700 font-black px-2 py-0.5 rounded-full">👶 {l.kidAge} ans</span>}
+                      {l.slot && <span className="text-[10px] bg-orange-100 text-orange-700 font-black px-2 py-0.5 rounded-full">🕐 {l.slot}</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-4 mb-4 text-center">
+                <p className="font-black text-yellow-700">⚠️ Aucun nouveau lead</p>
+                <p className="text-xs text-yellow-600 mt-1">Tous les leads de ce fichier sont déjà dans votre table.</p>
+              </div>
+            )}
+
+            {/* Duplicates (collapsed, just count) */}
+            {importPreview.duplicates.length > 0 && (
+              <p className="text-[10px] text-gray-400 font-bold mb-4">
+                ⏭️ {importPreview.duplicates.length} lead(s) ignoré(s) — déjà présents (même ID Meta ou même numéro).
+              </p>
+            )}
+
             <div className="flex gap-3">
               <button onClick={() => setImportPreview(null)} className="flex-1 py-3 border-4 border-black rounded-xl font-black uppercase text-sm hover:bg-gray-50">Annuler</button>
               <button
                 onClick={confirmImport}
-                disabled={importing}
-                className="flex-1 py-3 bg-brand-orange border-4 border-black rounded-xl font-black uppercase text-sm shadow-[4px_4px_0_0_black] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all disabled:opacity-50"
+                disabled={importing || importPreview.newLeads.length === 0}
+                className="flex-1 py-3 bg-brand-orange border-4 border-black rounded-xl font-black uppercase text-sm shadow-[4px_4px_0_0_black] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                {importing ? 'Import en cours...' : `✅ Importer ${importPreview.length} leads`}
+                {importing
+                  ? 'Import en cours...'
+                  : importPreview.newLeads.length === 0
+                    ? 'Rien à importer'
+                    : `✅ Importer ${importPreview.newLeads.length} nouveau(x)`
+                }
               </button>
             </div>
           </div>
