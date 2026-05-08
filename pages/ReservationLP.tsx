@@ -11,7 +11,12 @@ import {
     ChevronUp,
     ShieldCheck, 
     Landmark, 
-    ImageIcon
+    ImageIcon,
+    Copy,
+    CheckCheck,
+    Calendar,
+    Play,
+    ChevronRight
 } from 'lucide-react';
 import { SEO } from '../components/SEO';
 import { useSettings } from '../contexts/SettingsContext';
@@ -44,9 +49,28 @@ export const ReservationLP: React.FC = () => {
     const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
     const [submitted, setSubmitted] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [ribCopied, setRibCopied] = useState(false);
+    // Step-based flow: 1=video, 2=horaire confirm, 3=payment
+    const [currentStep, setCurrentStep] = useState(1);
+    const [selectedHoraire, setSelectedHoraire] = useState<'samedi' | 'dimanche' | null>(null);
+    const paymentRef = useRef<HTMLDivElement>(null);
+    const horaireRef = useRef<HTMLDivElement>(null);
 
     // YouTube video ID — set in Admin → Meta LP Editor
     const YOUTUBE_VIDEO_ID = config.youtubeVideoId || '';
+
+    const RIB = '835 780 030017780736 70124 8';
+
+    const copyRib = () => {
+        navigator.clipboard.writeText(RIB.replace(/ /g, '')).then(() => {
+            setRibCopied(true);
+            setTimeout(() => setRibCopied(false), 2500);
+        });
+    };
+
+    const scrollTo = (ref: React.RefObject<HTMLDivElement>) => {
+        ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -177,53 +201,86 @@ Veuillez confirmer la reception.`
                 </div>
             </div>
 
-            {/* SECTION 2: HERO */}
+            {/* STEP PROGRESS BAR */}
+            <div className="px-5 py-3 bg-white border-b-2 border-gray-100">
+                <div className="flex items-center justify-between gap-2">
+                    {[{n:1,label:'Regarder'},{n:2,label:'Choisir'},{n:3,label:'Payer'}].map((s,i,arr) => (
+                        <React.Fragment key={s.n}>
+                            <div className="flex flex-col items-center gap-1">
+                                <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center font-black text-sm transition-all ${
+                                    currentStep > s.n ? 'bg-[#27A060] border-[#27A060] text-white' :
+                                    currentStep === s.n ? 'bg-[#CC0000] border-[#CC0000] text-white' :
+                                    'bg-white border-gray-300 text-gray-400'
+                                }`}>
+                                    {currentStep > s.n ? '✓' : s.n}
+                                </div>
+                                <span className={`text-[9px] font-black uppercase ${
+                                    currentStep >= s.n ? 'text-[#111]' : 'text-gray-400'
+                                }`}>{s.label}</span>
+                            </div>
+                            {i < arr.length - 1 && (
+                                <div className={`flex-1 h-0.5 mb-4 transition-all ${currentStep > s.n ? 'bg-[#27A060]' : 'bg-gray-200'}`} />
+                            )}
+                        </React.Fragment>
+                    ))}
+                </div>
+            </div>
+
+            {/* SECTION 2: HERO + VIDEO (STEP 1) */}
             <div className="px-5 py-8 bg-white border-b-4 border-[#111]">
                 <h1 className="text-3xl font-black uppercase leading-tight mb-2 tracking-tight" dangerouslySetInnerHTML={{__html: formatText(config.headline).replace(kidName, `<span class="text-[#CC0000]">${kidName}</span>`)}}>
                 </h1>
-                <h2 className="text-lg font-bold text-gray-600 mb-6">
+                <h2 className="text-lg font-bold text-gray-600 mb-4">
                     {formatText(config.subheadline)}
                 </h2>
 
-                <div className="flex flex-wrap gap-2 mb-6">
+                <div className="flex flex-wrap gap-2 mb-5">
                     <span className="bg-[#111] text-white text-[10px] font-black uppercase px-3 py-1.5 rounded-full">10 enfants max</span>
                     <span className="bg-[#111] text-white text-[10px] font-black uppercase px-3 py-1.5 rounded-full">Matériel inclus</span>
                     <span className="bg-[#CC0000] text-white text-[10px] font-black uppercase px-3 py-1.5 rounded-full shadow-[2px_2px_0px_#111]">{config.priceBadge}</span>
                 </div>
 
-                {/* YouTube Video Embed – autoplay, no controls, muted */}
+                {/* STEP 1 LABEL */}
+                <div className="flex items-center gap-2 mb-3">
+                    <div className="w-6 h-6 bg-[#CC0000] rounded-full flex items-center justify-center text-white font-black text-xs">1</div>
+                    <p className="font-black text-sm uppercase text-[#111]">Regardez les enfants construire 👇</p>
+                </div>
+
+                {/* YouTube Video Embed */}
                 {YOUTUBE_VIDEO_ID ? (
                   <div className="rounded-2xl border-4 border-[#111] overflow-hidden mb-4 shadow-[6px_6px_0px_#111] relative" style={{paddingBottom:'56.25%', height:0}}>
                       <iframe
-                          src={`https://www.youtube.com/embed/${YOUTUBE_VIDEO_ID}?autoplay=1&mute=1&controls=0&modestbranding=1&loop=1&playlist=${YOUTUBE_VIDEO_ID}&rel=0&playsinline=1`}
-                          title="MakerLab – Présentation"
+                          src={`https://www.youtube.com/embed/${YOUTUBE_VIDEO_ID}?autoplay=1&mute=1&controls=1&modestbranding=1&loop=1&playlist=${YOUTUBE_VIDEO_ID}&rel=0&playsinline=1`}
+                          title="MakerLab – Les enfants construisent"
                           allow="autoplay; encrypted-media"
                           allowFullScreen
                           style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',border:'none'}}
                       />
                   </div>
                 ) : (
-                  <div className="rounded-2xl border-4 border-dashed border-gray-300 mb-4 bg-gray-50 flex flex-col items-center justify-center text-center p-8 gap-2" style={{minHeight:'180px'}}>
-                      <span className="text-3xl">🎬</span>
-                      <p className="font-black text-sm text-gray-400 uppercase">Vidéo à configurer</p>
-                      <p className="text-[10px] text-gray-400">Admin → Meta LP Editor → Vidéo YouTube</p>
+                  <div className="rounded-2xl border-4 border-dashed border-gray-300 mb-4 bg-gray-50 flex flex-col items-center justify-center text-center p-8 gap-3" style={{minHeight:'200px'}}>
+                      <div className="w-16 h-16 bg-[#CC0000] rounded-full flex items-center justify-center shadow-[4px_4px_0_#111]">
+                          <Play size={28} className="text-white ml-1" />
+                      </div>
+                      <div>
+                          <p className="font-black text-sm text-gray-700 uppercase">Regardez les enfants construire</p>
+                          <p className="text-[10px] text-gray-400 mt-1">Vidéo à configurer dans Admin → Meta LP Editor</p>
+                      </div>
                   </div>
                 )}
 
                 {/* Urgency bar */}
-                <div className="flex items-center gap-2 font-bold text-sm mb-4 text-red-600 bg-red-50 border-2 border-red-200 rounded-xl px-4 py-2">
+                <div className="flex items-center gap-2 font-bold text-sm mb-5 text-red-600 bg-red-50 border-2 border-red-200 rounded-xl px-4 py-2">
                     <span>⚠️</span> {formatText(config.urgencyText)}
                 </div>
 
-                {/* Primary CTA below video */}
-                <div className="space-y-3">
-                    <a href="#paiement" className="block w-full h-14 bg-[#CC0000] text-white font-black text-lg uppercase rounded-xl border-4 border-[#111] shadow-[4px_4px_0px_#111] active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2">
-                        Je bloque la place → <span className="text-yellow-300">350 DHS</span>
-                    </a>
-                    <button onClick={handleWhatsAppClick} className="w-full h-12 bg-[#25D366] text-white font-black text-sm uppercase rounded-xl border-2 border-[#111] shadow-[2px_2px_0px_#111] active:translate-y-0.5 transition-all flex items-center justify-center gap-2">
-                        <MessageCircle size={20} /> Questions ? WhatsApp
-                    </button>
-                </div>
+                {/* CTA after video: go to step 2 */}
+                <button
+                    onClick={() => { setCurrentStep(s => Math.max(s, 2)); scrollTo(horaireRef); }}
+                    className="w-full h-14 bg-[#111] text-white font-black text-base uppercase rounded-xl border-4 border-[#111] shadow-[4px_4px_0px_rgba(0,0,0,0.3)] active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2"
+                >
+                    J'ai regardé — Choisir mon créneau <ChevronRight size={20} />
+                </button>
             </div>
 
             {/* BONUS SECTION */}
@@ -243,11 +300,77 @@ Veuillez confirmer la reception.`
                 </div>
             </div>
 
+            {/* STEP 2: HORAIRE CONFIRMATION */}
+            <div ref={horaireRef} id="horaire" className="px-5 py-8 bg-white border-b-4 border-[#111]">
+                <div className="flex items-center gap-2 mb-4">
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center font-black text-xs ${
+                        currentStep >= 2 ? 'bg-[#CC0000] text-white' : 'bg-gray-200 text-gray-500'
+                    }`}>2</div>
+                    <p className="font-black text-sm uppercase text-[#111]">Confirmez votre créneau</p>
+                </div>
+                <p className="text-sm text-gray-500 font-bold mb-4">Quel jour convient le mieux à votre famille ?</p>
+
+                <div className="grid grid-cols-2 gap-3 mb-5">
+                    {(['samedi','dimanche'] as const).map(day => (
+                        <button
+                            key={day}
+                            onClick={() => {
+                                setSelectedHoraire(day);
+                                setCurrentStep(s => Math.max(s, 3));
+                                setTimeout(() => scrollTo(paymentRef), 300);
+                            }}
+                            className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-4 font-black transition-all ${
+                                selectedHoraire === day
+                                    ? 'border-[#CC0000] bg-red-50 shadow-[4px_4px_0px_#CC0000]'
+                                    : 'border-[#111] bg-white shadow-[4px_4px_0px_#111] active:translate-y-1 active:shadow-none'
+                            }`}
+                        >
+                            <Calendar size={24} className={selectedHoraire === day ? 'text-[#CC0000]' : 'text-[#111]'} />
+                            <span className="text-sm uppercase">{day === 'samedi' ? 'Samedi' : 'Dimanche'}</span>
+                            <span className="text-[11px] font-black text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">15h – 18h</span>
+                            {selectedHoraire === day && (
+                                <span className="text-[10px] font-black text-[#CC0000] uppercase flex items-center gap-1"><CheckCheck size={12} /> Confirmé</span>
+                            )}
+                        </button>
+                    ))}
+                </div>
+
+                {selectedHoraire && (
+                    <div className="flex items-center gap-2 bg-green-50 border-2 border-green-300 rounded-xl px-4 py-3 mb-4">
+                        <CheckCheck size={18} className="text-[#27A060] shrink-0" />
+                        <p className="text-sm font-black text-[#111]">
+                            ✅ Créneau confirmé : <span className="text-[#CC0000]">{selectedHoraire === 'samedi' ? 'Samedi' : 'Dimanche'} 15h–18h</span>
+                        </p>
+                    </div>
+                )}
+
+                {selectedHoraire ? (
+                    <button
+                        onClick={() => scrollTo(paymentRef)}
+                        className="w-full h-13 bg-[#CC0000] text-white font-black text-base uppercase rounded-xl border-4 border-[#111] shadow-[4px_4px_0px_#111] active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2 py-3.5"
+                    >
+                        Parfait — Passer au paiement <ChevronRight size={20} />
+                    </button>
+                ) : (
+                    <p className="text-center text-xs font-black text-gray-400 uppercase">👆 Choisissez un créneau pour continuer</p>
+                )}
+            </div>
+
             {/* SECTION 3: PAIEMENT — 2 options claires */}
-            <div id="paiement" className="px-5 py-10">
-                <h3 className="text-xl font-black uppercase mb-2 tracking-tight flex items-center gap-2">
-                    <Landmark className="text-[#CC0000]" /> Comment payer ?
-                </h3>
+            <div ref={paymentRef} id="paiement" className="px-5 py-10">
+                <div className="flex items-center gap-2 mb-2">
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center font-black text-xs ${
+                        currentStep >= 3 ? 'bg-[#CC0000] text-white' : 'bg-gray-200 text-gray-500'
+                    }`}>3</div>
+                    <h3 className="text-xl font-black uppercase tracking-tight flex items-center gap-2">
+                        <Landmark className="text-[#CC0000]" /> Comment payer ?
+                    </h3>
+                </div>
+                {selectedHoraire && (
+                    <div className="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2 mb-4 text-xs font-black text-gray-600 uppercase">
+                        <Calendar size={12} /> Créneau : {selectedHoraire === 'samedi' ? 'Samedi' : 'Dimanche'} 15h–18h
+                    </div>
+                )}
                 <p className="text-sm text-gray-500 font-bold mb-6">Choisissez ce qui vous convient :</p>
 
                 <div className="space-y-5">
@@ -265,11 +388,23 @@ Veuillez confirmer la reception.`
                         </div>
 
                         <div className="bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 p-4 mb-4">
-                            <p className="text-[10px] font-black uppercase text-gray-400 mb-2">🔢 RIB</p>
-                            <p className="font-mono font-black text-[#111] text-sm tracking-wider bg-white border border-gray-200 rounded-lg px-3 py-2">
-                                835 780 030017780736 70124 8
-                            </p>
-                            <p className="text-xs text-gray-500 font-bold mt-2">Montant : <span className="text-[#CC0000] font-black">350 DHS</span></p>
+                            <p className="text-[10px] font-black uppercase text-gray-400 mb-2">🔢 RIB (Attijariwafa Bank)</p>
+                            <div className="flex items-center gap-2 bg-white border-2 border-gray-200 rounded-lg px-3 py-2 mb-2">
+                                <p className="font-mono font-black text-[#111] text-sm tracking-wider flex-1">
+                                    {RIB}
+                                </p>
+                                <button
+                                    onClick={copyRib}
+                                    className={`shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg font-black text-[10px] uppercase border transition-all ${
+                                        ribCopied
+                                            ? 'bg-green-100 border-green-400 text-green-700'
+                                            : 'bg-[#111] border-[#111] text-white active:scale-95'
+                                    }`}
+                                >
+                                    {ribCopied ? <><CheckCheck size={12} /> Copié!</> : <><Copy size={12} /> Copier</>}
+                                </button>
+                            </div>
+                            <p className="text-xs text-gray-500 font-bold">Montant : <span className="text-[#CC0000] font-black">350 DHS</span></p>
                         </div>
 
                         {/* Screenshot Upload */}
@@ -348,7 +483,7 @@ Veuillez confirmer la reception.`
 
             {/* SECTION 4: POURQUOI LES PARENTS REVIENNENT */}
             <div className="px-5 py-10 bg-[#111] text-white">
-                <h3 className="text-2xl font-black uppercase mb-8 leading-tight">Ce qui se passe <br/>en <span className="text-[#CC0000]">90 minutes</span></h3>
+                <h3 className="text-2xl font-black uppercase mb-8 leading-tight">Ce qui se passe <br/>en <span className="text-[#CC0000]">180 minutes</span></h3>
                 
                 <div className="space-y-6 mb-8">
                     <div className="flex gap-4 items-start">
