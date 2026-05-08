@@ -5,6 +5,7 @@
         { "source": "/api/make-and-go-lead", "destination": "/api/make-and-go-lead" },
         { "source": "/admin", "destination": "/api/admin-seo" },
         { "source": "/admin/(.*)", "destination": "/api/admin-seo" },
+        { "source": "/reservation", "destination": "/api/reservation-seo" },
         { "source": "/", "destination": "/api/home-seo" },
         { "source": "/(.*)", "destination": "/index.html" }
     ]

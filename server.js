@@ -8,6 +8,7 @@ import blogSeoHandler from './api/blog-seo.js';
 import schoolSeoHandler from './api/school-seo.js';
 import homeSeoHandler from './api/home-seo.js';
 import adminSeoHandler from './api/admin-seo.js';
+import reservationSeoHandler from './api/reservation-seo.js';
 import makeAndGoLeadHandler from './api/make-and-go-lead.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -62,6 +63,9 @@ app.get('/s/:slug', (req, res) => {
 
 // Admin dashboard — force noindex for gated content
 app.get(/^\/admin/, (req, res) => adminSeoHandler(req, res));
+
+// Reservation page — personalized OG tags with kid name, theme, slot
+app.get('/reservation', (req, res) => reservationSeoHandler(req, res));
 
 // ─────────────────────────────────────────────────────────────
 // Static assets — serve built React app from /dist
