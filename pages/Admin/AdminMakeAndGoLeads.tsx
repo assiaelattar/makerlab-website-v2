@@ -31,7 +31,29 @@ interface MakeAndGoLead {
   createdAt: string;
   updatedAt: string;
   notes?: string;
+  tags?: string[];    // qualification tags
 }
+
+// ─── Tags Catalog ─────────────────────────────────────────────────────────────
+// Langage simple / vulgarisé — profil enfant/ado uniquement
+const TAGS_CATALOG = [
+  // 🧒 Profil de l'enfant / ado
+  { id: 'kid_timide',      emoji: '😶', label: 'Timide',                    group: 'Enfant', color: 'bg-sky-100 text-sky-700 border-sky-300' },
+  { id: 'kid_curieux',     emoji: '👀', label: 'Curieux et motivé',         group: 'Enfant', color: 'bg-violet-100 text-violet-700 border-violet-300' },
+  { id: 'kid_passionne',   emoji: '🔥', label: 'Passionné de tech',         group: 'Enfant', color: 'bg-orange-100 text-orange-700 border-orange-300' },
+  { id: 'kid_deja_fait',   emoji: '✅', label: 'A déjà fait un atelier',   group: 'Enfant', color: 'bg-green-100 text-green-700 border-green-300' },
+  { id: 'kid_jamais',      emoji: '🆕', label: 'Jamais essayé avant',      group: 'Enfant', color: 'bg-gray-100 text-gray-600 border-gray-300' },
+  { id: 'kid_jeux',        emoji: '🎮', label: 'Accro aux jeux vidéo',     group: 'Enfant', color: 'bg-purple-100 text-purple-700 border-purple-300' },
+  { id: 'kid_lego',        emoji: '🧱', label: 'Fan de Lego / bricolage',  group: 'Enfant', color: 'bg-yellow-100 text-yellow-700 border-yellow-300' },
+  { id: 'kid_ado',         emoji: '🧑', label: 'Ado (12–16 ans)',          group: 'Enfant', color: 'bg-teal-100 text-teal-700 border-teal-300' },
+  // 🚫 À bannir — ne jamais recontacter
+  { id: 'bad_insultes',    emoji: '🚫', label: 'Insultes / bad words',     group: 'Bloquer', color: 'bg-red-100 text-red-700 border-red-400' },
+  { id: 'bad_fake',        emoji: '👻', label: 'Faux numéro / arnaque',    group: 'Bloquer', color: 'bg-red-100 text-red-700 border-red-400' },
+  { id: 'bad_spam',        emoji: '🤖', label: 'Spam / bot Meta',          group: 'Bloquer', color: 'bg-red-100 text-red-700 border-red-400' },
+] as const;
+type TagId = typeof TAGS_CATALOG[number]['id'];
+const TAG_MAP = Object.fromEntries(TAGS_CATALOG.map(t => [t.id, t])) as Record<TagId, typeof TAGS_CATALOG[number]>;
+const BLOCK_TAGS = ['bad_insultes', 'bad_fake', 'bad_spam'];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const STATUS_CONFIG: Record<LeadStatus, { label: string; color: string; bg: string; border: string; icon: React.ReactNode }> = {
@@ -292,6 +314,20 @@ La place est reservee jusqu'a ce soir uniquement.`
     if (!editingNotes) return;
     await updateDoc(doc(db, COLLECTION, editingNotes.id), { notes: editingNotes.value, updatedAt: new Date().toISOString() });
     setEditingNotes(null);
+  };
+
+  // ── Toggle tag on a lead ──
+  const toggleTag = async (lead: MakeAndGoLead, tagId: string) => {
+    const current = lead.tags || [];
+    const next = current.includes(tagId)
+      ? current.filter(t => t !== tagId)
+      : [...current, tagId];
+    const updates: Record<string, unknown> = { tags: next, updatedAt: new Date().toISOString() };
+    // Auto-cancel if a block tag is activated
+    if (!current.includes(tagId) && BLOCK_TAGS.includes(tagId)) {
+      updates.status = 'cancelled';
+    }
+    await updateDoc(doc(db, COLLECTION, lead.id), updates);
   };
 
   const deleteLead = async (id: string) => {
@@ -592,6 +628,16 @@ La place est reservee jusqu'a ce soir uniquement.`
                       {lead.kidAge && <span className="text-[10px] bg-blue-100 text-blue-700 font-black px-2 py-0.5 rounded-full">👶 {lead.kidAge}</span>}
                       {lead.slot && <span className="text-[10px] bg-orange-100 text-orange-700 font-black px-2 py-0.5 rounded-full">🕐 {lead.slot.replace(/_/g,' ')}</span>}
                       {lead.theme && <span className="text-[10px] bg-gray-100 text-gray-600 font-black px-2 py-0.5 rounded-full">{lead.theme}</span>}
+                      {/* Active tags — show on card */}
+                      {(lead.tags || []).map(tid => {
+                        const t = TAG_MAP[tid as TagId];
+                        if (!t) return null;
+                        return (
+                          <span key={tid} className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${t.color}`}>
+                            {t.emoji} {t.label}
+                          </span>
+                        );
+                      })}
                     </div>
                     <div className="flex items-center gap-3 mt-0.5">
                       <span className="text-xs text-gray-500 font-bold">{lead.phone}</span>
@@ -654,6 +700,55 @@ La place est reservee jusqu'a ce soir uniquement.`
                         <a href={lpUrl} target="_blank" rel="noopener noreferrer" className="p-2 border-2 border-black rounded-lg hover:bg-black hover:text-white transition-all">
                           <ExternalLink size={14} />
                         </a>
+                      </div>
+                    </div>
+
+                    {/* 🏷️ Tags — profil enfant & blocage */}
+                    <div>
+                      <p className="text-[10px] font-black uppercase text-gray-400 mb-2">🏷️ Tags rapides — cliquez pour activer/désactiver</p>
+
+                      {/* Profil enfant */}
+                      <p className="text-[9px] font-black uppercase text-gray-300 mb-1.5">🧒 Profil enfant / ado</p>
+                      <div className="flex flex-wrap gap-1.5 mb-3">
+                        {TAGS_CATALOG.filter(t => t.group === 'Enfant').map(tag => {
+                          const active = (lead.tags || []).includes(tag.id);
+                          return (
+                            <button
+                              key={tag.id}
+                              onClick={() => toggleTag(lead, tag.id)}
+                              className={`flex items-center gap-1 text-[10px] font-black px-2 py-1 rounded-full border-2 transition-all ${
+                                active
+                                  ? `${tag.color} shadow-[2px_2px_0_0_rgba(0,0,0,0.15)] scale-105`
+                                  : 'bg-white text-gray-400 border-gray-200 hover:border-gray-400 hover:text-gray-600'
+                              }`}
+                            >
+                              {tag.emoji} {tag.label}{active && <span className="ml-0.5">✓</span>}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Blocage */}
+                      <div className="bg-red-50 border-2 border-red-300 rounded-xl p-2">
+                        <p className="text-[9px] font-black uppercase text-red-400 mb-1.5">🚫 À bloquer — sera automatiquement annulé</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {TAGS_CATALOG.filter(t => t.group === 'Bloquer').map(tag => {
+                            const active = (lead.tags || []).includes(tag.id);
+                            return (
+                              <button
+                                key={tag.id}
+                                onClick={() => toggleTag(lead, tag.id)}
+                                className={`flex items-center gap-1 text-[10px] font-black px-2 py-1 rounded-full border-2 transition-all ${
+                                  active
+                                    ? 'bg-red-500 text-white border-red-700 shadow-[2px_2px_0_0_rgba(0,0,0,0.2)] scale-105'
+                                    : 'bg-white text-red-400 border-red-200 hover:border-red-400'
+                                }`}
+                              >
+                                {tag.emoji} {tag.label}{active && <span className="ml-0.5">✓</span>}
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
                     </div>
 
