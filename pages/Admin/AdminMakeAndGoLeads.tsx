@@ -338,7 +338,7 @@ La place est reservee jusqu'a ce soir uniquement.`
   // ── Export Meta Custom Audience CSV ──────────────────────────────────────────
   // Format based on: https://web.facebook.com/business/help/2082575038703844
   // Columns: email, phone, fn, ln, country, value
-  // Value scoring: confirmed=3 | screenshot=2 | link_sent=1 | new=0.1
+  // Value scoring: status base + tag bonuses → Meta learns who's valuable
   // Phone: must include country code (+212 for Morocco)
   const exportMetaCSV = () => {
     const STATUS_VALUE: Record<LeadStatus, number> = {
@@ -349,7 +349,19 @@ La place est reservee jusqu'a ce soir uniquement.`
       cancelled:  0,
     };
 
-    // Build rows — skip cancelled (value=0 rows are useless for Meta)
+    // Tag bonuses — tell Meta which category of lead converts best
+    const TAG_BONUS: Record<string, number> = {
+      kid_passionne:  0.8,  // très motivé → signal fort
+      kid_deja_fait:  0.6,  // a l'habitude → converti plus vite
+      kid_curieux:    0.4,  // engagé → bon potentiel
+      kid_ado:        0.3,  // ado = parent décideur clair
+      kid_jeux:       0.2,  // intérêt précis → ciblage affiné
+      kid_lego:       0.2,
+      kid_timide:     0.1,
+      kid_jamais:     0.0,  // neutre
+    };
+
+    // Build rows — skip cancelled (block-tagged leads are already cancelled)
     const rows = leads
       .filter(l => l.status !== 'cancelled')
       .map(l => {
@@ -370,26 +382,22 @@ La place est reservee jusqu'a ce soir uniquement.`
         const ln = nameParts.slice(1).join(' ') || '';
 
         const email = l.email || '';
-        const value = STATUS_VALUE[l.status] ?? 0.1;
+
+        // Base score from status + bonus from tags
+        const baseValue = STATUS_VALUE[l.status] ?? 0.1;
+        const tagBonus = (l.tags || []).reduce((sum, tid) => sum + (TAG_BONUS[tid] ?? 0), 0);
+        const value = Math.round((baseValue + tagBonus) * 10) / 10; // round to 1 decimal
+
+        const tagList = (l.tags || []).join('|');
         const notes = l.notes ? `"${l.notes.replace(/"/g, "'")}"` : '';
 
-        // Meta CSV row — email,phone,fn,ln,country,value
-        // We also append notes and status as extra cols for our records
-        // (Meta ignores unknown columns)
-        return [
-          email,
-          phone,
-          fn,
-          ln,
-          'MA', // Morocco ISO code
-          value,
-          l.status,
-          notes,
-        ].join(',');
+        // Meta columns: email,phone,fn,ln,country,value
+        // Extra cols prefixed with _ are ignored by Meta but kept for our records
+        return [email, phone, fn, ln, 'MA', value, l.status, tagList, notes].join(',');
       });
 
-    // Header — exact column names Meta expects
-    const header = 'email,phone,fn,ln,country,value,_status,_notes';
+    // Header — exact column names Meta expects first, then our internal cols
+    const header = 'email,phone,fn,ln,country,value,_status,_tags,_notes';
     const csv = [header, ...rows].join('\r\n');
 
     // Trigger download
@@ -822,28 +830,55 @@ La place est reservee jusqu'a ce soir uniquement.`
 
       {/* Export guide */}
       <div className="mt-4 bg-violet-50 border-4 border-violet-400 rounded-2xl p-5">
-        <h3 className="font-black text-sm uppercase mb-2 text-violet-900">📤 Export Meta Audience — Value-Based Lookalike</h3>
-        <p className="text-sm text-violet-800 font-medium mb-3">
-          Le bouton <strong>Export Meta</strong> génère un CSV prêt à uploader dans{' '}
-          <strong>Meta Ads Manager → Audiences → Créer → Audience personnalisée → Fichier client</strong>.
+        <h3 className="font-black text-sm uppercase mb-1 text-violet-900">📤 Export Meta — Ce que Meta reçoit par lead</h3>
+        <p className="text-xs text-violet-700 font-medium mb-3">
+          Meta reçoit un <strong>score (value)</strong> = statut de base + bonus des tags enfant.
+          Plus le score est élevé, plus Meta cible des parents similaires à vos <em>meilleurs</em> acheteurs.
         </p>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+
+        {/* Status base */}
+        <p className="text-[9px] font-black uppercase text-violet-400 mb-1.5">Score de base — statut du lead</p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
           {[
-            { status: 'Confirmé ✅', value: '3', color: 'bg-green-100 text-green-800 border-green-300' },
-            { status: 'Capture Reçue', value: '2', color: 'bg-yellow-100 text-yellow-800 border-yellow-300' },
-            { status: 'Lien Envoyé', value: '1', color: 'bg-blue-100 text-blue-800 border-blue-300' },
-            { status: 'Nouveau', value: '0.1', color: 'bg-gray-100 text-gray-700 border-gray-300' },
+            { label: 'Confirmé ✅', value: '3.0', color: 'bg-green-100 text-green-800 border-green-300' },
+            { label: 'Capture Reçue', value: '2.0', color: 'bg-yellow-100 text-yellow-800 border-yellow-300' },
+            { label: 'Lien Envoyé', value: '1.0', color: 'bg-blue-100 text-blue-800 border-blue-300' },
+            { label: 'Nouveau', value: '0.1', color: 'bg-gray-100 text-gray-700 border-gray-300' },
           ].map(r => (
-            <div key={r.status} className={`flex flex-col items-center p-2 rounded-xl border-2 ${r.color}`}>
+            <div key={r.label} className={`flex flex-col items-center p-2 rounded-xl border-2 ${r.color}`}>
               <span className="font-black text-lg">{r.value}</span>
-              <span className="text-[10px] font-black uppercase">{r.status}</span>
+              <span className="text-[10px] font-black uppercase text-center">{r.label}</span>
             </div>
           ))}
         </div>
-        <p className="text-[10px] text-violet-600 font-bold mt-2">
-          Meta utilisera ces scores pour trouver des audiences similaires à vos meilleurs leads (Confirmés = score 3).
-          Annulés exclus automatiquement.
-        </p>
+
+        {/* Tag bonuses */}
+        <p className="text-[9px] font-black uppercase text-violet-400 mb-1.5">+ Bonus tags enfant / ado</p>
+        <div className="flex flex-wrap gap-1.5 mb-3">
+          {[
+            { label: '🔥 Passionné de tech', bonus: '+0.8' },
+            { label: '✅ Déjà fait atelier', bonus: '+0.6' },
+            { label: '👀 Curieux et motivé', bonus: '+0.4' },
+            { label: '🧑 Ado 12–16 ans', bonus: '+0.3' },
+            { label: '🎮 Accro aux jeux', bonus: '+0.2' },
+            { label: '🧱 Fan de Lego', bonus: '+0.2' },
+          ].map(r => (
+            <div key={r.label} className="flex items-center gap-1 bg-violet-100 border border-violet-300 rounded-full px-2 py-0.5">
+              <span className="text-[10px] font-bold text-violet-700">{r.label}</span>
+              <span className="text-[10px] font-black text-violet-900">{r.bonus}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Example */}
+        <div className="bg-white border-2 border-violet-200 rounded-xl px-3 py-2 flex items-center gap-3">
+          <span className="text-lg">🏆</span>
+          <div>
+            <p className="text-xs font-black text-violet-900">Exemple — meilleur score possible</p>
+            <p className="text-[10px] text-violet-700 font-medium">Confirmé (3.0) + Passionné (0.8) + Déjà fait (0.6) = <strong>4.4</strong> → Meta cible en priorité ce profil</p>
+          </div>
+        </div>
+        <p className="text-[10px] text-red-500 font-bold mt-2">🚫 Insultes / Faux numéro / Spam → Annulés, exclus de l'export. Meta ne les voit jamais.</p>
       </div>
     </div>
   );
