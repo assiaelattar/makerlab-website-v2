@@ -35,25 +35,29 @@ interface MakeAndGoLead {
 }
 
 // ─── Tags Catalog ─────────────────────────────────────────────────────────────
-// Langage simple / vulgarisé — profil enfant/ado uniquement
+// Deux groupes : qualité du PARENT prospect / pas du tout un lead
 const TAGS_CATALOG = [
-  // 🧒 Profil de l'enfant / ado
-  { id: 'kid_timide',      emoji: '😶', label: 'Timide',                    group: 'Enfant', color: 'bg-sky-100 text-sky-700 border-sky-300' },
-  { id: 'kid_curieux',     emoji: '👀', label: 'Curieux et motivé',         group: 'Enfant', color: 'bg-violet-100 text-violet-700 border-violet-300' },
-  { id: 'kid_passionne',   emoji: '🔥', label: 'Passionné de tech',         group: 'Enfant', color: 'bg-orange-100 text-orange-700 border-orange-300' },
-  { id: 'kid_deja_fait',   emoji: '✅', label: 'A déjà fait un atelier',   group: 'Enfant', color: 'bg-green-100 text-green-700 border-green-300' },
-  { id: 'kid_jamais',      emoji: '🆕', label: 'Jamais essayé avant',      group: 'Enfant', color: 'bg-gray-100 text-gray-600 border-gray-300' },
-  { id: 'kid_jeux',        emoji: '🎮', label: 'Accro aux jeux vidéo',     group: 'Enfant', color: 'bg-purple-100 text-purple-700 border-purple-300' },
-  { id: 'kid_lego',        emoji: '🧱', label: 'Fan de Lego / bricolage',  group: 'Enfant', color: 'bg-yellow-100 text-yellow-700 border-yellow-300' },
-  { id: 'kid_ado',         emoji: '🧑', label: 'Ado (12–16 ans)',          group: 'Enfant', color: 'bg-teal-100 text-teal-700 border-teal-300' },
-  // 🚫 À bannir — ne jamais recontacter
-  { id: 'bad_insultes',    emoji: '🚫', label: 'Insultes / bad words',     group: 'Bloquer', color: 'bg-red-100 text-red-700 border-red-400' },
-  { id: 'bad_fake',        emoji: '👻', label: 'Faux numéro / arnaque',    group: 'Bloquer', color: 'bg-red-100 text-red-700 border-red-400' },
-  { id: 'bad_spam',        emoji: '🤖', label: 'Spam / bot Meta',          group: 'Bloquer', color: 'bg-red-100 text-red-700 border-red-400' },
+  // 👪 Qualité du parent prospect
+  { id: 'par_paye',        emoji: '💰', label: 'A payé / Converti',               group: 'Parent',   color: 'bg-emerald-100 text-emerald-700 border-emerald-400' },
+  { id: 'par_chaud',       emoji: '🔥', label: 'Très motivé, prêt à payer',       group: 'Parent',   color: 'bg-green-100 text-green-700 border-green-400' },
+  { id: 'par_interesse',   emoji: '👍', label: 'Intéressé mais hésite encore',    group: 'Parent',   color: 'bg-blue-100 text-blue-700 border-blue-300' },
+  { id: 'par_retargeting', emoji: '🔄', label: 'À relancer — retargeting',        group: 'Parent',   color: 'bg-indigo-100 text-indigo-700 border-indigo-300' },
+  { id: 'par_pas_dispo',   emoji: '📅', label: 'Intéressé mais pas dispo ce WE',  group: 'Parent',   color: 'bg-amber-100 text-amber-700 border-amber-300' },
+  { id: 'par_questions',   emoji: '❓', label: 'A des questions sur le programme', group: 'Parent',   color: 'bg-sky-100 text-sky-700 border-sky-300' },
+  { id: 'par_budget',      emoji: '💸', label: "Dit que c'est cher",              group: 'Parent',   color: 'bg-orange-100 text-orange-700 border-orange-300' },
+  { id: 'par_attente',     emoji: '⏳', label: '"On verra" — à convaincre',       group: 'Parent',   color: 'bg-yellow-100 text-yellow-700 border-yellow-300' },
+  { id: 'par_rappeler',    emoji: '📞', label: 'Demande à être rappelé',           group: 'Parent',   color: 'bg-violet-100 text-violet-700 border-violet-300' },
+  // 🚫 Pas du tout un lead — à bloquer immédiatement
+  { id: 'fake_enfant_joue',   emoji: '🎮', label: 'Enfant qui joue avec le tél',          group: 'Pas lead', color: 'bg-red-100 text-red-700 border-red-400' },
+  { id: 'fake_enfant_rempli', emoji: '✏️', label: 'Enfant a rempli à la place du parent', group: 'Pas lead', color: 'bg-red-100 text-red-700 border-red-400' },
+  { id: 'fake_ado_amuse',     emoji: '😜', label: "Ado / gamin qui s'amuse",              group: 'Pas lead', color: 'bg-red-100 text-red-700 border-red-400' },
+  { id: 'fake_insultes',      emoji: '🚫', label: 'Insultes / bad words',                 group: 'Pas lead', color: 'bg-red-100 text-red-700 border-red-400' },
+  { id: 'fake_faux_numero',   emoji: '👻', label: 'Faux numéro / arnaque',                group: 'Pas lead', color: 'bg-red-100 text-red-700 border-red-400' },
+  { id: 'fake_spam',          emoji: '🤖', label: 'Spam / bot Meta',                      group: 'Pas lead', color: 'bg-red-100 text-red-700 border-red-400' },
 ] as const;
 type TagId = typeof TAGS_CATALOG[number]['id'];
 const TAG_MAP = Object.fromEntries(TAGS_CATALOG.map(t => [t.id, t])) as Record<TagId, typeof TAGS_CATALOG[number]>;
-const BLOCK_TAGS = ['bad_insultes', 'bad_fake', 'bad_spam'];
+const BLOCK_TAGS = ['fake_enfant_joue', 'fake_enfant_rempli', 'fake_ado_amuse', 'fake_insultes', 'fake_faux_numero', 'fake_spam'];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const STATUS_CONFIG: Record<LeadStatus, { label: string; color: string; bg: string; border: string; icon: React.ReactNode }> = {
@@ -349,16 +353,17 @@ La place est reservee jusqu'a ce soir uniquement.`
       cancelled:  0,
     };
 
-    // Tag bonuses — tell Meta which category of lead converts best
+    // Tag bonuses — signal la qualité du parent prospect à Meta
     const TAG_BONUS: Record<string, number> = {
-      kid_passionne:  0.8,  // très motivé → signal fort
-      kid_deja_fait:  0.6,  // a l'habitude → converti plus vite
-      kid_curieux:    0.4,  // engagé → bon potentiel
-      kid_ado:        0.3,  // ado = parent décideur clair
-      kid_jeux:       0.2,  // intérêt précis → ciblage affiné
-      kid_lego:       0.2,
-      kid_timide:     0.1,
-      kid_jamais:     0.0,  // neutre
+      par_paye:        1.0,  // a payé = signal le plus fort
+      par_chaud:       0.6,  // très motivé
+      par_interesse:   0.3,  // intéressé mais pas encore là
+      par_retargeting: 0.2,  // vrai prospect à relancer
+      par_pas_dispo:   0.2,  // intéressé, juste mauvais timing
+      par_questions:   0.2,  // engagé, cherche à comprendre
+      par_rappeler:    0.1,
+      par_budget:      0.0,  // neutre — peut devenir client
+      par_attente:     0.0,  // neutre
     };
 
     // Build rows — skip cancelled (block-tagged leads are already cancelled)
@@ -711,14 +716,14 @@ La place est reservee jusqu'a ce soir uniquement.`
                       </div>
                     </div>
 
-                    {/* 🏷️ Tags — profil enfant & blocage */}
+                    {/* 🏷️ Tags — qualité parent & blocage */}
                     <div>
                       <p className="text-[10px] font-black uppercase text-gray-400 mb-2">🏷️ Tags rapides — cliquez pour activer/désactiver</p>
 
-                      {/* Profil enfant */}
-                      <p className="text-[9px] font-black uppercase text-gray-300 mb-1.5">🧒 Profil enfant / ado</p>
+                      {/* Profil parent prospect */}
+                      <p className="text-[9px] font-black uppercase text-gray-300 mb-1.5">👪 Qualité du parent prospect</p>
                       <div className="flex flex-wrap gap-1.5 mb-3">
-                        {TAGS_CATALOG.filter(t => t.group === 'Enfant').map(tag => {
+                        {TAGS_CATALOG.filter(t => t.group === 'Parent').map(tag => {
                           const active = (lead.tags || []).includes(tag.id);
                           return (
                             <button
@@ -736,11 +741,11 @@ La place est reservee jusqu'a ce soir uniquement.`
                         })}
                       </div>
 
-                      {/* Blocage */}
+                      {/* Pas du tout un lead */}
                       <div className="bg-red-50 border-2 border-red-300 rounded-xl p-2">
-                        <p className="text-[9px] font-black uppercase text-red-400 mb-1.5">🚫 À bloquer — sera automatiquement annulé</p>
+                        <p className="text-[9px] font-black uppercase text-red-400 mb-1.5">🚫 Pas du tout un lead — sera automatiquement annulé</p>
                         <div className="flex flex-wrap gap-1.5">
-                          {TAGS_CATALOG.filter(t => t.group === 'Bloquer').map(tag => {
+                          {TAGS_CATALOG.filter(t => t.group === 'Pas lead').map(tag => {
                             const active = (lead.tags || []).includes(tag.id);
                             return (
                               <button
@@ -832,7 +837,7 @@ La place est reservee jusqu'a ce soir uniquement.`
       <div className="mt-4 bg-violet-50 border-4 border-violet-400 rounded-2xl p-5">
         <h3 className="font-black text-sm uppercase mb-1 text-violet-900">📤 Export Meta — Ce que Meta reçoit par lead</h3>
         <p className="text-xs text-violet-700 font-medium mb-3">
-          Meta reçoit un <strong>score (value)</strong> = statut de base + bonus des tags enfant.
+          Meta reçoit un <strong>score (value)</strong> = statut de base + bonus du tag parent.
           Plus le score est élevé, plus Meta cible des parents similaires à vos <em>meilleurs</em> acheteurs.
         </p>
 
@@ -853,15 +858,15 @@ La place est reservee jusqu'a ce soir uniquement.`
         </div>
 
         {/* Tag bonuses */}
-        <p className="text-[9px] font-black uppercase text-violet-400 mb-1.5">+ Bonus tags enfant / ado</p>
+        <p className="text-[9px] font-black uppercase text-violet-400 mb-1.5">+ Bonus tags parent prospect</p>
         <div className="flex flex-wrap gap-1.5 mb-3">
           {[
-            { label: '🔥 Passionné de tech', bonus: '+0.8' },
-            { label: '✅ Déjà fait atelier', bonus: '+0.6' },
-            { label: '👀 Curieux et motivé', bonus: '+0.4' },
-            { label: '🧑 Ado 12–16 ans', bonus: '+0.3' },
-            { label: '🎮 Accro aux jeux', bonus: '+0.2' },
-            { label: '🧱 Fan de Lego', bonus: '+0.2' },
+            { label: '💰 A payé / Converti', bonus: '+1.0' },
+            { label: '🔥 Très motivé', bonus: '+0.6' },
+            { label: '👍 Intéressé, hésite', bonus: '+0.3' },
+            { label: '🔄 À relancer', bonus: '+0.2' },
+            { label: '📅 Pas dispo ce WE', bonus: '+0.2' },
+            { label: '❓ A des questions', bonus: '+0.2' },
           ].map(r => (
             <div key={r.label} className="flex items-center gap-1 bg-violet-100 border border-violet-300 rounded-full px-2 py-0.5">
               <span className="text-[10px] font-bold text-violet-700">{r.label}</span>
@@ -875,10 +880,10 @@ La place est reservee jusqu'a ce soir uniquement.`
           <span className="text-lg">🏆</span>
           <div>
             <p className="text-xs font-black text-violet-900">Exemple — meilleur score possible</p>
-            <p className="text-[10px] text-violet-700 font-medium">Confirmé (3.0) + Passionné (0.8) + Déjà fait (0.6) = <strong>4.4</strong> → Meta cible en priorité ce profil</p>
+            <p className="text-[10px] text-violet-700 font-medium">Confirmé (3.0) + A payé (1.0) + Très motivé (0.6) = <strong>4.6</strong> → Meta cible en priorité ce profil de parent</p>
           </div>
         </div>
-        <p className="text-[10px] text-red-500 font-bold mt-2">🚫 Insultes / Faux numéro / Spam → Annulés, exclus de l'export. Meta ne les voit jamais.</p>
+        <p className="text-[10px] text-red-500 font-bold mt-2">🚫 Pas lead (enfant joue, faux numéro, insultes...) → Annulés, exclus de l'export. Meta ne les voit jamais.</p>
       </div>
     </div>
   );
