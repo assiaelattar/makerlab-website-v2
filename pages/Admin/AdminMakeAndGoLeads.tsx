@@ -43,7 +43,7 @@ const STATUS_CONFIG: Record<LeadStatus, { label: string; color: string; bg: stri
 };
 
 const COLLECTION = 'make-and-go-leads';
-const BASE_URL = 'https://makerlab.ma'; // always use production domain for shareable links
+const BASE_URL = 'https://space.makerlab.academy'; // production domain
 
 function generateLPUrl(lead: MakeAndGoLead) {
   const params = new URLSearchParams({
@@ -265,9 +265,17 @@ export const AdminMakeAndGoLeads: React.FC = () => {
   const openWhatsApp = (lead: MakeAndGoLead) => {
     const url = lead.lpUrl || generateLPUrl(lead);
     const phone = lead.phone.replace(/[^0-9]/g, '');
-    const intl = phone.startsWith('0') ? `212${phone.slice(1)}` : phone;
+    const intl = phone.startsWith('0') ? `212${phone.slice(1)}` : phone.startsWith('212') ? phone : `212${phone}`;
+    const kidFirst = lead.kidName || lead.fullName.split(' ')[0];
     const msg = encodeURIComponent(
-      `Salam ${lead.fullName.split(' ')[0]} 👋\n\nMerci pour votre intérêt pour MakerLab Academy !\n\nVoici le lien pour finaliser la réservation de ${lead.kidName || 'votre enfant'} :\n${url}\n\n⚠️ La place est réservée jusqu'à ce soir uniquement.`
+`Salam chers parents,
+
+Merci pour votre interet pour MakerLab Academy !
+
+Voici le lien pour finaliser la reservation de ${kidFirst} :
+${url}
+
+La place est reservee jusqu'a ce soir uniquement.`
     );
     window.open(`https://wa.me/${intl}?text=${msg}`, '_blank');
     if (lead.status === 'new') updateStatus(lead.id, 'link_sent');
@@ -288,10 +296,10 @@ export const AdminMakeAndGoLeads: React.FC = () => {
   const [fixing, setFixing] = useState(false);
   const fixAllUrls = async () => {
     const broken = leads.filter(l =>
-      !l.lpUrl || l.lpUrl.includes('localhost') || !l.lpUrl.startsWith('https://makerlab.ma')
+      !l.lpUrl || l.lpUrl.includes('localhost') || !l.lpUrl.startsWith('https://space.makerlab.academy')
     );
     if (broken.length === 0) { alert('\u2705 Tous les liens sont déjà corrects !'); return; }
-    if (!window.confirm(`Corriger ${broken.length} lien(s) vers makerlab.ma ?`)) return;
+    if (!window.confirm(`Corriger ${broken.length} lien(s) vers space.makerlab.academy ?`)) return;
     setFixing(true);
     for (const lead of broken) {
       const newUrl = generateLPUrl(lead);
@@ -329,7 +337,7 @@ export const AdminMakeAndGoLeads: React.FC = () => {
 
         <div className="flex gap-3 flex-wrap">
           {/* Fix broken URLs (localhost / subdomain) */}
-          {leads.some(l => !l.lpUrl || l.lpUrl.includes('localhost') || !l.lpUrl.startsWith('https://makerlab.ma')) && (
+          {leads.some(l => !l.lpUrl || l.lpUrl.includes('localhost') || !l.lpUrl.startsWith('https://space.makerlab.academy')) && (
             <button
               onClick={fixAllUrls}
               disabled={fixing}
