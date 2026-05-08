@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { 
-    Clock, 
     MapPin, 
     CheckCircle2, 
     Wrench, 
@@ -11,15 +10,13 @@ import {
     ChevronDown,
     ChevronUp,
     ShieldCheck, 
-    CreditCard, 
     Landmark, 
-    CheckCircle, 
-    ArrowRight,
-    Upload,
     ImageIcon
 } from 'lucide-react';
 import { SEO } from '../components/SEO';
 import { useSettings } from '../contexts/SettingsContext';
+import { collection, addDoc } from 'firebase/firestore';
+import { db } from '../firebase';
 
 export const ReservationLP: React.FC = () => {
     const { settings } = useSettings();
@@ -40,14 +37,12 @@ export const ReservationLP: React.FC = () => {
     const slot = searchParams.get('slot') || 'ce weekend';
     const theme = searchParams.get('theme') || 'Robotique';
     const fromForm = searchParams.get('from') === 'form';
-    
-    const navigate = useNavigate();
 
-    const [timeLeft, setTimeLeft] = useState(24 * 60 * 60); // 24 hours in seconds
+    const [timeLeft, setTimeLeft] = useState(24 * 60 * 60);
     const [openFaq, setOpenFaq] = useState<number | null>(null);
-    const [showCashPlusDetails, setShowCashPlusDetails] = useState(false);
     const [paymentScreenshot, setPaymentScreenshot] = useState<File | null>(null);
     const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
+    const [submitted, setSubmitted] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // YouTube video ID — set in Admin → Meta LP Editor
@@ -95,19 +90,40 @@ export const ReservationLP: React.FC = () => {
         return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     };
 
-    const handleCashPlusClick = () => {
-        setShowCashPlusDetails(true);
-        if (window.fbq) {
-            window.fbq('track', 'InitiateCheckout');
-        }
-    };
+    const handleWhatsAppClick = async () => {
+        if (window.fbq) window.fbq('track', 'Contact');
 
-    const handleWhatsAppClick = () => {
-        if (window.fbq) {
-            window.fbq('track', 'Contact');
+        // ── Save submission to Firestore so admin can track it ──
+        try {
+            await addDoc(collection(db, 'reservation-submissions'), {
+                kidName,
+                slot,
+                theme,
+                whatsappPhone: config.whatsappPhone,
+                hasScreenshot: !!paymentScreenshot,
+                screenshotName: paymentScreenshot?.name || null,
+                submittedAt: new Date().toISOString(),
+                source: 'reservation-lp',
+            });
+            setSubmitted(true);
+        } catch (e) {
+            console.warn('Could not save submission:', e);
         }
+
+        // ── Open WhatsApp with clean message ──
         const phone = config.whatsappPhone.replace(/[^0-9]/g, '');
-        window.open(`https://wa.me/212${phone.startsWith('0') ? phone.slice(1) : phone}?text=Salam%2C%20je%20viens%20de%20réserver%20pour%20${theme}%20${slot}.%20Voici%20mon%20reçu%20Cash%20Plus%3A`, '_blank');
+        const intl = phone.startsWith('0') ? `212${phone.slice(1)}` : phone.startsWith('212') ? phone : `212${phone}`;
+        const msg = encodeURIComponent(
+`Salam,
+
+Je viens d'effectuer le virement bancaire de 350 DHS pour la reservation de ${kidName}.
+
+Atelier : ${theme}
+Creneau : ${slot}
+
+Veuillez confirmer la reception.`
+        );
+        window.open(`https://wa.me/${intl}?text=${msg}`, '_blank');
     };
 
     const formatText = (text: string) => {
@@ -275,9 +291,15 @@ export const ReservationLP: React.FC = () => {
                             <p className="text-[10px] font-black text-[#27A060] uppercase mb-3 text-center">✅ {paymentScreenshot.name}</p>
                         )}
 
-                        <button onClick={handleWhatsAppClick} className="w-full py-3 bg-[#25D366] text-white font-black text-sm uppercase rounded-xl border-2 border-[#111] shadow-[2px_2px_0px_#111] active:scale-95 transition-all flex items-center justify-center gap-2">
-                            <MessageCircle size={16} /> Envoyer le reçu WhatsApp
+                        <button 
+                            onClick={handleWhatsAppClick} 
+                            className="w-full py-3 bg-[#25D366] text-white font-black text-sm uppercase rounded-xl border-2 border-[#111] shadow-[2px_2px_0px_#111] active:scale-95 transition-all flex items-center justify-center gap-2"
+                        >
+                            <MessageCircle size={16} /> J'ai effectue le virement
                         </button>
+                        {submitted && (
+                            <p className="text-[10px] font-black text-[#27A060] uppercase mt-2 text-center">Message envoye. Nous allons confirmer sous peu.</p>
+                        )}
                     </div>
 
                     {/* Divider */}
