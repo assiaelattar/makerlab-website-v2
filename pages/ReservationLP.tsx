@@ -160,8 +160,9 @@ Veuillez confirmer la reception.`
     return (
         <div className="font-sans bg-[#F5F3EE] min-h-screen text-[#111] max-w-[480px] mx-auto shadow-2xl relative pb-20">
             <SEO 
-                title={`Confirmez la place de ${kidName} - MakerLab`} 
-                description="Finalisez la réservation pour l'atelier MakerLab." 
+                title={`Il vous reste une seule étape pour bloquer la place de ${kidName}`}
+                description={`La place de ${kidName} est pré-réservée — il suffit d'effectuer le virement de 350 DHS pour la confirmer. Places limitées à 10 enfants. Agissez avant ce soir.`}
+                image="/logo-social.jpg"
                 noindex={true}
             />
 
