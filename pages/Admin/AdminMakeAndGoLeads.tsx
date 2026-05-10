@@ -234,11 +234,11 @@ export const AdminMakeAndGoLeads: React.FC = () => {
   useEffect(() => {
     const unsub = onSnapshot(collection(db, COLLECTION), snap => {
       const data = snap.docs.map(d => ({ ...d.data(), id: d.id } as MakeAndGoLead));
-      // Sort by Meta Form Date (newest first)
+      // Sort by Meta Form Date (newest first) - using string comparison for maximum reliability
       data.sort((a, b) => {
-        const ta = new Date(a.createdAt || a.importedAt || a.updatedAt).getTime();
-        const tb = new Date(b.createdAt || b.importedAt || b.updatedAt).getTime();
-        return tb - ta;
+        const dateA = a.createdAt || '';
+        const dateB = b.createdAt || '';
+        return dateB.localeCompare(dateA);
       });
       setLeads(data);
       setLoading(false);
