@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   Upload, Link as LinkIcon, Copy, CheckCircle2, Clock, X,
   Users, FileText, ExternalLink, RefreshCw, Filter,
-  ChevronDown, MessageCircle, Camera, UserCheck, Search, Download
+  ChevronDown, MessageCircle, Camera, UserCheck, Search, Download, Plus
 } from 'lucide-react';
 import { collection, onSnapshot, doc, setDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
@@ -231,6 +231,10 @@ export const AdminMakeAndGoLeads: React.FC = () => {
   const [showTodayOnly, setShowTodayOnly] = useState(false);
   const [showToFollowUp, setShowToFollowUp] = useState(false);
   const [minutesSinceUpdate, setMinutesSinceUpdate] = useState(0);
+  const [showManualAdd, setShowManualAdd] = useState(false);
+  const [manualLead, setManualLead] = useState<Partial<MakeAndGoLead>>({
+    fullName: '', phone: '', kidName: '', kidAge: '', slot: '', paymentIntent: '', email: ''
+  });
   const fileRef = useRef<HTMLInputElement>(null);
 
   // ── 20min Timer for CSV Upload Reminder ──
@@ -341,6 +345,44 @@ export const AdminMakeAndGoLeads: React.FC = () => {
       const msg = err?.message || JSON.stringify(err);
       alert(`❌ Erreur import (lead ${saved + 1}/${newLeads.length}) :\n${msg}`);
       console.error('Import error:', err);
+    }
+    setImporting(false);
+  };
+
+  // ── Manual Add ──
+  const handleAddManual = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!manualLead.fullName || !manualLead.phone) return alert('Nom et téléphone obligatoires');
+    
+    setImporting(true);
+    try {
+      const id = `mag-man-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+      const now = new Date().toISOString();
+      const lead: MakeAndGoLead = {
+        id,
+        fullName: manualLead.fullName,
+        phone: manualLead.phone,
+        kidName: manualLead.kidName || undefined,
+        kidAge: manualLead.kidAge || undefined,
+        slot: manualLead.slot || undefined,
+        paymentIntent: manualLead.paymentIntent || undefined,
+        email: manualLead.email || undefined,
+        status: 'new',
+        source: 'Appel entrant (Manuel)',
+        theme: 'Robotique',
+        createdAt: now,
+        updatedAt: now,
+      };
+      
+      const full = { ...lead, lpUrl: generateLPUrl(lead) };
+      const safe = cleanDoc(full) as MakeAndGoLead;
+      
+      await setDoc(doc(db, COLLECTION, id), safe);
+      setShowManualAdd(false);
+      setManualLead({ fullName: '', phone: '', kidName: '', kidAge: '', slot: '', paymentIntent: '', email: '' });
+      alert('Lead ajouté avec succès !');
+    } catch (err: any) {
+      alert('Erreur: ' + err.message);
     }
     setImporting(false);
   };
@@ -631,6 +673,13 @@ ${url}`
             <ExternalLink size={15} /> Aller vers Meta Forms
           </a>
 
+          <button
+            onClick={() => setShowManualAdd(true)}
+            className="flex items-center gap-2 px-5 py-3 bg-purple-500 text-white font-black uppercase text-sm border-4 border-black rounded-xl shadow-[4px_4px_0_0_black] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all"
+          >
+            <Plus size={18} /> Ajout Manuel
+          </button>
+          
           <button
             onClick={() => fileRef.current?.click()}
             className={`flex items-center gap-2 px-5 py-3 font-black uppercase text-sm border-4 border-black rounded-xl shadow-[4px_4px_0_0_black] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all
@@ -1143,6 +1192,59 @@ ${url}`
         </div>
         <p className="text-[10px] text-red-500 font-bold mt-2">🚫 Pas lead (enfant joue, faux numéro, insultes...) → Annulés, exclus de l'export. Meta ne les voit jamais.</p>
       </div>
+
+      {/* Manual Add Modal */}
+      {showManualAdd && (
+        <div className="fixed inset-0 z-[200] bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl border-4 border-black shadow-[10px_10px_0_0_black] w-full max-w-lg p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="font-black text-2xl uppercase">Ajouter un Lead Manuel</h2>
+              <button onClick={() => setShowManualAdd(false)} className="w-9 h-9 border-2 border-black rounded-full flex items-center justify-center hover:bg-gray-100"><X size={18} /></button>
+            </div>
+            
+            <form onSubmit={handleAddManual} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-black uppercase mb-1">Nom Parent (Obligatoire)</label>
+                  <input required value={manualLead.fullName || ''} onChange={e => setManualLead({...manualLead, fullName: e.target.value})} className="w-full p-3 border-2 border-black rounded-xl font-medium" placeholder="Ex: Karim" />
+                </div>
+                <div>
+                  <label className="block text-xs font-black uppercase mb-1">Téléphone (Obligatoire)</label>
+                  <input required value={manualLead.phone || ''} onChange={e => setManualLead({...manualLead, phone: e.target.value})} className="w-full p-3 border-2 border-black rounded-xl font-medium" placeholder="06..." />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-black uppercase mb-1">Nom Enfant</label>
+                  <input value={manualLead.kidName || ''} onChange={e => setManualLead({...manualLead, kidName: e.target.value})} className="w-full p-3 border-2 border-gray-300 rounded-xl font-medium" placeholder="Optionnel" />
+                </div>
+                <div>
+                  <label className="block text-xs font-black uppercase mb-1">Âge Enfant</label>
+                  <input value={manualLead.kidAge || ''} onChange={e => setManualLead({...manualLead, kidAge: e.target.value})} className="w-full p-3 border-2 border-gray-300 rounded-xl font-medium" placeholder="Ex: 7-9 ans" />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-black uppercase mb-1">Créneau / Horaire souhaité</label>
+                <input value={manualLead.slot || ''} onChange={e => setManualLead({...manualLead, slot: e.target.value})} className="w-full p-3 border-2 border-gray-300 rounded-xl font-medium" placeholder="Ex: Samedi 15h-18h" />
+              </div>
+
+              <div>
+                <label className="block text-xs font-black uppercase mb-1">Commentaire (Payment Intent / Notes)</label>
+                <textarea value={manualLead.paymentIntent || ''} onChange={e => setManualLead({...manualLead, paymentIntent: e.target.value})} className="w-full p-3 border-2 border-gray-300 rounded-xl font-medium resize-none" rows={2} placeholder="Ex: Appel entrant, très intéressé..." />
+              </div>
+
+              <div className="pt-4 flex gap-3">
+                <button type="button" onClick={() => setShowManualAdd(false)} className="flex-1 py-3 border-4 border-black rounded-xl font-black uppercase text-sm hover:bg-gray-50">Annuler</button>
+                <button type="submit" disabled={importing} className="flex-1 py-3 bg-purple-500 text-white border-4 border-black rounded-xl font-black uppercase text-sm shadow-[4px_4px_0_0_black] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all">
+                  {importing ? 'Ajout...' : 'Ajouter au Dashboard'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
