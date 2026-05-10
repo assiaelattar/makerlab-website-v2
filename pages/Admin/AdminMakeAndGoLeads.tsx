@@ -340,16 +340,22 @@ export const AdminMakeAndGoLeads: React.FC = () => {
 
   // ── Copy LP link ──
   const copyLink = (lead: MakeAndGoLead) => {
-    const url = lead.lpUrl || generateLPUrl(lead);
+    // ALWAYS regenerate to ensure technical names are sanitized (votre enfant)
+    const url = generateLPUrl(lead); 
     navigator.clipboard.writeText(url);
     setCopiedId(lead.id);
     setTimeout(() => setCopiedId(null), 2000);
     // Auto-advance to link_sent if still "new"
     if (lead.status === 'new') updateStatus(lead.id, 'link_sent');
+    // Silent update in DB if it was different
+    if (lead.lpUrl !== url) {
+       updateDoc(doc(db, COLLECTION, lead.id), { lpUrl: url });
+    }
   };
 
   const openWhatsApp = (lead: MakeAndGoLead) => {
-    const url = lead.lpUrl || generateLPUrl(lead);
+    // ALWAYS regenerate to ensure technical names are sanitized (votre enfant)
+    const url = generateLPUrl(lead);
     const phone = lead.phone.replace(/[^0-9]/g, '');
     const intl = phone.startsWith('0') ? `212${phone.slice(1)}` : phone.startsWith('212') ? phone : `212${phone}`;
     const kidFirst = cleanKidName(lead.kidName || lead.fullName.split(' ')[0]);
@@ -369,6 +375,11 @@ La place est réservée jusqu'à ce soir uniquement.`
     );
     window.open(`https://wa.me/${intl}?text=${msg}`, '_blank');
     if (lead.status === 'new') updateStatus(lead.id, 'link_sent');
+    
+    // Silent update in DB if it was different
+    if (lead.lpUrl !== url) {
+       updateDoc(doc(db, COLLECTION, lead.id), { lpUrl: url });
+    }
   };
 
   const saveNotes = async () => {
@@ -473,21 +484,28 @@ La place est réservée jusqu'à ce soir uniquement.`
     URL.revokeObjectURL(url);
   };
 
-  // ── Fix all LP URLs (replace localhost/subdomain with makerlab.ma) ──
+  // ── Fix all LP URLs (replace localhost/subdomain with makerlab.ma + clean technical names) ──
   const [fixing, setFixing] = useState(false);
   const fixAllUrls = async () => {
-    const broken = leads.filter(l =>
-      !l.lpUrl || l.lpUrl.includes('localhost') || !l.lpUrl.startsWith('https://space.makerlab.academy')
-    );
-    if (broken.length === 0) { alert('\u2705 Tous les liens sont déjà corrects !'); return; }
-    if (!window.confirm(`Corriger ${broken.length} lien(s) vers space.makerlab.academy ?`)) return;
+    const broken = leads.filter(l => {
+      if (!l.lpUrl) return true;
+      if (l.lpUrl.includes('localhost')) return true;
+      if (!l.lpUrl.startsWith('https://space.makerlab.academy')) return true;
+      // Also fix if it contains technical names in the URL
+      if (l.lpUrl.includes('CIL_') || l.lpUrl.includes('LEAD_') || l.lpUrl.includes('Robot_')) return true;
+      return false;
+    });
+
+    if (broken.length === 0) { alert('✅ Tous les liens sont déjà corrects et propres !'); return; }
+    if (!window.confirm(`Nettoyer et corriger ${broken.length} lien(s) ?`)) return;
+    
     setFixing(true);
     for (const lead of broken) {
       const newUrl = generateLPUrl(lead);
       await updateDoc(doc(db, COLLECTION, lead.id), { lpUrl: newUrl, updatedAt: new Date().toISOString() });
     }
     setFixing(false);
-    alert(`\u2705 ${broken.length} lien(s) corrigé(s) !`);
+    alert(`✅ ${broken.length} lien(s) nettoyés et corrigés !`);
   };
 
   // ── Filter ──
