@@ -234,10 +234,10 @@ export const AdminMakeAndGoLeads: React.FC = () => {
   useEffect(() => {
     const unsub = onSnapshot(collection(db, COLLECTION), snap => {
       const data = snap.docs.map(d => ({ ...d.data(), id: d.id } as MakeAndGoLead));
-      // Sort by import time (newest first) — importedAt is when WE added it, createdAt is Meta's form date
+      // Sort by Meta Form Date (newest first)
       data.sort((a, b) => {
-        const ta = new Date(a.importedAt || a.updatedAt || a.createdAt).getTime();
-        const tb = new Date(b.importedAt || b.updatedAt || b.createdAt).getTime();
+        const ta = new Date(a.createdAt || a.importedAt || a.updatedAt).getTime();
+        const tb = new Date(b.createdAt || b.importedAt || b.updatedAt).getTime();
         return tb - ta;
       });
       setLeads(data);
