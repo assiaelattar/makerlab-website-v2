@@ -554,10 +554,9 @@ ${url}`
 
       // To Follow Up (A Relancer) Filter
       if (showToFollowUp) {
-        // Leads that have a follow-up tag or are 'link_sent' but not yet confirmed/cancelled
+        // Leads that specifically have a follow-up tag
         const hasFollowUpTag = l.tags?.some(t => ['par_retargeting', 'par_pas_dispo', 'par_rappeler', 'par_attente'].includes(t));
-        const isPendingLink = l.status === 'link_sent';
-        if (!hasFollowUpTag && !isPendingLink) return false;
+        if (!hasFollowUpTag) return false;
         if (l.status === 'cancelled' || l.status === 'confirmed') return false; // Ignore already sorted leads
       }
 
@@ -919,7 +918,7 @@ ${url}`
                     </button>
 
                     {/* Smart Rappel (Follow-up) */}
-                    {(lead.status === 'link_sent' || (lead.tags && lead.tags.some(t => ['par_retargeting', 'par_pas_dispo', 'par_rappeler', 'par_attente'].includes(t)))) && (
+                    {(lead.tags && lead.tags.some(t => ['par_retargeting', 'par_pas_dispo', 'par_rappeler', 'par_attente'].includes(t))) && (
                       <button
                         onClick={() => openWhatsAppReminder(lead)}
                         title="Envoyer un message de relance"
