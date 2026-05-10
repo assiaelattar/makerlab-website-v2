@@ -624,7 +624,7 @@ ${url}`
 
           {/* Meta Leads Center Link */}
           <a
-            href="https://business.facebook.com/latest/leads_center"
+            href="https://business.facebook.com/latest/instant_forms/forms?asset_id=446522678542432&business_id=781960067322722&ir_qe_exposed=1"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 px-4 py-3 bg-[#1877F2] text-white font-black uppercase text-xs border-4 border-black rounded-xl shadow-[4px_4px_0_0_black] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all"
