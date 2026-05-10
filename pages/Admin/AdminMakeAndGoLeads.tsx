@@ -145,7 +145,7 @@ function parseMetaCSV(text: string, sourceName: string): Omit<MakeAndGoLead, 'id
   // ── Column index mapping (V3 form) ──────────────────────────────────────────
   const iId            = idx('id');
   const iCreated       = idx('created_time', 'created');
-  const iKidName       = idx('full_name', 'first_name', 'prenom_de_l', 'pr_nom_de_l', 'nom_de_l', 'kid_name', 'parent_name', 'nom');
+  const iKidName       = idx('nom_complet', 'full_name', 'first_name', 'prenom_de_l', 'pr_nom_de_l', 'nom_de_l', 'kid_name', 'parent_name', 'nom');
   // V3: "âge de votre enfant ?" → normalised = "age_de_votre_enfant"
   const iAge           = idx('age_de_votre_enfant', 'ge_de_votre', 'age_de_l', 'ge_de_l', 'age');
   // V3: "horaire de votre atelier ?" → normalised = "horaire_de_votre_atelier"
@@ -813,12 +813,16 @@ ${url}`
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-3">
                       <div className="flex items-center gap-2">
-                        <span className="font-black text-lg tracking-tight">{lead.fullName}</span>
+                        <span className="text-[10px] uppercase font-black text-gray-400 bg-gray-100 px-2 py-0.5 rounded-md border border-gray-200">ENFANT</span>
+                        <span className="font-black text-lg tracking-tight">{lead.kidName || lead.fullName}</span>
                         {lead.phoneVerified === true && <CheckCircle2 size={14} className="text-green-500" />}
                       </div>
-                      <span className="inline-flex items-center px-3 py-1 bg-black text-white text-sm font-mono font-black rounded-lg border-2 border-black shadow-[2px_2px_0_0_rgba(0,0,0,0.2)]">
-                        {lead.phone}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] uppercase font-black text-gray-400">TÉL</span>
+                        <span className="inline-flex items-center px-3 py-1 bg-black text-white text-sm font-mono font-black rounded-lg border-2 border-black shadow-[2px_2px_0_0_rgba(0,0,0,0.2)]">
+                          {lead.phone}
+                        </span>
+                      </div>
 
                       {/* ⚡ PRIORITY ACTION TAGS */}
                       {lead.paymentIntent && (() => {
