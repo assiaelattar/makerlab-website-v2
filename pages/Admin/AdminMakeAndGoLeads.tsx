@@ -367,6 +367,7 @@ export const AdminMakeAndGoLeads: React.FC = () => {
         slot: manualLead.slot || undefined,
         paymentIntent: manualLead.paymentIntent || undefined,
         email: manualLead.email || undefined,
+        notes: manualLead.notes || undefined,
         status: 'new',
         source: 'Appel entrant (Manuel)',
         theme: 'Robotique',
@@ -379,7 +380,7 @@ export const AdminMakeAndGoLeads: React.FC = () => {
       
       await setDoc(doc(db, COLLECTION, id), safe);
       setShowManualAdd(false);
-      setManualLead({ fullName: '', phone: '', kidName: '', kidAge: '', slot: '', paymentIntent: '', email: '' });
+      setManualLead({ fullName: '', phone: '', kidName: '', kidAge: '', slot: '', paymentIntent: '', email: '', notes: '' });
       alert('Lead ajouté avec succès !');
     } catch (err: any) {
       alert('Erreur: ' + err.message);
@@ -1221,18 +1222,37 @@ ${url}`
                 </div>
                 <div>
                   <label className="block text-xs font-black uppercase mb-1">Âge Enfant</label>
-                  <input value={manualLead.kidAge || ''} onChange={e => setManualLead({...manualLead, kidAge: e.target.value})} className="w-full p-3 border-2 border-gray-300 rounded-xl font-medium" placeholder="Ex: 7-9 ans" />
+                  <select value={manualLead.kidAge || ''} onChange={e => setManualLead({...manualLead, kidAge: e.target.value})} className="w-full p-3 border-2 border-gray-300 rounded-xl font-medium bg-white">
+                    <option value="">Sélectionner...</option>
+                    <option value="7-9">7-9</option>
+                    <option value="10-12">10-12</option>
+                    <option value="13-14">13-14</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-black uppercase mb-1">Créneau souhaité</label>
+                  <select value={manualLead.slot || ''} onChange={e => setManualLead({...manualLead, slot: e.target.value})} className="w-full p-3 border-2 border-gray-300 rounded-xl font-medium bg-white">
+                    <option value="">Sélectionner...</option>
+                    <option value="Samedi : 15h-18h">Samedi : 15h-18h</option>
+                    <option value="Dimanche 15h-18h">Dimanche 15h-18h</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-black uppercase mb-1">Paiement</label>
+                  <select value={manualLead.paymentIntent || ''} onChange={e => setManualLead({...manualLead, paymentIntent: e.target.value})} className="w-full p-3 border-2 border-gray-300 rounded-xl font-medium bg-white">
+                    <option value="">Sélectionner...</option>
+                    <option value="virement">Virement (Envoi RIB)</option>
+                    <option value="espace sur place">Espace sur place</option>
+                  </select>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-black uppercase mb-1">Créneau / Horaire souhaité</label>
-                <input value={manualLead.slot || ''} onChange={e => setManualLead({...manualLead, slot: e.target.value})} className="w-full p-3 border-2 border-gray-300 rounded-xl font-medium" placeholder="Ex: Samedi 15h-18h" />
-              </div>
-
-              <div>
-                <label className="block text-xs font-black uppercase mb-1">Commentaire (Payment Intent / Notes)</label>
-                <textarea value={manualLead.paymentIntent || ''} onChange={e => setManualLead({...manualLead, paymentIntent: e.target.value})} className="w-full p-3 border-2 border-gray-300 rounded-xl font-medium resize-none" rows={2} placeholder="Ex: Appel entrant, très intéressé..." />
+                <label className="block text-xs font-black uppercase mb-1">Commentaire (Notes)</label>
+                <textarea value={manualLead.notes || ''} onChange={e => setManualLead({...manualLead, notes: e.target.value})} className="w-full p-3 border-2 border-gray-300 rounded-xl font-medium resize-none" rows={2} placeholder="Ex: Appel entrant, a rappelé pour confirmer..." />
               </div>
 
               <div className="pt-4 flex gap-3">
