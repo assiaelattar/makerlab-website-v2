@@ -228,7 +228,18 @@ export const AdminMakeAndGoLeads: React.FC = () => {
   const [importSource, setImportSource] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editingNotes, setEditingNotes] = useState<{ id: string; value: string } | null>(null);
+  const [showTodayOnly, setShowTodayOnly] = useState(false);
+  const [showToFollowUp, setShowToFollowUp] = useState(false);
+  const [minutesSinceUpdate, setMinutesSinceUpdate] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // ── 20min Timer for CSV Upload Reminder ──
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setMinutesSinceUpdate(prev => prev + 1);
+    }, 60000); // 1 minute
+    return () => clearInterval(interval);
+  }, []);
 
   // ── Firestore listener ──
   useEffect(() => {
@@ -324,6 +335,7 @@ export const AdminMakeAndGoLeads: React.FC = () => {
         await new Promise(r => setTimeout(r, 80));
       }
       setImportPreview(null);
+      setMinutesSinceUpdate(0); // Reset timer after import
       alert(`✅ ${saved} nouveau(x) lead(s) importé(s) !`);
     } catch (err: any) {
       const msg = err?.message || JSON.stringify(err);
@@ -380,6 +392,26 @@ La place est réservée jusqu'à ce soir uniquement.`
     if (lead.lpUrl !== url) {
        updateDoc(doc(db, COLLECTION, lead.id), { lpUrl: url });
     }
+  };
+
+  const openWhatsAppReminder = (lead: MakeAndGoLead) => {
+    const url = generateLPUrl(lead);
+    const phone = lead.phone.replace(/[^0-9]/g, '');
+    const intl = phone.startsWith('0') ? `212${phone.slice(1)}` : phone.startsWith('212') ? phone : `212${phone}`;
+    const kidFirst = cleanKidName(lead.kidName || lead.fullName.split(' ')[0]);
+    
+    const isGeneric = kidFirst === 'votre enfant';
+    
+    const msg = encodeURIComponent(
+`Bonjour !
+C'est MakerLab Academy. Avez-vous pu voir pour la réservation de ${isGeneric ? "votre enfant" : kidFirst} ?
+
+Les places pour ce weekend partent très vite. S'il y a un souci ou une question, n'hésitez pas !
+
+Voici le lien pour bloquer la place :
+${url}`
+    );
+    window.open(`https://wa.me/${intl}?text=${msg}`, '_blank');
   };
 
   const saveNotes = async () => {
@@ -512,6 +544,23 @@ La place est réservée jusqu'à ce soir uniquement.`
   const filtered = leads
     .filter(l => {
       const matchStatus = filterStatus === 'all' || l.status === filterStatus;
+      
+      // Today Filter
+      if (showTodayOnly) {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const leadDateStr = (l.createdAt || '').split('T')[0];
+        if (leadDateStr !== todayStr) return false;
+      }
+
+      // To Follow Up (A Relancer) Filter
+      if (showToFollowUp) {
+        // Leads that have a follow-up tag or are 'link_sent' but not yet confirmed/cancelled
+        const hasFollowUpTag = l.tags?.some(t => ['par_retargeting', 'par_pas_dispo', 'par_rappeler', 'par_attente'].includes(t));
+        const isPendingLink = l.status === 'link_sent';
+        if (!hasFollowUpTag && !isPendingLink) return false;
+        if (l.status === 'cancelled' || l.status === 'confirmed') return false; // Ignore already sorted leads
+      }
+
       const q = search.toLowerCase();
       const matchSearch = !q || 
         l.fullName.toLowerCase().includes(q) || 
@@ -572,11 +621,23 @@ La place est réservée jusqu'à ce soir uniquement.`
               <Download size={15} /> Export Meta
             </button>
           )}
+
+          {/* Meta Leads Center Link */}
+          <a
+            href="https://business.facebook.com/latest/leads_center"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-4 py-3 bg-[#1877F2] text-white font-black uppercase text-xs border-4 border-black rounded-xl shadow-[4px_4px_0_0_black] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all"
+          >
+            <ExternalLink size={15} /> Aller vers Meta Forms
+          </a>
+
           <button
             onClick={() => fileRef.current?.click()}
-            className="flex items-center gap-2 px-5 py-3 bg-brand-orange text-black font-black uppercase text-sm border-4 border-black rounded-xl shadow-[4px_4px_0_0_black] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all"
+            className={`flex items-center gap-2 px-5 py-3 font-black uppercase text-sm border-4 border-black rounded-xl shadow-[4px_4px_0_0_black] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all
+              ${minutesSinceUpdate >= 20 ? 'bg-red-500 text-white animate-pulse' : 'bg-brand-orange text-black'}`}
           >
-            <Upload size={18} /> Importer CSV Meta
+            <Upload size={18} /> {minutesSinceUpdate >= 20 ? `RAPPEL: Importer CSV (${minutesSinceUpdate}m)` : 'Importer CSV Meta'}
           </button>
           <input ref={fileRef} type="file" accept=".csv,text/csv" className="hidden" onChange={handleFileSelect} />
         </div>
@@ -683,18 +744,36 @@ La place est réservée jusqu'à ce soir uniquement.`
 
       {/* Search & Filter Bar */}
       <div className="flex gap-3 mb-6">
-        <div className="relative flex-1">
+        <div className="relative flex-1 max-w-sm">
           <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
-            placeholder="Rechercher par nom, téléphone, enfant..."
+            placeholder="Rechercher..."
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="w-full pl-10 pr-4 py-3 border-4 border-black rounded-xl font-bold text-sm focus:outline-none focus:border-brand-orange bg-white"
           />
         </div>
+        
+        {/* Smart Filters */}
         <button
-          onClick={() => { setFilterStatus('all'); setSearch(''); }}
+          onClick={() => setShowTodayOnly(!showTodayOnly)}
+          className={`px-4 py-3 border-4 border-black rounded-xl font-black uppercase text-xs transition-all flex items-center gap-2
+            ${showTodayOnly ? 'bg-brand-orange text-black shadow-none translate-y-1 translate-x-1' : 'bg-white shadow-[4px_4px_0_0_black] hover:bg-gray-50'}`}
+        >
+          📅 Aujourd'hui
+        </button>
+
+        <button
+          onClick={() => setShowToFollowUp(!showToFollowUp)}
+          className={`px-4 py-3 border-4 border-black rounded-xl font-black uppercase text-xs transition-all flex items-center gap-2
+            ${showToFollowUp ? 'bg-purple-500 text-white shadow-none translate-y-1 translate-x-1' : 'bg-white shadow-[4px_4px_0_0_black] hover:bg-gray-50'}`}
+        >
+          🎯 À Relancer
+        </button>
+
+        <button
+          onClick={() => { setFilterStatus('all'); setSearch(''); setShowTodayOnly(false); setShowToFollowUp(false); }}
           className="px-4 py-3 border-4 border-black rounded-xl font-black uppercase text-xs hover:bg-gray-100 transition-all flex items-center gap-2"
         >
           <RefreshCw size={14} /> Reset
@@ -834,6 +913,17 @@ La place est réservée jusqu'à ce soir uniquement.`
                     >
                       <MessageCircle size={14} /> WA
                     </button>
+
+                    {/* Smart Rappel (Follow-up) */}
+                    {(lead.status === 'link_sent' || (lead.tags && lead.tags.some(t => ['par_retargeting', 'par_pas_dispo', 'par_rappeler', 'par_attente'].includes(t)))) && (
+                      <button
+                        onClick={() => openWhatsAppReminder(lead)}
+                        title="Envoyer un message de relance"
+                        className="flex items-center gap-1.5 px-3 py-2 bg-purple-500 text-white font-black text-xs rounded-xl border-2 border-black hover:opacity-90 transition-all"
+                      >
+                        <RefreshCw size={14} /> Relancer
+                      </button>
+                    )}
 
                     {/* Copy link */}
                     <button
