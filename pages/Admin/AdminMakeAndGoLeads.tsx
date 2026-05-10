@@ -682,71 +682,84 @@ La place est reservee jusqu'a ce soir uniquement.`
 
                   {/* Lead Info */}
                   <div className="flex-1 min-w-0">
-                    {/* Row 1: Name + core badges */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-black text-sm">{lead.fullName}</span>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="font-black text-lg tracking-tight">{lead.fullName}</span>
+                        {lead.phoneVerified === true && <CheckCircle2 size={14} className="text-green-500" />}
+                      </div>
+                      <span className="inline-flex items-center px-3 py-1 bg-black text-white text-sm font-mono font-black rounded-lg border-2 border-black shadow-[2px_2px_0_0_rgba(0,0,0,0.2)]">
+                        {lead.phone}
+                      </span>
+
+                      {/* ⚡ PRIORITY ACTION TAGS */}
+                      {lead.paymentIntent && (() => {
+                        const p = lead.paymentIntent.toLowerCase();
+                        const needsCall = p.includes('question') || p.includes('appel') || p.includes('appelle');
+                        const needsRib  = p.includes('virement') || p.includes('rib') || p.includes('bancaire');
+                        
+                        if (needsCall) return (
+                          <span className="animate-pulse flex items-center gap-1.5 px-3 py-1 bg-red-600 text-white text-[11px] font-black uppercase rounded-lg border-2 border-black shadow-[3px_3px_0_0_black]">
+                            <MessageCircle size={14} /> À APPELER
+                          </span>
+                        );
+                        if (needsRib) return (
+                          <span className="flex items-center gap-1.5 px-3 py-1 bg-brand-orange text-black text-[11px] font-black uppercase rounded-lg border-2 border-black shadow-[3px_3px_0_0_black]">
+                            <Copy size={14} /> À ENVOYER LE RIB
+                          </span>
+                        );
+                        return null;
+                      })()}
+                    </div>
+
+                    {/* Secondary Info Badges */}
+                    <div className="flex items-center gap-2 flex-wrap mb-2">
                       {lead.parentRole && (
-                        <span className="text-[10px] bg-purple-100 text-purple-700 font-black px-2 py-0.5 rounded-full capitalize">
+                        <span className="text-[10px] bg-purple-50 text-purple-700 font-black px-2 py-0.5 rounded-md border border-purple-200 capitalize">
                           👤 {lead.parentRole}
                         </span>
                       )}
                       {lead.kidAge && (
-                        <span className="text-[10px] bg-blue-100 text-blue-700 font-black px-2 py-0.5 rounded-full">
+                        <span className="text-[10px] bg-blue-50 text-blue-700 font-black px-2 py-0.5 rounded-md border border-blue-200">
                           👶 {lead.kidAge}
                         </span>
                       )}
                       {lead.slot && (
-                        <span className="text-[10px] bg-orange-100 text-orange-700 font-black px-2 py-0.5 rounded-full">
+                        <span className="text-[10px] bg-emerald-50 text-emerald-700 font-black px-2 py-0.5 rounded-md border border-emerald-200">
                           🕐 {lead.slot}
                         </span>
                       )}
                       {lead.callSlot && (
-                        <span className="text-[10px] bg-sky-100 text-sky-700 font-black px-2 py-0.5 rounded-full">
-                          📞 {lead.callSlot}
+                        <span className="text-[10px] bg-sky-50 text-sky-700 font-black px-2 py-0.5 rounded-md border border-sky-200">
+                          📞 Appeler : {lead.callSlot}
                         </span>
                       )}
                     </div>
-                    {/* Row 2: Payment intent badge */}
-                    {lead.paymentIntent && (() => {
-                      const p = lead.paymentIntent.toLowerCase();
-                      const isHot  = p.includes('virement') || p.includes('cash') || p.includes('garanti') || p.includes('sur_place') || p.includes('sur place');
-                      const isWarm = p.includes('question') || p.includes('appel') || p.includes('appelle');
-                      const isCold = p.includes('gratuit') || p.includes('non');
-                      const cls = isHot  ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                                : isWarm ? 'bg-amber-100 text-amber-800 border-amber-300'
-                                : isCold ? 'bg-red-100 text-red-700 border-red-300'
-                                : 'bg-gray-100 text-gray-600 border-gray-200';
-                      const icon = isHot ? '💳' : isWarm ? '❓' : isCold ? '🚫' : '💬';
-                      return (
-                        <div className="mt-1">
-                          <span className={`inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full border ${cls}`}>
-                            {icon} {lead.paymentIntent}
-                          </span>
-                        </div>
-                      );
-                    })()}
-                    {/* Row 3: Phone + date + verification + tags */}
-                    <div className="flex items-center gap-3 mt-1 flex-wrap">
-                      <span className="text-xs text-gray-500 font-bold font-mono">{lead.phone}</span>
-                      {lead.phoneVerified === true  && <span className="text-[10px] bg-green-100 text-green-700 font-black px-1.5 py-0.5 rounded-full">✓ Vérifié</span>}
-                      {lead.phoneVerified === false && <span className="text-[10px] bg-red-100 text-red-600 font-black px-1.5 py-0.5 rounded-full">✗ Non vérifié</span>}
-                      <span className="text-[10px] text-gray-400">{new Date(lead.createdAt).toLocaleDateString('fr-FR')}</span>
-                      <span className="text-[10px] text-gray-400 italic truncate max-w-[160px]">{lead.source}</span>
-                    </div>
-                    {/* Active qualification tags */}
-                    {(lead.tags || []).length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {(lead.tags || []).map(tid => {
-                          const t = TAG_MAP[tid as TagId];
-                          if (!t) return null;
-                          return (
-                            <span key={tid} className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${t.color}`}>
-                              {t.emoji} {t.label}
-                            </span>
-                          );
-                        })}
+
+                    {/* Form Answer (Full Sentence) */}
+                    {lead.paymentIntent && (
+                      <div className="bg-gray-50 border-l-4 border-gray-300 px-3 py-1.5 mb-2 rounded-r-md">
+                        <p className="text-[11px] font-bold text-gray-600 italic line-clamp-1">
+                          &quot;{lead.paymentIntent}&quot;
+                        </p>
                       </div>
                     )}
+
+                    {/* Footer Info: Tags & Date */}
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <span className="text-[10px] text-gray-400 font-bold">{new Date(lead.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                      <span className="text-[10px] text-gray-400 italic truncate max-w-[120px]">{lead.source}</span>
+                      
+                      {/* Qualification Tags */}
+                      {(lead.tags || []).map(tid => {
+                        const t = TAG_MAP[tid as TagId];
+                        if (!t) return null;
+                        return (
+                          <span key={tid} className={`text-[9px] font-black px-1.5 py-0.5 rounded border ${t.color}`}>
+                            {t.emoji} {t.label}
+                          </span>
+                        );
+                      })}
+                    </div>
                   </div>
 
                   {/* Actions */}
