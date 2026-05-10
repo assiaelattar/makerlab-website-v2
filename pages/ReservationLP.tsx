@@ -30,8 +30,8 @@ export const ReservationLP: React.FC = () => {
         subheadline: "Atelier {theme} – {slot} à Maarif",
         urgencyText: "⚠️ Il reste 4 places sur 10",
         priceBadge: "400 MAD",
-        cashPlusPhone: "06.21.87.71.06",
-        whatsappPhone: "06.21.87.71.06",
+        cashPlusPhone: "0621877106",
+        whatsappPhone: "212782076917",
         bonusTitle: "Bonus Inclus",
         bonusText: "Confirmez votre place et recevez le guide des 3 projets tech à faire à la maison avec vos enfants !",
         finalCtaHeader: "Dernières places ce weekend",
@@ -469,11 +469,11 @@ Veuillez confirmer la reception.`
                             </div>
                             <div className="flex items-center gap-2">
                                 <span className="text-base shrink-0">📱</span>
-                                <a href="tel:0621877106" className="font-black text-[#111] underline">0621 877 106</a>
+                                <a href="tel:0621877106" className="font-black text-[#111] underline text-base">0621 877 106</a>
                             </div>
                             <div className="flex items-center gap-2">
-                                <span className="text-base shrink-0">📞</span>
-                                <a href="tel:0520990202" className="font-black text-[#111] underline">0520 99 02 02</a>
+                                <span className="text-base shrink-0">💬</span>
+                                <a href="https://wa.me/212782076917" className="font-black text-[#25D366] underline">WhatsApp : 07 82 07 69 17</a>
                             </div>
                         </div>
                     </div>
