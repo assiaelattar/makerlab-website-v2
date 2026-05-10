@@ -508,13 +508,29 @@ La place est réservée jusqu'à ce soir uniquement.`
     alert(`✅ ${broken.length} lien(s) nettoyés et corrigés !`);
   };
 
-  // ── Filter ──
-  const filtered = leads.filter(l => {
-    const matchStatus = filterStatus === 'all' || l.status === filterStatus;
-    const q = search.toLowerCase();
-    const matchSearch = !q || l.fullName.toLowerCase().includes(q) || l.phone.includes(q) || (l.kidName || '').toLowerCase().includes(q);
-    return matchStatus && matchSearch;
-  });
+  // ── Filter & Sort — Newest Meta First ──
+  const filtered = leads
+    .filter(l => {
+      const matchStatus = filterStatus === 'all' || l.status === filterStatus;
+      const q = search.toLowerCase();
+      const matchSearch = !q || 
+        l.fullName.toLowerCase().includes(q) || 
+        l.phone.includes(q) || 
+        (l.kidName || '').toLowerCase().includes(q) ||
+        (l.paymentIntent || '').toLowerCase().includes(q);
+      return matchStatus && matchSearch;
+    })
+    .sort((a, b) => {
+      // Primary: Meta creation date (newest first)
+      const dateA = a.createdAt || '';
+      const dateB = b.createdAt || '';
+      if (dateA !== dateB) return dateB.localeCompare(dateA);
+      
+      // Secondary: Import time fallback
+      const impA = a.importedAt || '';
+      const impB = b.importedAt || '';
+      return impB.localeCompare(impA);
+    });
 
   const counts = leads.reduce((acc, l) => {
     acc[l.status] = (acc[l.status] || 0) + 1;
