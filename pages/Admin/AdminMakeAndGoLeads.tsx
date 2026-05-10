@@ -110,8 +110,21 @@ function parseMetaCSV(text: string, sourceName: string): Omit<MakeAndGoLead, 'id
   const rawHeaders = lines[0].split(sep).map(h => norm(h.trim().replace(/^"|"$/g, '')));
 
   const idx = (...patterns: string[]): number => {
+    // 1. Try exact matches first to avoid partial matches like 'id' matching 'ad_id'
     for (const pat of patterns) {
-      const i = rawHeaders.findIndex(h => h.includes(pat));
+      const i = rawHeaders.findIndex(h => h === pat);
+      if (i !== -1) return i;
+    }
+    // 2. Try partial matches, but exclude common Meta fields if searching for a 'name'
+    for (const pat of patterns) {
+      const i = rawHeaders.findIndex(h => {
+        if (!h.includes(pat)) return false;
+        // If searching for name/firstname, ignore ad_name, campaign_name, etc.
+        if (['name', 'full_name', 'first_name', 'prenom', 'nom'].includes(pat)) {
+          if (h.includes('ad_') || h.includes('campaign_') || h.includes('form_') || h.includes('adset_')) return false;
+        }
+        return true;
+      });
       if (i !== -1) return i;
     }
     return -1;
@@ -120,7 +133,7 @@ function parseMetaCSV(text: string, sourceName: string): Omit<MakeAndGoLead, 'id
   // ── Column index mapping (V3 form) ──────────────────────────────────────────
   const iId            = idx('id');
   const iCreated       = idx('created_time', 'created');
-  const iKidName       = idx('pr_nom_de_l', 'prenom_de_l', 'kid_name', 'full_name', 'first_name');
+  const iKidName       = idx('full_name', 'first_name', 'prenom_de_l', 'pr_nom_de_l', 'nom_de_l', 'kid_name', 'parent_name', 'nom');
   // V3: "âge de votre enfant ?" → normalised = "age_de_votre_enfant"
   const iAge           = idx('age_de_votre_enfant', 'ge_de_votre', 'age_de_l', 'ge_de_l', 'age');
   // V3: "horaire de votre atelier ?" → normalised = "horaire_de_votre_atelier"
@@ -144,7 +157,7 @@ function parseMetaCSV(text: string, sourceName: string): Omit<MakeAndGoLead, 'id
     const cols = line.split(sep).map(c => c.replace(/^"|"$/g, '').trim());
     const get = (i: number) => (i !== -1 && cols[i]) ? cols[i] : '';
 
-    const kidName       = get(iKidName) || '';
+    const kidName       = get(iKidName);
     const rawPhone      = get(iPhone).replace(/^p:/, ''); // Meta prefixes with "p:"
     const metaId        = get(iId).replace(/^l:/, '');
     const slot          = humanise(get(iSlot));
