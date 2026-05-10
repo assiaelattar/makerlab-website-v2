@@ -17,13 +17,17 @@ type LeadStatus =
 
 interface MakeAndGoLead {
   id: string;
-  fullName: string;   // kid's first name (prénom_de_l'enfant_)
-  kidAge?: string;    // e.g. "7-9", "10-12", "13-14"
+  fullName: string;       // kid's first name OR phone fallback
+  kidAge?: string;        // e.g. "7-9 ans", "10-12 ans"
   phone: string;
+  phoneVerified?: boolean; // from phone_number_verified column
   email?: string;
   kidName?: string;
   theme?: string;
-  slot?: string;      // e.g. "samedi_15h-18h"
+  slot?: string;          // workshop slot e.g. "samedi 15h-18h"
+  callSlot?: string;      // best time to call e.g. "matin 9h-12h"
+  paymentIntent?: string; // payment answer from form
+  parentRole?: string;    // "parent" | "grand-parent" | etc.
   source: string;
   status: LeadStatus;
   metaLeadId?: string;
@@ -31,7 +35,7 @@ interface MakeAndGoLead {
   createdAt: string;
   updatedAt: string;
   notes?: string;
-  tags?: string[];    // qualification tags
+  tags?: string[];        // qualification tags
 }
 
 // ─── Tags Catalog ─────────────────────────────────────────────────────────────
@@ -83,9 +87,12 @@ function generateLPUrl(lead: MakeAndGoLead) {
 
 // ─── Meta CSV/TSV Parser ──────────────────────────────────────────────────────
 // Real Meta export: tab-separated, UTF-16LE with BOM.
-// Columns seen: id, created_time, ad_id, ad_name, adset_id, adset_name,
+// Columns (V3 form):
+//   id, created_time, ad_id, ad_name, adset_id, adset_name,
 //   campaign_id, campaign_name, form_id, form_name, is_organic, platform,
-//   âge_de_l'enfant, créneau_samedi/dimanche, prénom_de_l'enfant_, phone, lead_status
+//   vous_êtes_?, âge_de_votre_enfant_?, horaire_de_votre_atelier_?,
+//   créneau_pour_vous_appeler_?, pour_bloquer_la_place...,
+//   phone_number, phone_number_verified, lead_status
 function parseMetaCSV(text: string, sourceName: string): Omit<MakeAndGoLead, 'id'>[] {
   // Strip BOM (UTF-16LE or UTF-8)
   const clean = text.replace(/^\uFEFF/, '');
@@ -110,14 +117,26 @@ function parseMetaCSV(text: string, sourceName: string): Omit<MakeAndGoLead, 'id
     return -1;
   };
 
-  // Map to real Meta column names (normalised)
-  const iId      = idx('id');
-  const iCreated = idx('created_time', 'created');
-  const iKidName = idx('pr_nom_de_l', 'prenom_de_l', 'kid_name', 'full_name', 'name', 'first_name');
-  const iAge     = idx('ge_de_l', 'age_de_l', 'age');
-  const iSlot    = idx('neau', 'creneau', 'cr_neau', 'slot', 'session');
-  const iPhone   = idx('phone', 'telephone', 't_l_phone', 'mobile', 'num_ro');
-  const iEmail   = idx('email', 'mail');
+  // ── Column index mapping (V3 form) ──────────────────────────────────────────
+  const iId            = idx('id');
+  const iCreated       = idx('created_time', 'created');
+  const iKidName       = idx('pr_nom_de_l', 'prenom_de_l', 'kid_name', 'full_name', 'first_name');
+  // V3: "âge de votre enfant ?" → normalised = "age_de_votre_enfant"
+  const iAge           = idx('age_de_votre_enfant', 'ge_de_votre', 'age_de_l', 'ge_de_l', 'age');
+  // V3: "horaire de votre atelier ?" → normalised = "horaire_de_votre_atelier"
+  const iSlot          = idx('horaire_de_votre_atelier', 'horaire', 'neau_samedi', 'neau_dimanche', 'creneau_samedi', 'creneau_dimanche', 'neau', 'slot', 'session');
+  // V3: "créneau pour vous appeler ?" → normalised = "cr_neau_pour_vous_appeler"
+  const iCallSlot      = idx('cr_neau_pour_vous_appeler', 'creneau_pour_vous', 'appeler', 'call_slot');
+  // V3: "pour bloquer la place..." → payment intent
+  const iPaymentIntent = idx('pour_bloquer', 'bloquer_la_place', 'reglez', 'r_glez', 'payment', 'paiement');
+  // V3: "vous êtes ?" → parent role
+  const iParentRole    = idx('vous__tes', 'vous_etes', 'vous_es', 'you_are', 'role');
+  const iPhone         = idx('phone_number', 'phone', 'telephone', 't_l_phone', 'mobile');
+  const iPhoneVerified = idx('phone_number_verified', 'phone_verified', 'verified');
+  const iEmail         = idx('email', 'mail');
+
+  // Helper: humanise underscore-joined answer values from Meta
+  const humanise = (s: string) => s.replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
 
   const now = new Date().toISOString();
 
@@ -125,29 +144,38 @@ function parseMetaCSV(text: string, sourceName: string): Omit<MakeAndGoLead, 'id
     const cols = line.split(sep).map(c => c.replace(/^"|"$/g, '').trim());
     const get = (i: number) => (i !== -1 && cols[i]) ? cols[i] : '';
 
-    const kidName  = get(iKidName) || '';
-    const phone    = get(iPhone).replace(/^p:/, ''); // Meta prefixes with "p:"
-    const metaId   = get(iId).replace(/^l:/, '');
-    const slot     = get(iSlot);
-    const kidAge   = get(iAge);
-    const email    = get(iEmail);
-    const rawDate  = get(iCreated);
+    const kidName       = get(iKidName) || '';
+    const rawPhone      = get(iPhone).replace(/^p:/, ''); // Meta prefixes with "p:"
+    const metaId        = get(iId).replace(/^l:/, '');
+    const slot          = humanise(get(iSlot));
+    const kidAge        = humanise(get(iAge));
+    const callSlot      = humanise(get(iCallSlot));
+    const paymentIntent = humanise(get(iPaymentIntent));
+    const parentRole    = humanise(get(iParentRole));
+    const phoneVerifiedRaw = get(iPhoneVerified);
+    const phoneVerified = phoneVerifiedRaw === 'true' ? true : phoneVerifiedRaw === 'false' ? false : undefined;
+    const email         = get(iEmail);
+    const rawDate       = get(iCreated);
     let created = now;
     if (rawDate) { try { created = new Date(rawDate).toISOString(); } catch { /**/ } }
 
     return {
-      fullName: kidName || phone || 'Inconnu',
-      kidName: kidName || undefined,
-      kidAge:  kidAge  || undefined,
-      phone,
-      email:   email   || undefined,
-      slot:    slot    || undefined,
-      theme:   'Robotique',
-      source:  sourceName,
-      metaLeadId: metaId || undefined,
-      status:  'new' as LeadStatus,
-      createdAt: created,
-      updatedAt: now,
+      fullName:       kidName || rawPhone || 'Inconnu',
+      kidName:        kidName  || undefined,
+      kidAge:         kidAge   || undefined,
+      phone:          rawPhone,
+      phoneVerified:  phoneVerified,
+      email:          email    || undefined,
+      slot:           slot     || undefined,
+      callSlot:       callSlot || undefined,
+      paymentIntent:  paymentIntent || undefined,
+      parentRole:     parentRole    || undefined,
+      theme:          'Robotique',
+      source:         sourceName,
+      metaLeadId:     metaId   || undefined,
+      status:         'new' as LeadStatus,
+      createdAt:      created,
+      updatedAt:      now,
     };
   }).filter(l => l.phone || l.fullName !== 'Inconnu');
 }
@@ -542,12 +570,17 @@ La place est reservee jusqu'a ce soir uniquement.`
                       <div>
                         <span className="font-black text-sm">{l.fullName}</span>
                         <span className="ml-3 text-xs text-gray-500 font-mono">{l.phone}</span>
+                        {l.phoneVerified === true  && <span className="ml-2 text-[10px] bg-green-200 text-green-800 px-1.5 py-0.5 rounded-full font-black">✓ Vérifié</span>}
+                        {l.phoneVerified === false && <span className="ml-2 text-[10px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full font-black">✗ Non vérifié</span>}
                       </div>
                       <span className="text-[10px] bg-green-200 text-green-800 px-2 py-1 rounded-full font-black uppercase">Nouveau</span>
                     </div>
                     <div className="flex gap-2 mt-1.5 flex-wrap">
-                      {l.kidAge && <span className="text-[10px] bg-blue-100 text-blue-700 font-black px-2 py-0.5 rounded-full">👶 {l.kidAge} ans</span>}
-                      {l.slot && <span className="text-[10px] bg-orange-100 text-orange-700 font-black px-2 py-0.5 rounded-full">🕐 {l.slot}</span>}
+                      {l.parentRole    && <span className="text-[10px] bg-purple-100 text-purple-700 font-black px-2 py-0.5 rounded-full">👤 {l.parentRole}</span>}
+                      {l.kidAge        && <span className="text-[10px] bg-blue-100 text-blue-700 font-black px-2 py-0.5 rounded-full">👶 {l.kidAge}</span>}
+                      {l.slot          && <span className="text-[10px] bg-orange-100 text-orange-700 font-black px-2 py-0.5 rounded-full">🕐 {l.slot}</span>}
+                      {l.callSlot      && <span className="text-[10px] bg-sky-100 text-sky-700 font-black px-2 py-0.5 rounded-full">📞 {l.callSlot}</span>}
+                      {l.paymentIntent && <span className="text-[10px] bg-amber-100 text-amber-800 font-black px-2 py-0.5 rounded-full">💬 {l.paymentIntent}</span>}
                     </div>
                   </div>
                 ))}
@@ -636,27 +669,71 @@ La place est reservee jusqu'a ce soir uniquement.`
 
                   {/* Lead Info */}
                   <div className="flex-1 min-w-0">
+                    {/* Row 1: Name + core badges */}
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-black text-sm">{lead.fullName}</span>
-                      {lead.kidAge && <span className="text-[10px] bg-blue-100 text-blue-700 font-black px-2 py-0.5 rounded-full">👶 {lead.kidAge}</span>}
-                      {lead.slot && <span className="text-[10px] bg-orange-100 text-orange-700 font-black px-2 py-0.5 rounded-full">🕐 {lead.slot.replace(/_/g,' ')}</span>}
-                      {lead.theme && <span className="text-[10px] bg-gray-100 text-gray-600 font-black px-2 py-0.5 rounded-full">{lead.theme}</span>}
-                      {/* Active tags — show on card */}
-                      {(lead.tags || []).map(tid => {
-                        const t = TAG_MAP[tid as TagId];
-                        if (!t) return null;
-                        return (
-                          <span key={tid} className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${t.color}`}>
-                            {t.emoji} {t.label}
+                      {lead.parentRole && (
+                        <span className="text-[10px] bg-purple-100 text-purple-700 font-black px-2 py-0.5 rounded-full capitalize">
+                          👤 {lead.parentRole}
+                        </span>
+                      )}
+                      {lead.kidAge && (
+                        <span className="text-[10px] bg-blue-100 text-blue-700 font-black px-2 py-0.5 rounded-full">
+                          👶 {lead.kidAge}
+                        </span>
+                      )}
+                      {lead.slot && (
+                        <span className="text-[10px] bg-orange-100 text-orange-700 font-black px-2 py-0.5 rounded-full">
+                          🕐 {lead.slot}
+                        </span>
+                      )}
+                      {lead.callSlot && (
+                        <span className="text-[10px] bg-sky-100 text-sky-700 font-black px-2 py-0.5 rounded-full">
+                          📞 {lead.callSlot}
+                        </span>
+                      )}
+                    </div>
+                    {/* Row 2: Payment intent badge */}
+                    {lead.paymentIntent && (() => {
+                      const p = lead.paymentIntent.toLowerCase();
+                      const isHot  = p.includes('virement') || p.includes('cash') || p.includes('garanti') || p.includes('sur_place') || p.includes('sur place');
+                      const isWarm = p.includes('question') || p.includes('appel') || p.includes('appelle');
+                      const isCold = p.includes('gratuit') || p.includes('non');
+                      const cls = isHot  ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                                : isWarm ? 'bg-amber-100 text-amber-800 border-amber-300'
+                                : isCold ? 'bg-red-100 text-red-700 border-red-300'
+                                : 'bg-gray-100 text-gray-600 border-gray-200';
+                      const icon = isHot ? '💳' : isWarm ? '❓' : isCold ? '🚫' : '💬';
+                      return (
+                        <div className="mt-1">
+                          <span className={`inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full border ${cls}`}>
+                            {icon} {lead.paymentIntent}
                           </span>
-                        );
-                      })}
-                    </div>
-                    <div className="flex items-center gap-3 mt-0.5">
-                      <span className="text-xs text-gray-500 font-bold">{lead.phone}</span>
+                        </div>
+                      );
+                    })()}
+                    {/* Row 3: Phone + date + verification + tags */}
+                    <div className="flex items-center gap-3 mt-1 flex-wrap">
+                      <span className="text-xs text-gray-500 font-bold font-mono">{lead.phone}</span>
+                      {lead.phoneVerified === true  && <span className="text-[10px] bg-green-100 text-green-700 font-black px-1.5 py-0.5 rounded-full">✓ Vérifié</span>}
+                      {lead.phoneVerified === false && <span className="text-[10px] bg-red-100 text-red-600 font-black px-1.5 py-0.5 rounded-full">✗ Non vérifié</span>}
                       <span className="text-[10px] text-gray-400">{new Date(lead.createdAt).toLocaleDateString('fr-FR')}</span>
-                      <span className="text-[10px] text-gray-400 italic">{lead.source}</span>
+                      <span className="text-[10px] text-gray-400 italic truncate max-w-[160px]">{lead.source}</span>
                     </div>
+                    {/* Active qualification tags */}
+                    {(lead.tags || []).length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {(lead.tags || []).map(tid => {
+                          const t = TAG_MAP[tid as TagId];
+                          if (!t) return null;
+                          return (
+                            <span key={tid} className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${t.color}`}>
+                              {t.emoji} {t.label}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
 
                   {/* Actions */}
