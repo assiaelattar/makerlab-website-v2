@@ -75,9 +75,21 @@ const STATUS_CONFIG: Record<LeadStatus, { label: string; color: string; bg: stri
 const COLLECTION = 'make-and-go-leads';
 const BASE_URL = 'https://space.makerlab.academy'; // production domain
 
+/** Sanitize kid name to avoid showing technical ad names or phone numbers */
+function cleanKidName(name: string | undefined) {
+  if (!name) return 'votre enfant';
+  const n = name.trim();
+  // If it contains technical markers or looks like a phone number
+  if (n.includes('_') || n.includes('CIL') || n.includes('LEAD') || n.includes('+') || /^\d+$/.test(n.replace(/\s/g,''))) {
+    return 'votre enfant';
+  }
+  return n;
+}
+
 function generateLPUrl(lead: MakeAndGoLead) {
+  const kid = cleanKidName(lead.kidName || lead.fullName.split(' ')[0]);
   const params = new URLSearchParams({
-    kid: lead.kidName || lead.fullName.split(' ')[0],
+    kid,
     theme: lead.theme || 'Robotique',
     slot: lead.slot || 'ce weekend',
     from: 'form',
@@ -340,16 +352,20 @@ export const AdminMakeAndGoLeads: React.FC = () => {
     const url = lead.lpUrl || generateLPUrl(lead);
     const phone = lead.phone.replace(/[^0-9]/g, '');
     const intl = phone.startsWith('0') ? `212${phone.slice(1)}` : phone.startsWith('212') ? phone : `212${phone}`;
-    const kidFirst = lead.kidName || lead.fullName.split(' ')[0];
+    const kidFirst = cleanKidName(lead.kidName || lead.fullName.split(' ')[0]);
+    
+    const isGeneric = kidFirst === 'votre enfant';
+    const reservationText = isGeneric ? "votre réservation" : `la réservation de ${kidFirst}`;
+
     const msg = encodeURIComponent(
 `Salam chers parents,
 
-Merci pour votre interet pour MakerLab Academy !
+Merci pour votre intérêt pour MakerLab Academy !
 
-Voici le lien pour finaliser la reservation de ${kidFirst} :
+Voici le lien pour finaliser ${reservationText} :
 ${url}
 
-La place est reservee jusqu'a ce soir uniquement.`
+La place est réservée jusqu'à ce soir uniquement.`
     );
     window.open(`https://wa.me/${intl}?text=${msg}`, '_blank');
     if (lead.status === 'new') updateStatus(lead.id, 'link_sent');
@@ -694,17 +710,29 @@ La place est reservee jusqu'a ce soir uniquement.`
                       {/* ⚡ PRIORITY ACTION TAGS */}
                       {lead.paymentIntent && (() => {
                         const p = lead.paymentIntent.toLowerCase();
-                        const needsCall = p.includes('question') || p.includes('appel') || p.includes('appelle');
+                        const needsCall = p.includes('question') || p.includes('appel') || p.includes('appelle') || p.includes('appeler');
                         const needsRib  = p.includes('virement') || p.includes('rib') || p.includes('bancaire');
+                        const surPlace  = p.includes('sur place') || p.includes('sur_place');
+                        const gratuit   = p.includes('gratuit');
                         
                         if (needsCall) return (
-                          <span className="animate-pulse flex items-center gap-1.5 px-3 py-1 bg-red-600 text-white text-[11px] font-black uppercase rounded-lg border-2 border-black shadow-[3px_3px_0_0_black]">
-                            <MessageCircle size={14} /> À APPELER
+                          <span className="animate-pulse flex items-center gap-1.5 px-4 py-1.5 bg-red-600 text-white text-xs font-black uppercase rounded-xl border-2 border-black shadow-[4px_4px_0_0_black]">
+                            <MessageCircle size={16} /> À APPELER 📞
                           </span>
                         );
                         if (needsRib) return (
-                          <span className="flex items-center gap-1.5 px-3 py-1 bg-brand-orange text-black text-[11px] font-black uppercase rounded-lg border-2 border-black shadow-[3px_3px_0_0_black]">
-                            <Copy size={14} /> À ENVOYER LE RIB
+                          <span className="flex items-center gap-1.5 px-4 py-1.5 bg-brand-orange text-black text-xs font-black uppercase rounded-xl border-2 border-black shadow-[4px_4px_0_0_black]">
+                            <Copy size={16} /> À ENVOYER LE RIB 💰
+                          </span>
+                        );
+                        if (surPlace) return (
+                          <span className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 text-white text-xs font-black uppercase rounded-xl border-2 border-black shadow-[4px_4px_0_0_black]">
+                            <Clock size={16} /> SUR PLACE 📍
+                          </span>
+                        );
+                        if (gratuit) return (
+                          <span className="flex items-center gap-1.5 px-4 py-1.5 bg-gray-400 text-white text-xs font-black uppercase rounded-xl border-2 border-black shadow-[4px_4px_0_0_black]">
+                            <X size={16} /> PENSE GRATUIT 🚫
                           </span>
                         );
                         return null;

@@ -26,7 +26,7 @@ import { db } from '../firebase';
 export const ReservationLP: React.FC = () => {
     const { settings } = useSettings();
     const config = settings.reservationLPSettings || {
-        headline: "Réservez la place de {kidName}",
+        headline: "Il reste une dernière étape pour bloquer la place de {kidName}",
         subheadline: "Atelier {theme} – {slot} à Maarif",
         urgencyText: "⚠️ Il reste 4 places sur 10",
         priceBadge: "400 MAD",
@@ -38,7 +38,12 @@ export const ReservationLP: React.FC = () => {
         finalCtaBody: "Une fois 10/10, nous fermons les inscriptions. Le prochain atelier \"{theme}\" ne sera programmé que dans 3 semaines."
     };
     const [searchParams] = useSearchParams();
-    const kidName = searchParams.get('kid') || 'votre enfant';
+    const rawKid = searchParams.get('kid') || '';
+    // Sanitization: if kidName looks technical or is a phone number, use "votre enfant"
+    const kidName = (!rawKid || rawKid.includes('_') || rawKid.includes('CIL') || rawKid.includes('LEAD') || rawKid.includes('+') || /^\d+$/.test(rawKid.replace(/\s/g,''))) 
+        ? 'votre enfant' 
+        : rawKid;
+
     const slot = searchParams.get('slot') || 'ce weekend';
     const theme = searchParams.get('theme') || 'Robotique';
     const fromForm = searchParams.get('from') === 'form';
