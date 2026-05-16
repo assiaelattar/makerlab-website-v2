@@ -3,15 +3,18 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/Button';
 import { Lock } from 'lucide-react';
+import { useSettings } from '../../contexts/SettingsContext';
 
 export const AdminLogin: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(false);
   const navigate = useNavigate();
+  const { settings } = useSettings();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === 'admin') { // Simple client-side check
+    const currentAdminPassword = settings?.admin_password || 'makerlab2026@Mm';
+    if (password === currentAdminPassword) { // Dynamic client-side check
       localStorage.setItem('isAdmin', 'true');
       navigate('/admin/dashboard');
     } else {
