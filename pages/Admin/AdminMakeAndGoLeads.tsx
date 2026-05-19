@@ -416,17 +416,17 @@ export const AdminMakeAndGoLeads: React.FC = () => {
     const kidFirst = cleanKidName(lead.kidName || lead.fullName.split(' ')[0]);
     
     const isGeneric = kidFirst === 'votre enfant';
-    const reservationText = isGeneric ? "votre réservation" : `la réservation de ${kidFirst}`;
+    const preInscriptionText = isGeneric ? "votre enfant" : kidFirst;
 
     const msg = encodeURIComponent(
-`Salam chers parents,
+`Salam chers parents 👋
+Merci pour votre intérêt pour MakerLab Academy 🌟
 
-Merci pour votre intérêt pour MakerLab Academy !
+Nous avons bien reçu la pré-inscription de ${preInscriptionText} pour l’atelier *Make & Go* 🤖
 
-Voici le lien pour finaliser ${reservationText} :
-${url}
+📍 Durant 3h, les enfants construisent un vrai projet technologique dans notre makerspace à Casablanca, avec accompagnement étape par étape.
 
-La place est réservée jusqu'à ce soir uniquement.`
+Comme vous avez choisi un créneau d’appel dans le formulaire, dites-moi simplement si vous êtes toujours disponible pour un petit appel afin de vous expliquer rapidement l’activité et répondre à vos questions 😊`
     );
     window.open(`https://wa.me/${intl}?text=${msg}`, '_blank');
     if (lead.status === 'new') updateStatus(lead.id, 'link_sent');
