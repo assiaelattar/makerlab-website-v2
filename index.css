@@ -2,34 +2,38 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Global Paper Aesthetic */
-body {
-  background-color: #fffdfa !important; /* Warm paper white */
-  background-image: 
-    linear-gradient(#f1f5f9 1px, transparent 1px), 
-    linear-gradient(90deg, #f1f5f9 1px, transparent 1px) !important;
-  background-size: 40px 40px !important;
-  position: relative;
-  color-scheme: light !important;
-}
-
-/* Force light mode for all elements to avoid browser dark mode conflicts */
 :root {
   color-scheme: light;
 }
 
-* {
-  scrollbar-color: #e87722 #f1f1f1;
-}
-
-/* ── Mobile Global Fixes ── */
-html, body {
+html,
+body {
   overflow-x: hidden;
+  scroll-behavior: smooth;
   -webkit-tap-highlight-color: transparent;
   touch-action: pan-y;
 }
 
-/* Prevent horizontal scroll on mobile only — do NOT override desktop container widths */
+body {
+  margin: 0;
+  background: #f3f5f7;
+  color: #172033;
+  font-family: Manrope, sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  max-width: 100vw;
+  overflow-x: clip;
+}
+
+@supports not (overflow: clip) {
+  #root {
+    overflow-x: hidden;
+  }
+}
+
 @media (max-width: 640px) {
   .container {
     max-width: 100%;
@@ -38,72 +42,289 @@ html, body {
   }
 }
 
-/* Improve tap target sizes on mobile — only interactive elements */
 @media (max-width: 768px) {
-  /* Don't globally force min-height on ALL buttons/links — causes layout issues */
-  nav button, nav a, .btn, [role="button"] {
-    min-height: 40px;
+  nav button,
+  nav a,
+  .btn,
+  [role="button"] {
+    min-height: 44px;
   }
-  
-  /* Reduce excessive section padding on mobile site-wide */
+
   section {
     scroll-margin-top: 100px;
   }
-
-  /* Ensure page content never overlaps with sticky header */
-  .page-content-start {
-    padding-top: 0;
-  }
-
-  /* Fix for chat + toast floating overlap on mobile */
-  .chat-fab {
-    bottom: 1.25rem;
-    right: 1.25rem;
-  }
 }
 
-/* Subtle Paper Grain Overlay */
-body::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 9999;
-  opacity: 0.04;
-  background-image: url("https://www.transparenttextures.com/patterns/felt.png");
-  /* Alternative noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E") */
-}
-
-/* 🔒 Image Protection & Global Safety */
 img {
   -webkit-user-drag: none;
   -khtml-user-drag: none;
   -moz-user-drag: none;
   -o-user-drag: none;
   user-select: none;
-  pointer-events: auto; /* Keep clickable for lightboxes */
 }
 
-/* Custom Scrollbar for Paper feel */
+* {
+  scrollbar-color: #aeb8c4 #eef1f4;
+}
+
 ::-webkit-scrollbar {
-  width: 10px;
-}
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-::-webkit-scrollbar-thumb {
-  background: #e87722; /* brand-orange */
-  border: 2px solid #f1f1f1;
-  border-radius: 5px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #c0272d; /* brand-red */
+  width: 8px;
 }
 
-/* Enhance Neobrutalist Cards for Paper Look */
-.shadow-neo, .shadow-neo-lg, .shadow-neo-xl {
-    transition: all 0.2s ease-out;
+::-webkit-scrollbar-track {
+  background: #eef1f4;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 2px solid #eef1f4;
+  border-radius: 999px;
+  background: #aeb8c4;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #e87722;
+}
+
+.makerlab-site {
+  --ml-ink: #172033;
+  --ml-muted: #667085;
+  --ml-line: #e5e9ef;
+  --ml-surface: #ffffff;
+  --ml-soft: #f7f8fa;
+  --ml-shadow: 0 10px 30px rgba(23, 32, 51, 0.08);
+  --ml-shadow-hover: 0 16px 38px rgba(23, 32, 51, 0.13);
+  min-height: 100%;
+  background: #f3f5f7;
+  color: var(--ml-ink);
+}
+
+.ml-reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 700ms cubic-bezier(0.22, 1, 0.36, 1), transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ml-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.ml-hero-title > span {
+  display: block;
+}
+
+.ml-image-zoom {
+  transition: transform 800ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.group:hover .ml-image-zoom {
+  transform: scale(1.045);
+}
+
+.ml-number {
+  font-variant-numeric: tabular-nums;
+}
+
+.ml-step-panel {
+  animation: mlStepIn 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.ml-discipline-track {
+  animation: mlDisciplineRail 32s linear infinite;
+}
+
+@keyframes mlDisciplineRail {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes mlStepIn {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.makerlab-site .font-black {
+  font-weight: 800;
+}
+
+.makerlab-site .font-display.font-black {
+  font-weight: 700;
+}
+
+.ml-card {
+  border: 1px solid var(--ml-line);
+  border-radius: 8px;
+  background: var(--ml-surface);
+  box-shadow: var(--ml-shadow);
+}
+
+.ml-card-interactive {
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+
+.ml-card-interactive:hover {
+  transform: translateY(-3px);
+  border-color: #d7dde5;
+  box-shadow: var(--ml-shadow-hover);
+}
+
+.ml-button {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  border-radius: 12px;
+  padding: 0.75rem 1.25rem;
+  font-weight: 800;
+  transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease, color 180ms ease;
+}
+
+.ml-button:hover {
+  transform: translateY(-1px);
+}
+
+.ml-button:active {
+  transform: scale(0.98);
+}
+
+.ml-icon {
+  display: inline-flex;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+}
+
+.ml-chip {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border: 1px solid var(--ml-line);
+  border-radius: 999px;
+  background: var(--ml-surface);
+  padding: 0.45rem 0.85rem;
+  color: var(--ml-muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+.ml-field {
+  width: 100%;
+  min-height: 52px;
+  border: 1px solid var(--ml-line);
+  border-radius: 12px;
+  background: var(--ml-soft);
+  padding: 0.85rem 1rem;
+  font-weight: 700;
+  outline: none;
+  transition: background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.ml-field:focus {
+  border-color: #2563a8;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(37, 99, 168, 0.12);
+}
+
+.makerlab-site img {
+  background: #e9edf2;
+}
+
+.makerlab-site [class~="rounded-[1.75rem]"],
+.makerlab-site [class~="rounded-[2rem]"],
+.makerlab-site [class~="rounded-[2.5rem]"],
+.makerlab-site [class~="rounded-[3rem]"],
+.makerlab-site [class~="rounded-[4rem]"],
+.makerlab-site [class~="md:rounded-[3rem]"],
+.makerlab-site [class~="md:rounded-[4rem]"] {
+  border-radius: 8px;
+}
+
+.makerlab-site .shadow-sm {
+  box-shadow: 0 4px 14px rgba(23, 32, 51, 0.06);
+}
+
+.makerlab-site .shadow-lg,
+.makerlab-site .shadow-xl,
+.makerlab-site .shadow-2xl {
+  box-shadow: var(--ml-shadow);
+}
+
+.makerlab-site .shadow-neo,
+.makerlab-site .shadow-neo-sm,
+.makerlab-site .shadow-neo-lg,
+.makerlab-site .shadow-neo-xl {
+  box-shadow: var(--ml-shadow);
+}
+
+.makerlab-site .border-black {
+  border-color: var(--ml-line);
+}
+
+.makerlab-site input::placeholder,
+.makerlab-site textarea::placeholder {
+  color: #98a2b3;
+}
+
+.makerlab-site input:not([type="checkbox"]):not([type="radio"]):not(.ml-search-reset),
+.makerlab-site select,
+.makerlab-site textarea {
+  border-color: var(--ml-line) !important;
+  border-width: 1px !important;
+  border-radius: 12px !important;
+  background-color: var(--ml-soft) !important;
+  box-shadow: none !important;
+}
+
+.makerlab-site input:not([type="checkbox"]):not([type="radio"]):not(.ml-search-reset):focus,
+.makerlab-site select:focus,
+.makerlab-site textarea:focus {
+  border-color: #2563a8 !important;
+  background-color: #fff !important;
+  box-shadow: 0 0 0 4px rgba(37, 99, 168, 0.12) !important;
+}
+
+.makerlab-site button:focus-visible,
+.makerlab-site a:focus-visible,
+.makerlab-site input:focus-visible,
+.makerlab-site select:focus-visible,
+.makerlab-site textarea:focus-visible {
+  outline: 3px solid rgba(37, 99, 168, 0.28);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html,
+  body {
+    scroll-behavior: auto;
+  }
+
+  .makerlab-site *,
+  .makerlab-site *::before,
+  .makerlab-site *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .ml-discipline-track {
+    animation: none !important;
+    transform: none !important;
+  }
 }

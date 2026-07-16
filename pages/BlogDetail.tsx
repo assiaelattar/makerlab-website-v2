@@ -70,7 +70,7 @@ export const BlogDetail: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white pb-20">
+    <div className="min-h-screen bg-[#f3f5f7] pb-20">
       <SEO 
         title={post.title}
         description={post.preview}
@@ -78,22 +78,22 @@ export const BlogDetail: React.FC = () => {
         image={post.image}
       />
       {/* Header / Hero */}
-      <div className="relative h-[60vh] min-h-[400px] border-b-8 border-black overflow-hidden">
+      <div className="relative h-[58vh] min-h-[420px] overflow-hidden">
         <img 
           src={post.image} 
           alt={post.title} 
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-black/40 flex items-end">
+        <div className="absolute inset-0 flex items-end bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent">
           <div className="container mx-auto px-4 pb-12">
             <ScrollReveal>
-                <div className="max-w-4xl bg-white border-4 border-black p-6 md:p-10 shadow-neo transform -rotate-1">
+                <div className="ml-card max-w-4xl p-6 md:p-10">
                     <div className="flex flex-wrap gap-4 mb-6">
                         {post.tags.map(tag => (
-                            <span key={tag} className="bg-brand-orange text-black text-xs font-black px-4 py-1 border-2 border-black rounded-full uppercase tracking-widest">{tag}</span>
+                            <span key={tag} className="ml-chip border-brand-orange/20 bg-brand-orange/10 text-brand-orange">{tag}</span>
                         ))}
                     </div>
-                    <h1 className="font-display font-black text-3xl md:text-5xl lg:text-6xl mb-6 leading-tight uppercase">
+                    <h1 className="mb-6 font-display text-3xl font-black leading-tight md:text-5xl lg:text-6xl">
                         {post.title}
                     </h1>
                     <div className="flex flex-wrap items-center gap-6 text-sm font-black uppercase text-gray-500">
@@ -108,7 +108,7 @@ export const BlogDetail: React.FC = () => {
 
       <div className="container mx-auto px-4 mt-12">
         <div className="max-w-4xl mx-auto">
-          <Link to="/blog" className="inline-flex items-center gap-2 font-black uppercase text-sm hover:text-brand-red transition-colors mb-12 bg-gray-100 px-4 py-2 border-2 border-black shadow-neo-sm transform hover:-translate-y-1">
+          <Link to="/blog" className="ml-button mb-10 border border-slate-200 bg-white text-sm text-slate-700 shadow-sm">
             <ArrowLeft size={20} /> Retour au Blog
           </Link>
 
@@ -121,7 +121,7 @@ export const BlogDetail: React.FC = () => {
 
           {/* Keywords / Tags Footer */}
           {post.seoKeywords && (
-            <div className="mt-16 pt-8 border-t-4 border-black border-dashed">
+            <div className="mt-16 border-t border-slate-200 pt-8">
                 <h4 className="font-display font-black text-xl mb-4 uppercase tracking-wider flex items-center gap-2">
                     <Tag size={20} className="text-brand-green" /> Mots-clés reliés
                 </h4>
@@ -134,13 +134,13 @@ export const BlogDetail: React.FC = () => {
           )}
 
           {/* Share Section */}
-          <div className="mt-12 p-8 bg-brand-blue/10 border-4 border-black rounded-3xl flex flex-col md:flex-row justify-between items-center gap-6 shadow-neo-sm">
+          <div className="ml-card mt-12 flex flex-col items-center justify-between gap-6 bg-brand-blue/10 p-8 md:flex-row">
             <div>
                 <h3 className="font-display font-black text-2xl uppercase">Tu as aimé cet article ?</h3>
                 <p className="font-bold text-gray-600">Partage-le avec d'autres parents ou curieux !</p>
             </div>
             <div className="flex gap-4">
-                <button className="bg-white border-4 border-black p-4 rounded-xl shadow-neo-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">
+                <button className="ml-icon bg-brand-blue text-white shadow-sm" aria-label="Partager l'article">
                     <Share2 size={24} />
                 </button>
             </div>

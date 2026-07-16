@@ -1,122 +1,211 @@
 import React, { useState } from 'react';
-import { Send, CheckCircle2 } from 'lucide-react';
-import { ScrollReveal } from '../components/ScrollReveal';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { ArrowRight, CheckCircle2, Cpu, Mail, Send, ShieldCheck, Users, Wrench } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useSettings } from '../contexts/SettingsContext';
 import { usePrograms } from '../contexts/ProgramContext';
-import { ProgramCard } from '../components/ProgramCard';
-import { StatsBanner } from '../components/StatsBanner';
-import { PhotoGallery } from '../components/PhotoGallery';
+import { db } from '../firebase';
+import { AppCard, AppContainer, AppSectionHeader, AppShell, appAccentClasses } from '../components/AppStyle';
+import { PremiumHero } from '../components/PremiumHero';
+import { Reveal } from '../components/Motion';
+import { FAQSection } from '../components/PageReady';
+
+const fallbackHero = 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=80&w=1400';
+
+const initialForm = {
+  institution: '',
+  contactName: '',
+  email: '',
+  phone: '',
+  format: '',
+  students: '',
+  message: '',
+};
 
 export const Schools: React.FC = () => {
-    const { settings } = useSettings();
-    const { programs } = usePrograms();
-    const [formSubmitted, setFormSubmitted] = useState(false);
+  const { settings } = useSettings();
+  const { programs } = usePrograms();
+  const [formData, setFormData] = useState(initialForm);
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const schoolPrograms = programs.filter(program => program.active && program.format === 'School Program');
+  const heroImage = settings?.hero_images?.hero_bg_ecoles || schoolPrograms[0]?.image || fallbackHero;
 
-    // Filter active programs meant for schools
-    const schoolPrograms = programs.filter(p => p.active && p.format === 'School Program');
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = event.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
 
-    const defaultStats = [
-        { value: '50+', label: 'Écoles partenaires', emoji: '🏫' },
-        { value: '5000+', label: 'Élèves touchés', emoji: '🎓' },
-        { value: '100%', label: 'Programmes sur mesure', emoji: '⚙️' },
-        { value: '5 ans', label: "d'expertise B2B", emoji: '🏆' },
-    ];
-    const stats = settings?.key_stats?.length ? settings.key_stats : defaultStats;
-    const galleryImages = settings?.gallery_schools || [];
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setStatus('loading');
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        setTimeout(() => setFormSubmitted(true), 500);
-    };
+    try {
+      await addDoc(collection(db, 'website-school-leads'), {
+        ...formData,
+        status: 'Pending',
+        source: 'website-schools',
+        createdAt: serverTimestamp(),
+      });
+      setFormData(initialForm);
+      setStatus('success');
+    } catch (error) {
+      console.error('School request error:', error);
+      setStatus('error');
+    }
+  };
 
-    return (
-        <div className="min-h-screen pt-0">
+  return (
+    <AppShell className="pb-24 pt-5">
+      <AppContainer>
+        <PremiumHero
+          eyebrow="Écoles et partenaires"
+          title={<>Transformez votre école en <span className="text-[#74b5ff]">laboratoire d’innovation.</span></>}
+          description="Des expériences STEM animées par nos mentors, avec de vrais outils, des résultats visibles et un format adapté à votre établissement."
+          image={heroImage}
+          imageAlt="Élèves participant à un atelier technologique"
+          accent="blue"
+          primary={{ label: 'Construire un programme', to: '/schools#school-request' }}
+          secondary={{ label: 'Voir les programmes', to: '/programs' }}
+          stats={[
+            ['50+', 'écoles partenaires'],
+            ['5000+', 'élèves engagés'],
+            ['100%', 'pratique'],
+            ['3', 'formats flexibles'],
+          ]}
+        />
 
-            {/* HEADER SECTION */}
-            <section className="relative pb-8 md:pb-16 px-4">
-                <div className="bg-brand-red px-4 py-12 md:py-20 text-center relative overflow-hidden shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] border-4 border-black">
-                    {settings?.hero_images?.hero_bg_ecoles && (
-                        <div className="absolute inset-0 z-0 opacity-40 mix-blend-multiply" style={{ backgroundImage: `url(${settings.hero_images.hero_bg_ecoles})`, backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
-                    )}
-                    <div className="absolute inset-0 z-0 opacity-10" style={{ backgroundImage: 'radial-gradient(#fff 2px, transparent 2px)', backgroundSize: '30px 30px' }}></div>
+        <section className="py-10">
+          <AppSectionHeader
+            eyebrow="Formats"
+            title="Une expérience claire pour l’école, mémorable pour les élèves."
+            text="Chaque format précise le projet, l’organisation et le résultat attendu avant même le premier échange."
+            accent="text-brand-blue"
+          />
+          <div className="grid gap-4 md:grid-cols-3">
+            {[
+              { title: 'Journée découverte STEM', text: 'Une visite rythmée au laboratoire, avec plusieurs missions pratiques.', icon: Cpu, color: 'bg-brand-orange' },
+              { title: 'Atelier dans votre école', text: 'Nos mentors apportent le matériel et animent le projet dans votre établissement.', icon: Wrench, color: 'bg-brand-green' },
+              { title: 'Programme sur mesure', text: 'Un parcours sur plusieurs séances, aligné avec vos objectifs pédagogiques.', icon: Users, color: 'bg-brand-blue' },
+            ].map((item, index) => (
+              <Reveal key={item.title} delay={index * 90}>
+                <AppCard className="ml-card-interactive min-h-[270px] p-5">
+                  <div className={`mb-5 flex h-12 w-12 items-center justify-center rounded-xl ${item.color} text-white`}>
+                    <item.icon size={23} />
+                  </div>
+                  <h3 className="text-2xl font-black leading-tight">{item.title}</h3>
+                  <p className="mt-3 min-h-[72px] font-semibold leading-6 text-slate-500">{item.text}</p>
+                  <a href="#school-request" className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#f7f7f4] px-4 py-3 text-sm font-black">
+                    Parler de ce format <ArrowRight size={15} />
+                  </a>
+                </AppCard>
+              </Reveal>
+            ))}
+          </div>
+        </section>
 
-                    <div className="container mx-auto relative z-10">
-                        <h1 className="font-display font-black text-4xl md:text-7xl text-white mb-4 md:mb-6 leading-tight drop-shadow-md uppercase">
-                            MakerLab pour <span className="text-brand-blue drop-shadow-[2px_2px_0px_black]">Écoles</span>
-                        </h1>
-                        <p className="text-sm md:text-2xl text-black bg-white inline-block px-4 py-2 border-2 border-black transform rotate-1 max-w-3xl mx-auto font-bold leading-relaxed shadow-neo-sm">
-                            High-tech educational experiences for your students.
-                        </p>
+        {schoolPrograms.length > 0 && (
+          <section className="pb-10">
+            <AppSectionHeader eyebrow="Catalogue" title="Les programmes disponibles pour les écoles." accent="text-brand-green" />
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {schoolPrograms.map((program, index) => (
+                <Reveal key={program.id} delay={(index % 3) * 90}>
+                  <Link to={`/programs/${program.id}`} className="ml-card ml-card-interactive group block overflow-hidden">
+                    <div className="relative aspect-[4/3] overflow-hidden">
+                      <img src={program.image || fallbackHero} alt={program.title} className="ml-image-zoom h-full w-full object-cover" />
+                      <div className={`absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-xl ${appAccentClasses[index % appAccentClasses.length]} text-white`}>
+                        <ShieldCheck size={21} />
+                      </div>
                     </div>
-
-                    <div className="absolute bottom-0 left-0 w-full h-4 bg-brand-blue border-t-4 border-black"></div>
-                </div>
-            </section>
-
-            {/* PROGRAMS GRID */}
-            <section className="container mx-auto px-4 mt-12 mb-16">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-                    {schoolPrograms.length > 0 ? (
-                        schoolPrograms.map((program, index) => (
-                            <ScrollReveal key={program.id} delay={index * 100}>
-                                <ProgramCard program={program} index={index} />
-                            </ScrollReveal>
-                        ))
-                    ) : (
-                        <div className="col-span-full py-10 text-center">
-                            <p className="text-xl font-bold text-gray-400">Loading programs...</p>
-                        </div>
-                    )}
-                </div>
-
-                {/* STATS BANNER — Moved below programs */}
-                <StatsBanner stats={stats} variant="dark" />
-
-                {/* Contact Form */}
-                <ScrollReveal>
-                    <div className="max-w-3xl mx-auto bg-brand-red text-white p-8 md:p-12 rounded-3xl border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] relative mt-20">
-                        <div className="absolute -top-6 -right-6 bg-white border-4 border-black rounded-full p-4 shadow-neo-sm animate-bounce">
-                            <Send size={32} />
-                        </div>
-
-                        {formSubmitted ? (
-                            <div className="text-center py-16">
-                                <CheckCircle2 size={80} strokeWidth={2} className="text-black mx-auto mb-6" />
-                                <h3 className="font-display font-black text-3xl mb-4">Demande envoyée !</h3>
-                                <p className="text-xl font-medium">Notre équipe B2B vous recontactera sous 24h ouvrées.</p>
-                                <button onClick={() => setFormSubmitted(false)} className="mt-8 font-bold underline hover:text-gray-600 transition-colors uppercase tracking-widest text-sm">Faire une autre demande</button>
-                            </div>
-                        ) : (
-                            <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-                                <h3 className="font-display font-black text-3xl mb-2">Travaillons ensemble</h3>
-                                <input type="text" placeholder="Nom de l'école / institution" className="w-full p-4 border-4 border-black rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] font-bold focus:shadow-none focus:translate-x-1 focus:translate-y-1 outline-none transition-all" required />
-                                <input type="email" placeholder="Email professionnel" className="w-full p-4 border-4 border-black rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] font-bold focus:shadow-none focus:translate-x-1 focus:translate-y-1 outline-none transition-all" required />
-                                <select className="w-full p-4 border-4 border-black rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] font-bold focus:shadow-none focus:translate-x-1 focus:translate-y-1 outline-none transition-all bg-white" required>
-                                    <option value="">Sélectionnez un programme</option>
-                                    <option value="experience-it">Experience-It (Visite)</option>
-                                    <option value="stemquest-school">STEMQuest At School</option>
-                                    <option value="custom-workshop">Workshop sur mesure</option>
-                                    <option value="project">Accélération de Projet</option>
-                                    <option value="other">Autre demande</option>
-                                </select>
-                                <button type="submit" className="mt-6 bg-black text-white w-full py-5 font-black text-xl uppercase tracking-widest flex justify-center items-center gap-2 hover:bg-gray-800 transition-colors border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1">
-                                    Envoyer la demande
-                                </button>
-                            </form>
-                        )}
+                    <div className="p-5">
+                      <h3 className="text-2xl font-black leading-tight">{program.title}</h3>
+                      <p className="mt-2 line-clamp-2 text-sm font-semibold leading-6 text-slate-500">{program.shortDescription || program.description}</p>
                     </div>
-                </ScrollReveal>
-            </section>
+                  </Link>
+                </Reveal>
+              ))}
+            </div>
+          </section>
+        )}
 
-            {/* GALLERY — Schools social proof */}
-            {galleryImages.length > 0 && (
-                <PhotoGallery
-                    images={galleryImages}
-                    title="MakerLab & les Écoles"
-                    subtitle="Des expériences high-tech qui inspirent la prochaine génération d'innovateurs."
-                    bgDark={false}
-                />
-            )}
-        </div>
-    );
+        <Reveal>
+          <section id="school-request" className="grid scroll-mt-28 gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+            <AppCard className="bg-brand-green p-6 text-white md:p-8">
+              <p className="text-xs font-black uppercase tracking-[0.14em] text-white/65">Notre méthode</p>
+              <h2 className="mt-3 font-display text-3xl font-black leading-[1.04] md:text-4xl">Du premier échange à l’impact en classe.</h2>
+              <div className="mt-6 grid gap-3">
+                {[
+                  'Comprendre vos objectifs et vos contraintes',
+                  'Choisir le projet, le niveau et le format',
+                  'Préparer, animer et partager les résultats',
+                ].map((item, index) => (
+                  <div key={item} className="flex items-center gap-4 rounded-lg bg-white/14 p-4">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white font-black text-brand-green">0{index + 1}</span>
+                    <p className="font-black">{item}</p>
+                  </div>
+                ))}
+              </div>
+            </AppCard>
+
+            <AppCard className="p-5 md:p-8">
+              {status === 'success' ? (
+                <div className="py-12 text-center">
+                  <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-green text-white">
+                    <CheckCircle2 size={32} />
+                  </div>
+                  <h3 className="text-3xl font-black">Demande bien reçue.</h3>
+                  <p className="mx-auto mt-3 max-w-md font-semibold leading-7 text-slate-500">
+                    Notre équipe vous contactera pour construire l’expérience MakerLab adaptée à vos élèves.
+                  </p>
+                  <button type="button" onClick={() => setStatus('idle')} className="ml-button mt-6 bg-[#f7f7f4] px-5">
+                    Envoyer une autre demande
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-orange">Demande école</p>
+                    <h2 className="mt-2 text-3xl font-black">Parlez-nous de votre établissement.</h2>
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <input required name="institution" value={formData.institution} onChange={handleChange} placeholder="École / institution" className="w-full rounded-xl border border-slate-200 bg-[#f7f7f4] p-4 font-bold outline-none focus:border-brand-blue" />
+                    <input required name="contactName" value={formData.contactName} onChange={handleChange} placeholder="Nom du contact" className="w-full rounded-xl border border-slate-200 bg-[#f7f7f4] p-4 font-bold outline-none focus:border-brand-blue" />
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <input required name="email" value={formData.email} onChange={handleChange} type="email" placeholder="Email professionnel" className="w-full rounded-xl border border-slate-200 bg-[#f7f7f4] p-4 font-bold outline-none focus:border-brand-blue" />
+                    <input name="phone" value={formData.phone} onChange={handleChange} type="tel" placeholder="Téléphone" className="w-full rounded-xl border border-slate-200 bg-[#f7f7f4] p-4 font-bold outline-none focus:border-brand-blue" />
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <select required name="format" value={formData.format} onChange={handleChange} className="w-full rounded-xl border border-slate-200 bg-[#f7f7f4] p-4 font-bold outline-none focus:border-brand-blue">
+                      <option value="">Choisir un format</option>
+                      <option>Visite au laboratoire</option>
+                      <option>Atelier dans l’école</option>
+                      <option>Programme sur mesure</option>
+                    </select>
+                    <input name="students" value={formData.students} onChange={handleChange} type="number" min="1" placeholder="Nombre d’élèves" className="w-full rounded-xl border border-slate-200 bg-[#f7f7f4] p-4 font-bold outline-none focus:border-brand-blue" />
+                  </div>
+                  <textarea name="message" value={formData.message} onChange={handleChange} placeholder="Que souhaitez-vous faire vivre à vos élèves ?" className="min-h-[120px] w-full rounded-xl border border-slate-200 bg-[#f7f7f4] p-4 font-bold outline-none focus:border-brand-blue" />
+                  {status === 'error' && <p className="rounded-xl bg-red-50 p-4 text-sm font-bold text-red-700">La demande n’a pas pu être envoyée. Réessayez ou contactez-nous par email.</p>}
+                  <button type="submit" disabled={status === 'loading'} className="ml-button flex w-full bg-brand-orange px-6 text-white disabled:opacity-60">
+                    {status === 'loading' ? 'Envoi en cours...' : 'Envoyer la demande'} <Send size={18} />
+                  </button>
+                  <a href={`mailto:${settings?.contact_info?.partners_email || 'partners@makerlab.ma'}`} className="flex items-center justify-center gap-2 text-sm font-black text-slate-500">
+                    <Mail size={15} /> {settings?.contact_info?.partners_email || 'partners@makerlab.ma'}
+                  </a>
+                </form>
+              )}
+            </AppCard>
+          </section>
+        </Reveal>
+
+        <FAQSection
+          items={[
+            { question: 'Pouvez-vous intervenir directement dans notre école ?', answer: 'Oui. Nos mentors se déplacent avec le matériel nécessaire et adaptent l’installation à vos espaces.' },
+            { question: 'Combien d’élèves peuvent participer ?', answer: 'Cela dépend du format et du projet. Nous organisons les groupes pour conserver une expérience pratique et un accompagnement réel.' },
+            { question: 'Les enseignants participent-ils à l’atelier ?', answer: 'Ils peuvent observer, coanimer ou recevoir des ressources de suivi selon le programme choisi.' },
+            { question: 'Pouvez-vous construire un parcours sur plusieurs mois ?', answer: 'Oui. Nous pouvons définir une progression, des projets et des livrables en lien avec vos objectifs pédagogiques.' },
+          ]}
+        />
+      </AppContainer>
+    </AppShell>
+  );
 };

@@ -21,7 +21,7 @@ export const AnnouncementBar: React.FC = () => {
             {config.ctaText && config.ctaLink && (
                 <Link
                     to={config.ctaLink}
-                    className="bg-black/10 hover:bg-black/20 px-3 py-1 rounded-full text-[10px] md:text-xs flex items-center gap-1 transition-colors border border-black/20 backdrop-blur-sm"
+                    className="flex items-center gap-1 rounded-full border border-current/15 bg-white/20 px-3 py-1 text-[10px] transition-colors hover:bg-white/30 md:text-xs"
                 >
                     {config.ctaText} <ArrowRight size={12} />
                 </Link>
@@ -31,7 +31,7 @@ export const AnnouncementBar: React.FC = () => {
 
     return (
         <div
-            className="w-full border-b-4 border-black relative z-[200] flex items-center overflow-hidden"
+            className="relative z-[200] flex w-full items-center overflow-hidden border-b border-black/10"
             style={{ 
                 backgroundColor: config.bgColor || '#00E5FF', 
                 color: config.textColor || '#000000',

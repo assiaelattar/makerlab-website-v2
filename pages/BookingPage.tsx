@@ -73,7 +73,7 @@ export const BookingPage: React.FC = () => {
     if (!activeProgram) {
         return (
             <div className="min-h-screen flex items-center justify-center p-4">
-                <div className="text-center bg-white border-4 border-black p-10 shadow-neo">
+                <div className="ml-card max-w-md p-8 text-center">
                     <h2 className="font-display font-black text-3xl mb-4">Programme non trouvé</h2>
                     <Button onClick={() => navigate('/programs')}>Retour aux programmes</Button>
                 </div>
@@ -116,9 +116,9 @@ export const BookingPage: React.FC = () => {
     };
     if (isSuccess) {
         return (
-            <div className="min-h-screen pt-8 md:pt-20 pb-16 px-4 bg-brand-red/10 flex items-start justify-center">
-                <div className="max-w-2xl w-full mx-auto bg-white border-4 border-black rounded-[2rem] shadow-neo-xl p-6 md:p-16 text-center mt-8 md:mt-16">
-                    <div className="w-16 h-16 md:w-24 md:h-24 bg-brand-green border-4 border-black rounded-full flex items-center justify-center mx-auto mb-6 md:mb-8 animate-bounce">
+            <div className="flex min-h-screen items-start justify-center bg-brand-green/10 px-4 pb-16 pt-8 md:pt-20">
+                <div className="ml-card mx-auto mt-8 w-full max-w-2xl p-6 text-center md:mt-16 md:p-14">
+                    <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-green text-white md:mb-8 md:h-20 md:w-20">
                         <CheckCircle2 size={36} strokeWidth={3} className="text-white" />
                     </div>
                     <h2 className="font-display font-black text-3xl md:text-4xl mb-4 md:mb-6 uppercase">C'est validé !</h2>
@@ -131,7 +131,7 @@ export const BookingPage: React.FC = () => {
                         }
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <Button variant="primary" onClick={() => navigate('/')} className="shadow-none border-4 border-black font-black uppercase tracking-widest">Retour à l'accueil</Button>
+                        <Button variant="secondary" onClick={() => navigate('/')}>Retour à l'accueil</Button>
                     </div>
                 </div>
             </div>
@@ -139,19 +139,18 @@ export const BookingPage: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen pt-8 md:pt-28 pb-16 px-3 md:px-4 bg-[#fcfaf7] relative overflow-hidden">
-            <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/natural-paper.png")' }}></div>
+        <div className="relative min-h-screen overflow-hidden bg-[#f3f5f7] px-3 pb-16 pt-6 md:px-4 md:pt-12">
             
             <div className="max-w-6xl mx-auto relative z-10">
-                <button onClick={() => navigate(-1)} className="group flex items-center gap-3 font-black uppercase tracking-[0.2em] text-[10px] mb-4 md:mb-12 text-black/40 hover:text-black transition-colors">
-                    <div className="bg-white border-2 border-black/10 p-2 rounded-xl group-hover:scale-110 transition-transform"><ArrowLeft size={14} strokeWidth={4} /></div> 
+                <button onClick={() => navigate(-1)} className="group mb-4 flex items-center gap-3 text-xs font-black text-slate-500 transition-colors hover:text-slate-900 md:mb-8">
+                    <div className="ml-icon h-9 w-9 border border-slate-200 bg-white"><ArrowLeft size={16} /></div>
                     Retour
                 </button>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-12 items-start">
 
                     {/* Mobile-only: Compact info banner shown ABOVE form */}
-                    <div className={`lg:hidden flex items-center gap-3 p-4 rounded-2xl border-2 border-white/10 ${type === 'trial' ? 'bg-brand-blue' : 'bg-brand-red'} text-white`}>
+                    <div className={`flex items-center gap-3 rounded-lg p-4 text-white lg:hidden ${type === 'trial' ? 'bg-brand-blue' : 'bg-brand-red'}`}>
                         <div className="shrink-0 bg-white/20 p-2.5 rounded-xl">
                             {type === 'trial' ? <span className="text-xl">🎁</span> : <span className="text-xl">📅</span>}
                         </div>
@@ -166,14 +165,13 @@ export const BookingPage: React.FC = () => {
 
                     {/* Left: Full Info Card — desktop only */}
                     <div className="hidden lg:block lg:col-span-4 space-y-8 sticky top-32">
-                        <div className={`p-10 border-2 border-black/5 rounded-[3rem] shadow-2xl relative overflow-hidden transition-all ${type === 'trial' ? 'bg-brand-blue text-white' : 'bg-brand-red text-white'}`}>
-                            <div className="absolute -top-20 -right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+                        <div className={`relative overflow-hidden rounded-lg p-8 shadow-xl ${type === 'trial' ? 'bg-brand-blue text-white' : 'bg-brand-red text-white'}`}>
                             <div className="relative z-10">
                                 <div className="mb-6 inline-block bg-white/20 backdrop-blur-md text-white px-4 py-1.5 rounded-full font-black text-[10px] uppercase tracking-[0.2em]">
                                     {type === 'trial' ? '🎁 Session Offerte' : type === 'annual' ? '🏆 Parcours Annuel' : (selectedTrack ? '📦 Pack Maker' : '📅 Workshop')}
                                 </div>
-                                <h2 className="font-display font-black text-5xl mb-6 leading-[0.9] uppercase italic tracking-tighter">{bookingTitle}</h2>
-                                <p className="font-bold opacity-80 mb-10 text-lg leading-relaxed italic">{bookingDesc.substring(0, 160)}...</p>
+                                <h2 className="mb-6 font-display text-4xl font-black leading-[0.98]">{bookingTitle}</h2>
+                                <p className="mb-10 text-base font-semibold leading-relaxed opacity-80">{bookingDesc.substring(0, 160)}...</p>
                                 <div className="space-y-4 pt-8 border-t border-white/10 text-sm">
                                     <div className="flex items-center gap-4">
                                         <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center"><Baby size={20} strokeWidth={3} /></div>
@@ -199,16 +197,16 @@ export const BookingPage: React.FC = () => {
                                 </div>
                             </div>
                         </div>
-                        <div className="bg-white p-8 border-2 border-black/5 rounded-[2.5rem] shadow-xl italic font-bold text-base text-black/50 leading-relaxed text-center">
+                        <div className="ml-card p-7 text-center text-base font-semibold leading-relaxed text-slate-500">
                              "La technologie ne doit pas être juste consommée, elle doit être créée. Rejoins l'aventure MakerLab !"
                         </div>
                     </div>
 
                     {/* Right: Form */}
                     <div className="lg:col-span-8">
-                        <form onSubmit={handleSubmit} className="bg-white border-2 border-black/5 rounded-2xl md:rounded-[4rem] shadow-xl md:shadow-2xl p-4 md:p-16 space-y-5 md:space-y-12">
+                        <form onSubmit={handleSubmit} className="ml-card space-y-6 p-4 md:space-y-10 md:p-10">
                             <div className="text-center md:text-left">
-                                <h3 className="font-display font-black text-xl md:text-6xl uppercase tracking-tighter mb-1 md:mb-4 text-black italic leading-none">
+                                <h3 className="mb-2 font-display text-2xl font-black leading-none text-slate-900 md:text-5xl">
                                     {type === 'trial' ? "L'AVENTURE COMMENCE." : type === 'annual' ? "PRÊT POUR L'ANNÉE ?" : "REJOINDRE LA MISSION"}
                                 </h3>
                                 <p className="text-black/40 font-black text-[9px] md:text-xs uppercase tracking-[0.3em]">Complétez les informations ci-dessous</p>
@@ -256,7 +254,7 @@ export const BookingPage: React.FC = () => {
                                         />
 
                                         {availableSlots.length === 0 && (
-                                            <div className="p-16 border-4 border-dashed border-gray-100 rounded-[3rem] text-center text-gray-300 font-display font-black text-2xl uppercase italic">
+                                            <div className="rounded-lg border-4 border-dashed border-gray-100 p-16 text-center font-display text-2xl font-black uppercase italic text-gray-300">
                                                 Aucun créneau <br/> disponible
                                             </div>
                                         )}
@@ -288,7 +286,7 @@ export const BookingPage: React.FC = () => {
                                 <button
                                     type="submit"
                                     disabled={isSubmitting}
-                                    className="w-full bg-brand-orange text-black py-5 md:py-8 rounded-2xl md:rounded-[2.5rem] border-2 md:border-4 border-black shadow-[8px_8px_0_0_rgba(0,0,0,1)] md:shadow-[12px_12px_0_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 md:hover:translate-x-2 md:hover:translate-y-2 transition-all font-black uppercase text-lg md:text-2xl italic tracking-widest flex items-center justify-center gap-3 md:gap-4 disabled:opacity-50"
+                                    className="ml-button w-full bg-brand-orange py-5 text-base text-white shadow-lg disabled:opacity-50 md:text-lg"
                                 >
                                     {isSubmitting ? 'TRAITEMENT...' : (type === 'trial' ? "REJOINDRE L'AVENTURE" : "CONFIRMER L'INSCRIPTION")}
                                     <ArrowRight size={24} className="md:w-8 md:h-8" strokeWidth={3} />

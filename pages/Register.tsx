@@ -1,31 +1,18 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '../components/Button';
+import { addDoc, collection } from 'firebase/firestore';
+import { ArrowRight, CheckCircle2, Compass, MessageCircle, Sparkles, Target, Users } from 'lucide-react';
 import { db } from '../firebase';
-import { collection, addDoc } from 'firebase/firestore';
 import { SEO } from '../components/SEO';
-import { 
-  Phone, 
-  CheckCircle, 
-  Mail, 
-  MapPin, 
-  MessageCircle, 
-  Sparkles, 
-  Target, 
-  Search,
-  Compass,
-  Rocket,
-  ArrowRight,
-  ChevronRight,
-  Users
-} from 'lucide-react';
+import { AppCard, AppContainer, AppShell, ColorDots, appAccentClasses } from '../components/AppStyle';
+import { Reveal } from '../components/Motion';
+
+const orientationImage = 'https://images.unsplash.com/photo-1561557944-6e7860d1a7eb?auto=format&fit=crop&q=85&w=1400';
 
 export const Register: React.FC = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  
-  // Form State
   const [formData, setFormData] = useState({
     parentName: '',
     parentEmail: '',
@@ -34,294 +21,229 @@ export const Register: React.FC = () => {
     childAge: '',
     interests: [] as string[],
     level: 'Débutant',
-    notes: ''
+    notes: '',
   });
-  
-  const totalSteps = 3;
 
   const interestsOptions = [
-    'Robotique & Électronique',
-    'Coding & Intelligence Artificielle',
-    'Design 3D & Découpe Laser',
-    'Création de Jeux Vidéo',
-    'Ingénierie & Mécanique',
-    'Intelligence Artificielle'
+    'Robotique',
+    'Coding & IA',
+    'Design 3D',
+    'Game design',
+    'Ingénierie',
+    'Entrepreneuriat',
   ];
-
-  const levels = ['Débutant (Curieux)', 'Intermédiaire (A déjà pratiqué)', 'Avancé (Passionné)'];
+  const levels = ['Débutant', 'Intermédiaire', 'Avancé'];
 
   const toggleInterest = (interest: string) => {
     setFormData(prev => ({
       ...prev,
-      interests: prev.interests.includes(interest) 
-        ? prev.interests.filter(i => i !== interest)
-        : [...prev.interests, interest]
+      interests: prev.interests.includes(interest)
+        ? prev.interests.filter(item => item !== interest)
+        : [...prev.interests, interest],
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (step < totalSteps) {
-      setStep(step + 1);
-    } else {
-        setLoading(true);
-        try {
-            const leadData = {
-                ...formData,
-                status: 'Pending',
-                createdAt: new Date().toISOString()
-            };
-            
-            const docRef = await addDoc(collection(db, 'website-orientation-leads'), leadData);
-
-            // Redirect to Thank You page with Orientation type
-            const params = new URLSearchParams({
-                leadId: docRef.id,
-                childName: formData.childName,
-                programTitle: "Orientation Maker",
-                type: 'orientation'
-            });
-            navigate(`/thanks?${params.toString()}`);
-        } catch (error) {
-            console.error("Orientation error:", error);
-            alert("Une erreur est survenue. Veuillez réessayer.");
-        } finally {
-            setLoading(false);
-        }
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = event.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (step < 3) {
+      setStep(step + 1);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const docRef = await addDoc(collection(db, 'website-orientation-leads'), {
+        ...formData,
+        status: 'Pending',
+        createdAt: new Date().toISOString(),
+      });
+
+      const params = new URLSearchParams({
+        leadId: docRef.id,
+        childName: formData.childName,
+        programTitle: 'Orientation Maker',
+        type: 'orientation',
+      });
+      navigate(`/thanks?${params.toString()}`);
+    } catch (error) {
+      console.error('Orientation error:', error);
+      alert('Une erreur est survenue. Veuillez réessayer.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen py-8 md:py-24 px-4 bg-white text-black overflow-x-hidden">
-      <SEO 
-        title="Conseil & Orientation | MakerLab Academy" 
-        description="Aidez votre enfant à choisir le bon parcours technologique. Consultation gratuite avec nos experts en éducation STEM à Casablanca."
-        keywords="conseil orientation robotique, choisir atelier coding, makerlab academy conseil, futur technologique enfant"
+    <AppShell className="pb-24 pt-5">
+      <SEO
+        title="Conseil & Orientation | MakerLab Academy"
+        description="Aidez votre enfant à choisir le bon parcours technologique avec une orientation MakerLab."
+        keywords="conseil orientation robotique, choisir atelier coding, makerlab academy conseil"
       />
-      
-      {/* Background Decor */}
-      <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-brand-orange/5 -rotate-12 transform translate-x-20 -translate-y-20 blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-brand-blue/5 rotate-12 transform -translate-x-20 translate-y-20 blur-3xl pointer-events-none" />
-
-      <div className="container mx-auto max-w-4xl relative z-10">
-        
-        {/* Header Section */}
-        <div className="text-center mb-10 md:mb-16 px-2">
-            <div className="inline-flex items-center gap-2 px-6 py-2 bg-black text-white border-4 border-black rounded-full mb-6 md:mb-8 transform -rotate-1 shadow-neo-sm">
-              <Compass size={24} className="text-brand-orange animate-spin-slow shrink-0" />
-              <span className="text-xs md:text-sm font-black uppercase tracking-widest leading-none">Guide & Orientation</span>
+      <AppContainer>
+        <section className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr] lg:items-stretch">
+          <div className="relative min-h-[560px] overflow-hidden rounded-lg bg-slate-950 p-5 text-white shadow-2xl md:p-8">
+            <img src={orientationImage} alt="Jeune maker construisant un projet" className="absolute inset-0 h-full w-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/78 to-slate-950/20" />
+            <div className="relative z-10 flex h-full min-h-[500px] flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 text-xs font-black uppercase tracking-[0.15em]">
+                <Compass size={15} /> Orientation
+              </span>
+              <ColorDots />
             </div>
-            <h1 className="font-display font-black text-4xl md:text-7xl uppercase leading-[0.9] mb-6 md:mb-8 tracking-tighter">
-              Trouvez le <span className="text-brand-orange text-outline-black">Parcours Idéal</span><br className="hidden md:block" />
-              Pour Votre Enfant
-            </h1>
-            <p className="text-base md:text-xl font-bold text-gray-600 max-w-2xl mx-auto leading-relaxed px-4 md:px-0">
-              Vous hésitez entre le Coding, la Robotique ou le Design 3D ? Répondez à ces 3 questions et recevez un conseil personnalisé de nos mentors.
-            </p>
-        </div>
-
-        {/* Mission Progress Bar */}
-        <div className="mb-12 relative max-w-lg mx-auto">
-            <div className="flex justify-between items-center mb-4 relative z-10">
-                {[1, 2, 3].map((s) => (
-                    <div key={s} className="flex flex-col items-center">
-                        <div className={`w-12 h-12 border-4 border-black font-black flex items-center justify-center transition-all rounded-xl ${step >= s ? 'bg-black text-white -rotate-6 scale-110 shadow-neo-sm' : 'bg-white text-black'}`}>
-                            {s}
-                        </div>
-                        <span className={`text-[10px] font-black uppercase mt-3 tracking-widest ${step >= s ? 'text-black' : 'text-gray-400'}`}>
-                            {s === 1 ? 'Makers' : s === 2 ? 'Intérêts' : 'Envoi'}
-                        </span>
-                    </div>
-                ))}
+            <div className="py-12">
+              <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-orange">Conseil personnalisé</p>
+              <h1 className="mt-3 max-w-xl font-display text-4xl font-black leading-[0.95] md:text-6xl">
+                La bonne mission change tout.
+              </h1>
+              <p className="mt-6 max-w-xl text-lg font-semibold leading-8 text-white/72">
+                Trois étapes rapides. Puis un mentor MakerLab recommande le meilleur premier parcours pour votre enfant.
+              </p>
             </div>
-            {/* Background Line */}
-            <div className="absolute top-6 left-0 w-full h-1 bg-gray-100 z-0 rounded-full"></div>
-            <div className="absolute top-6 left-0 h-1 bg-black z-0 transition-all duration-700 ease-in-out rounded-full shadow-[0_0_10px_rgba(0,0,0,0.2)]" style={{ width: `${((step-1)/(totalSteps-1)) * 100}%` }}></div>
-        </div>
-
-        <div className="bg-white rounded-[2rem] md:rounded-[40px] border-4 md:border-8 border-black shadow-neo-xl p-6 md:p-16 relative overflow-hidden">
-          
-          <div className="relative z-10">
-            <form onSubmit={handleSubmit} className="space-y-10">
-                
-                {step === 1 && (
-                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <div className="flex items-center gap-4 mb-2">
-                             <div className="w-10 h-10 bg-brand-orange border-4 border-black flex items-center justify-center shadow-neo-sm">
-                                <Users size={20} className="text-black" />
-                             </div>
-                             <h3 className="text-2xl font-black uppercase tracking-tight">L'Explorateur & Le Parent</h3>
-                        </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div className="space-y-3">
-                                <label className="font-black text-xs uppercase tracking-widest text-gray-500">Nom du Parent</label>
-                                <input required name="parentName" value={formData.parentName} onChange={handleInputChange} type="text" className="w-full p-4 border-4 border-black bg-gray-50 focus:bg-white outline-none font-bold placeholder:text-gray-300 rounded-2xl transition-all focus:shadow-neo-sm" placeholder="Ex: Jean Dupont" />
-                            </div>
-                            <div className="space-y-3">
-                                <label className="font-black text-xs uppercase tracking-widest text-gray-500">Prénom de l'Enfant</label>
-                                <input required name="childName" value={formData.childName} onChange={handleInputChange} type="text" className="w-full p-4 border-4 border-black bg-gray-50 focus:bg-white outline-none font-bold placeholder:text-gray-300 rounded-2xl transition-all focus:shadow-neo-sm" placeholder="Ex: Adam" />
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div className="space-y-3">
-                                <label className="font-black text-xs uppercase tracking-widest text-gray-500">WhatsApp (Mandatoire)</label>
-                                <div className="relative">
-                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-gray-300">+212</span>
-                                    <input required name="parentPhone" value={formData.parentPhone} onChange={handleInputChange} type="tel" className="w-full p-4 pl-16 border-4 border-black bg-gray-50 focus:bg-white outline-none font-bold placeholder:text-gray-300 rounded-2xl transition-all focus:shadow-neo-sm" placeholder="6 00 00 00 00" />
-                                </div>
-                            </div>
-                            <div className="space-y-3">
-                                <label className="font-black text-xs uppercase tracking-widest text-gray-500">Âge du Maker</label>
-                                <input required name="childAge" value={formData.childAge} onChange={handleInputChange} type="number" min="5" max="99" className="w-full p-4 border-4 border-black bg-gray-50 focus:bg-white outline-none font-bold placeholder:text-gray-300 rounded-2xl transition-all focus:shadow-neo-sm" placeholder="Ex: 10 ans" />
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {step === 2 && (
-                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <div className="flex items-center gap-4 mb-2">
-                             <div className="w-10 h-10 bg-brand-blue border-4 border-black flex items-center justify-center shadow-neo-sm rounded-lg">
-                                <Target size={20} className="text-white" />
-                             </div>
-                             <h3 className="text-2xl font-black uppercase tracking-tight">Intérêts & Passion</h3>
-                        </div>
-
-                        <div className="space-y-4">
-                            <label className="font-black text-xs uppercase tracking-widest text-gray-500">Qu'est-ce qui le passionne ? (Plusieurs choix possibles)</label>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                {interestsOptions.map((opt) => (
-                                    <button 
-                                        key={opt}
-                                        type="button"
-                                        onClick={() => toggleInterest(opt)}
-                                        className={`p-4 border-4 border-black rounded-2xl text-left transition-all font-black uppercase text-xs flex items-center justify-between ${
-                                            formData.interests.includes(opt) 
-                                                ? 'bg-brand-orange text-black shadow-neo-sm' 
-                                                : 'bg-white hover:bg-gray-50'
-                                        }`}
-                                    >
-                                        {opt}
-                                        {formData.interests.includes(opt) && <CheckCircle size={16} />}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="space-y-4 mt-8">
-                            <label className="font-black text-xs uppercase tracking-widest text-gray-500">Niveau actuel en technologie</label>
-                            <div className="flex flex-wrap gap-4">
-                                {levels.map((l) => (
-                                    <label key={l} className="cursor-pointer group flex-grow">
-                                        <input 
-                                            type="radio" 
-                                            name="level" 
-                                            value={l} 
-                                            checked={formData.level === l}
-                                            onChange={handleInputChange}
-                                            className="hidden peer" 
-                                        />
-                                        <div className="p-4 border-4 border-black rounded-2xl bg-white peer-checked:bg-black peer-checked:text-white transition-all font-black uppercase text-xs text-center group-hover:-translate-y-1">
-                                            {l}
-                                        </div>
-                                    </label>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {step === 3 && (
-                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <div className="flex items-center gap-4 mb-2">
-                             <div className="w-10 h-10 bg-brand-red border-4 border-black flex items-center justify-center shadow-neo-sm rounded-full">
-                                <Sparkles size={20} className="text-white" />
-                             </div>
-                             <h3 className="text-2xl font-black uppercase tracking-tight">Derniers Détails</h3>
-                        </div>
-
-                        <div className="space-y-3">
-                            <label className="font-black text-xs uppercase tracking-widest text-gray-500">Une question spécifique ? Une crainte ?</label>
-                            <textarea 
-                                name="notes" 
-                                value={formData.notes} 
-                                onChange={handleInputChange} 
-                                className="w-full p-6 border-4 border-black bg-gray-50 focus:bg-white outline-none font-bold placeholder:text-gray-300 rounded-[30px] h-32 transition-all" 
-                                placeholder="Dites-nous tout ce qui pourrait nous aider à mieux le conseiller..."
-                            ></textarea>
-                        </div>
-
-                        <div className="bg-gray-50 border-4 border-black rounded-3xl p-6 flex items-start gap-4">
-                            <div className="mt-1">
-                                <div className="w-6 h-6 border-4 border-black rounded flex items-center justify-center">
-                                    <div className="w-2 h-2 bg-black rounded-full"></div>
-                                </div>
-                            </div>
-                            <p className="text-sm font-bold text-gray-600 leading-tight">
-                                En cliquant sur "Envoyer", un mentor MakerLab analysera le profil de <span className="text-black">{formData.childName || "votre enfant"}</span> et vous contactera sous 24h avec une recommandation de parcours.
-                            </p>
-                        </div>
-                    </div>
-                )}
-
-                <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                    {step > 1 && (
-                        <button 
-                            type="button" 
-                            onClick={() => setStep(step - 1)}
-                            className="w-full sm:w-auto px-8 py-4 md:py-5 border-4 border-black font-black uppercase text-sm hover:bg-gray-100 transition-all shadow-neo-sm rounded-xl md:rounded-2xl active:scale-95"
-                        >
-                            Retour
-                        </button>
-                    )}
-                    <Button 
-                        type="submit" 
-                        size="lg" 
-                        disabled={loading} 
-                        className="flex-1 justify-center bg-black text-white uppercase tracking-widest disabled:opacity-50 h-[64px] md:h-[72px] text-base md:text-lg rounded-xl md:rounded-2xl group shadow-neo hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
-                    >
-                        {loading ? (
-                            <span className="flex items-center gap-2">
-                                <span className="w-5 h-5 border-4 border-white/30 border-t-white rounded-full animate-spin"></span>
-                                Analyse...
-                            </span>
-                        ) : (
-                            <span className="flex items-center gap-2">
-                                {step === totalSteps ? "Recevoir mon Conseil" : "Étape Suivante"}
-                                <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform shrink-0" />
-                            </span>
-                        )}
-                    </Button>
+            <div className="mt-8 grid grid-cols-3 gap-3">
+              {['Profil', 'Intérêts', 'Conseil'].map((label, index) => (
+                <div key={label} className={`rounded-lg border p-4 transition-all duration-300 ${step >= index + 1 ? 'border-white bg-white text-slate-900 shadow-xl' : 'border-white/15 bg-white/10 text-white backdrop-blur'}`}>
+                  <p className="text-2xl font-black">0{index + 1}</p>
+                  <p className="text-xs font-bold opacity-70">{label}</p>
                 </div>
-            </form>
+              ))}
+            </div>
+            </div>
           </div>
-        </div>
 
-        {/* Support Section */}
-        <div className="mt-16 flex flex-col md:flex-row items-center justify-between gap-8 border-t-4 border-black border-dashed pt-12">
-            <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-brand-green border-4 border-black transform rotate-3 flex items-center justify-center p-3">
-                    <MessageCircle size={32} />
+          <AppCard className="p-5 md:p-8 lg:sticky lg:top-28">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-blue">Étape {step} sur 3</p>
+                <h2 className="mt-2 text-3xl font-black">
+                  {step === 1 ? 'Parlons du parent et de l’enfant.' : step === 2 ? 'Qu’est-ce qui passionne votre enfant ?' : 'Un dernier détail à nous partager ?'}
+                </h2>
+              </div>
+
+              {step === 1 && (
+                <div key="step-1" className="ml-step-panel grid gap-4 sm:grid-cols-2">
+                  <Field label="Nom du parent" name="parentName" value={formData.parentName} onChange={handleInputChange} placeholder="Nom du parent" />
+                  <Field label="Prénom de l’enfant" name="childName" value={formData.childName} onChange={handleInputChange} placeholder="Prénom de l’enfant" />
+                  <Field label="WhatsApp" name="parentPhone" value={formData.parentPhone} onChange={handleInputChange} placeholder="06..." />
+                  <Field label="Âge de l’enfant" name="childAge" value={formData.childAge} onChange={handleInputChange} placeholder="10" type="number" />
+                  <div className="sm:col-span-2">
+                    <Field label="Email" name="parentEmail" value={formData.parentEmail} onChange={handleInputChange} placeholder="parent@email.com" type="email" />
+                  </div>
                 </div>
-                <div>
-                    <h4 className="font-black text-lg uppercase leading-none mb-1">Besoin d'aide immédiate ?</h4>
-                    <p className="text-sm font-bold text-gray-500 uppercase">Contactez un mentor sur WhatsApp</p>
+              )}
+
+              {step === 2 && (
+                <div key="step-2" className="ml-step-panel space-y-5">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {interestsOptions.map((interest, index) => (
+                      <button
+                        key={interest}
+                        type="button"
+                        onClick={() => toggleInterest(interest)}
+                        className={`flex min-h-[64px] items-center justify-between rounded-xl border p-4 text-left text-sm font-black transition ${
+                          formData.interests.includes(interest) ? `${appAccentClasses[index % appAccentClasses.length]} text-white` : 'bg-[#f7f7f4] text-slate-600'
+                        }`}
+                      >
+                        {interest}
+                        {formData.interests.includes(interest) && <CheckCircle2 size={17} />}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    {levels.map(level => (
+                      <button
+                        key={level}
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, level }))}
+                        className={`rounded-2xl px-4 py-4 text-sm font-black ${formData.level === level ? 'bg-brand-blue text-white' : 'bg-[#f7f7f4] text-slate-500'}`}
+                      >
+                        {level}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-            </div>
-            <a href="https://wa.me/212621877106" target="_blank" rel="noopener noreferrer">
-                <Button variant="accent" className="px-8 py-4 border-4 border-black shadow-neo hover:shadow-none transition-all font-black uppercase">
-                   Ouvrir WhatsApp
-                </Button>
-            </a>
-        </div>
-      </div>
-    </div>
+              )}
+
+              {step === 3 && (
+                <div key="step-3" className="ml-step-panel space-y-4">
+                  <textarea
+                    name="notes"
+                    value={formData.notes}
+                    onChange={handleInputChange}
+                    placeholder="Questions, inquiétudes, disponibilités, passions..."
+                    className="min-h-[160px] w-full rounded-2xl border border-slate-200 bg-[#f7f7f4] p-4 font-bold outline-none focus:border-brand-blue"
+                  />
+                  <div className="rounded-2xl bg-brand-green/10 p-4">
+                    <div className="flex items-start gap-3">
+                      <Sparkles className="mt-1 text-brand-green" size={20} />
+                      <p className="text-sm font-bold leading-6 text-slate-600">
+                        Un mentor étudiera le profil et vous contactera avec une recommandation claire.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex flex-col gap-3 sm:flex-row">
+                {step > 1 && (
+                  <button type="button" onClick={() => setStep(step - 1)} className="ml-button bg-[#f7f7f4] px-6">
+                    Retour
+                  </button>
+                )}
+                <button type="submit" disabled={loading} className="ml-button flex-1 bg-brand-blue px-6 text-white disabled:opacity-50">
+                  {loading ? 'Envoi en cours...' : step === 3 ? 'Recevoir le conseil' : 'Étape suivante'} <ArrowRight size={18} />
+                </button>
+              </div>
+            </form>
+          </AppCard>
+        </section>
+
+        <Reveal>
+        <section className="mt-5 grid gap-4 md:grid-cols-3">
+          {[
+            { title: 'Profil', text: 'L’âge et les coordonnées du parent.', icon: Users, color: 'bg-brand-orange' },
+            { title: 'Centres d’intérêt', text: 'Les thèmes qui éveillent sa curiosité.', icon: Target, color: 'bg-brand-blue' },
+            { title: 'Suivi WhatsApp', text: 'Une recommandation claire de notre équipe.', icon: MessageCircle, color: 'bg-brand-green' },
+          ].map(item => (
+            <AppCard key={item.title} className="p-5">
+              <div className={`mb-4 flex h-11 w-11 items-center justify-center rounded-2xl ${item.color} text-white`}>
+                <item.icon size={21} />
+              </div>
+              <h3 className="text-xl font-black">{item.title}</h3>
+              <p className="mt-2 text-sm font-semibold leading-6 text-slate-500">{item.text}</p>
+            </AppCard>
+          ))}
+        </section>
+        </Reveal>
+      </AppContainer>
+    </AppShell>
   );
 };
+
+const Field: React.FC<{
+  label: string;
+  name: string;
+  value: string;
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  placeholder: string;
+  type?: string;
+}> = ({ label, name, value, onChange, placeholder, type = 'text' }) => (
+  <label className="block">
+    <span className="mb-2 block text-xs font-black uppercase tracking-[0.15em] text-slate-400">{label}</span>
+    <input
+      required
+      name={name}
+      value={value}
+      onChange={onChange}
+      type={type}
+      placeholder={placeholder}
+      className="w-full rounded-2xl border border-slate-200 bg-[#f7f7f4] p-4 font-bold outline-none focus:border-brand-blue"
+    />
+  </label>
+);

@@ -26,7 +26,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Fredoka', 'sans-serif'],
+        sans: ['Manrope', 'sans-serif'],
         display: ['Space Grotesk', 'sans-serif'],
       },
       colors: {

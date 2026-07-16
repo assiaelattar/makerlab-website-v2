@@ -161,6 +161,28 @@ async function run() {
   fs.writeFileSync(DIST_HTML, homeHtml, 'utf8');
   console.log('\n✅ dist/index.html updated (home page)');
 
+  // Static hosts serve real directories before SPA fallbacks. Because this
+  // script creates dist/programs/[id]/index.html and dist/blog/[id]/index.html,
+  // the parent routes also need index files or /programs/ and /blog/ can 403.
+  const programsIndexHtml = buildPageHtml(baseHtml, {
+    title:       'Missions & Ateliers MakerLab Academy',
+    description: 'Explorez les ateliers MakerLab Academy en robotique, coding, IA, design 3D et drones pour enfants, familles et ecoles.',
+    image:       globalImage,
+    url:         `${SITE}/programs`,
+    ...sharedOpts,
+  });
+  writeHtml(path.join(DIST, 'programs', 'index.html'), programsIndexHtml);
+
+  const blogIndexHtml = buildPageHtml(baseHtml, {
+    title:       'Blog MakerLab Academy',
+    description: 'Conseils, projets et actualites MakerLab autour du coding, de la robotique, de l IA et des technologies creatives.',
+    image:       globalImage,
+    url:         `${SITE}/blog`,
+    ...sharedOpts,
+  });
+  writeHtml(path.join(DIST, 'blog', 'index.html'), blogIndexHtml);
+  console.log('✅ dist/programs/index.html + dist/blog/index.html created for direct routes');
+
   // 3. Programs — generate per-program HTML files
   console.log('\n📡 Fetching programs...');
   const programDocs = await fsList('website-programs');

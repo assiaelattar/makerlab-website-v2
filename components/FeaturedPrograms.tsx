@@ -34,10 +34,11 @@ export const FeaturedPrograms: React.FC = () => {
           </div>
           
           <ScrollReveal delay={200}>
-            <Link to="/programs">
-                <button className="group flex items-center gap-2 bg-black text-white px-8 py-4 border-4 border-black font-black uppercase tracking-widest hover:bg-brand-red transition-all shadow-neo hover:translate-x-1 hover:translate-y-1 hover:shadow-none">
-                    Voir tout <ArrowRight className="group-hover:translate-x-2 transition-transform" />
-                </button>
+            <Link
+              to="/programs"
+              className="group flex items-center gap-2 bg-black text-white px-8 py-4 border-4 border-black font-black uppercase tracking-widest hover:bg-brand-red transition-all shadow-neo hover:translate-x-1 hover:translate-y-1 hover:shadow-none"
+            >
+              Voir tout <ArrowRight className="group-hover:translate-x-2 transition-transform" />
             </Link>
           </ScrollReveal>
         </div>
