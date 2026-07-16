@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Rocket, ShieldCheck, Heart } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
 
@@ -20,13 +21,15 @@ const SAMPLE_NOTIFICATIONS: Omit<BookingNotification, 'timeLabel'>[] = [
 
 export const SocialProofToast: React.FC = () => {
     const { settings } = useSettings();
+    const { pathname } = useLocation();
     const [current, setCurrent] = useState<BookingNotification | null>(null);
     const [isVisible, setIsVisible] = useState(false);
+    const isHome = pathname === '/';
 
     const config = settings.socialProofConfig || { enabled: true, frequency_seconds: 45, max_age_days: 2 };
 
     useEffect(() => {
-        if (!config.enabled) {
+        if (!config.enabled || isHome) {
             setIsVisible(false);
             return;
         }
@@ -62,9 +65,9 @@ export const SocialProofToast: React.FC = () => {
             clearInterval(timer);
             clearTimeout(initialTimer);
         };
-    }, [isVisible, config.enabled, config.frequency_seconds, config.max_age_days]);
+    }, [isVisible, config.enabled, config.frequency_seconds, config.max_age_days, isHome]);
 
-    if (!current || !config.enabled) return null;
+    if (!current || !config.enabled || isHome) return null;
 
     return (
         <div 
@@ -77,18 +80,18 @@ export const SocialProofToast: React.FC = () => {
                 }
             `}
         >
-            <div className="bg-white border-4 border-black p-4 shadow-[8px_8px_0_0_rgba(0,0,0,1)] flex items-center gap-3 max-w-[300px] relative">
-                <div className="w-10 h-10 bg-brand-red text-white border-2 border-black flex items-center justify-center shrink-0 -rotate-3 shadow-neo-sm">
+            <div className="ml-card relative flex max-w-[320px] items-center gap-3 p-4 shadow-xl">
+                <div className="ml-icon h-10 w-10 shrink-0 bg-brand-blue text-white">
                     {current.icon}
                 </div>
                 <div>
                     <p className="text-[10px] font-black uppercase text-gray-400 leading-none mb-1">{current.timeLabel}</p>
                     <p className="text-sm font-black leading-tight text-black">
                         <span className="text-brand-blue">{current.name}</span> vient de réserver <br />
-                        <span className="uppercase text-[9px] bg-brand-orange/20 px-1 border-b border-brand-orange">{current.mission}</span>
+                        <span className="rounded-md bg-brand-orange/10 px-1.5 py-0.5 text-[9px] uppercase text-brand-orange">{current.mission}</span>
                     </p>
                 </div>
-                <div className="absolute -top-2 -right-2 w-4 h-4 bg-brand-green rounded-full border-2 border-black" />
+                <div className="absolute -right-1.5 -top-1.5 h-4 w-4 rounded-full border-2 border-white bg-brand-green" />
             </div>
         </div>
     );

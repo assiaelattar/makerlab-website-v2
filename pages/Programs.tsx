@@ -1,209 +1,206 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+import { ArrowRight, Bot, CheckCircle2, Code2, Cpu, Printer, Search, SlidersHorizontal, Sparkles, Users } from 'lucide-react';
 import { SEO } from '../components/SEO';
-import { ProgramCard } from '../components/ProgramCard';
-import { ScrollReveal } from '../components/ScrollReveal';
 import { usePrograms } from '../contexts/ProgramContext';
 import { useMissions } from '../contexts/MissionContext';
-import { ParallaxGallery } from '../components/ParallaxGallery';
-import { useSettings } from '../contexts/SettingsContext';
-import { StatsBanner } from '../components/StatsBanner';
-import { PhotoGallery } from '../components/PhotoGallery';
-import { SlidersHorizontal, ChevronDown, X } from 'lucide-react';
+import { Reveal } from '../components/Motion';
+
+const fallbackImage = 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=900';
+
+const categoryStyle = (category = '', index = 0) => {
+  const text = category.toLowerCase();
+  if (text.includes('robot') || text.includes('enfants')) return { icon: Bot, color: 'bg-brand-orange', text: 'text-brand-orange' };
+  if (text.includes('coding') || text.includes('ia') || text.includes('ai')) return { icon: Code2, color: 'bg-brand-blue', text: 'text-brand-blue' };
+  if (text.includes('design') || text.includes('3d')) return { icon: Printer, color: 'bg-brand-green', text: 'text-brand-green' };
+  return [
+    { icon: Cpu, color: 'bg-brand-orange', text: 'text-brand-orange' },
+    { icon: Code2, color: 'bg-brand-blue', text: 'text-brand-blue' },
+    { icon: Printer, color: 'bg-brand-green', text: 'text-brand-green' },
+  ][index % 3];
+};
+
+const getImage = (item: any) => item.image || item.coverImage || fallbackImage;
+const getTitle = (item: any) => item.title || item.name || 'Programme MakerLab';
+const getDescription = (item: any) => item.shortDescription || item.description || 'Un atelier MakerLab entièrement pratique.';
 
 export const Programs: React.FC = () => {
-  const [selectedCategory, setSelectedCategory] = React.useState<string>('All');
-  const [selectedAge, setSelectedAge] = React.useState<string>('All');
+  const [selectedCategory, setSelectedCategory] = React.useState('All');
+  const [selectedAge, setSelectedAge] = React.useState('All');
   const [showFilters, setShowFilters] = React.useState(false);
-  
+  const [search, setSearch] = React.useState('');
+
   const { programs } = usePrograms();
   const { missions } = useMissions();
-  const { settings } = useSettings();
-  const activePrograms = programs.filter(p => p.active);
-  
-  // Dynamic Categorical Data from Admin Context
-  const categories = React.useMemo(() => {
-    const rawCategories = Array.from(new Set(activePrograms.map(p => p.category).filter(Boolean)));
-    const essential = ['All', 'Stages Vacances', 'Unitaires (3h)', 'Drones'];
-    return Array.from(new Set([...essential, ...rawCategories]));
-  }, [activePrograms]);
+  const activePrograms = programs.filter(program => program.active);
 
+  const categories = React.useMemo(() => {
+    const raw = Array.from(new Set(activePrograms.map(program => program.category).filter(Boolean)));
+    return ['All', 'Enfants & Familles', 'Unitaires (3h)', 'Écoles', ...raw.filter(cat => !['Enfants & Familles', 'Écoles'].includes(cat))];
+  }, [activePrograms]);
   const ages = ['All', '7-11 ans', '12-17 ans', 'Adultes'];
 
-  // Mission Finder Logic: Filter based on UI selection
-  const filteredPrograms = activePrograms.filter(p => {
-    const matchesCategory = selectedCategory === 'All' || p.category === selectedCategory;
-    
-    // Simple age mapping if not explicitly in the data
-    const matchesAge = selectedAge === 'All' || 
-      (selectedAge === '7-11 ans' && (p.ageGroup?.includes('7') || !p.ageGroup)) ||
-      (selectedAge === '12-17 ans' && (p.ageGroup?.includes('12') || p.ageGroup?.includes('17'))) ||
-      (selectedAge === 'Adultes' && (p.category === 'Business' || p.category === 'Entrepreneuriat'));
-    
-    return matchesCategory && matchesAge;
+  const filteredPrograms = activePrograms.filter(program => {
+    const matchesCategory = selectedCategory === 'All'
+      || program.category === selectedCategory
+      || (selectedCategory === 'Écoles' && (program.category?.includes('École') || program.format === 'School Program'));
+
+    const matchesAge = selectedAge === 'All'
+      || (selectedAge === '7-11 ans' && (program.ageGroup?.includes('7') || program.ageGroup?.includes('8') || !program.ageGroup))
+      || (selectedAge === '12-17 ans' && (program.ageGroup?.includes('12') || program.ageGroup?.includes('17')))
+      || (selectedAge === 'Adultes' && (program.category === 'Business' || program.category === 'Entrepreneuriat'));
+
+    const searchable = `${program.title} ${program.category} ${program.shortDescription || ''} ${program.description || ''}`.toLowerCase();
+    const matchesSearch = !search.trim() || searchable.includes(search.trim().toLowerCase());
+
+    return matchesCategory && matchesAge && matchesSearch;
   });
 
-  // Combine missions for "Units" or "All"
-  const relevantMissions = React.useMemo(() => {
-    if (selectedCategory !== 'All' && selectedCategory !== 'Unitaires (3h)') return [];
-    
-    return missions.filter(m => {
-      const matchesAge = selectedAge === 'All' || 
-        (selectedAge === '7-11 ans' && (m.category.includes('Enfant') || m.title.includes('Kids'))) ||
-        (selectedAge === '12-17 ans' && (m.category.includes('Ado') || m.title.includes('Teen')));
-      return m.active && matchesAge;
-    });
-  }, [missions, selectedCategory, selectedAge]);
+  const relevantMissions = (selectedCategory === 'All' || selectedCategory === 'Unitaires (3h)')
+    ? missions.filter(mission => mission.active)
+    : [];
 
-  const kidsPrograms = [
-    ...filteredPrograms.filter(p => 
-      p.category === 'Enfants & Familles' || 
-      (['Coding', 'Robotics', 'AI', 'Design'].includes(p.category)) ||
-      (p.format !== 'School Program' && p.category !== 'Écoles & Éducation')
-    ),
-    ...relevantMissions
-  ];
-  
-  const schoolPrograms = filteredPrograms.filter(p => 
-    p.category === 'Écoles & Éducation' || 
-    p.category === 'Entrepreneuriat' ||
-    p.category === 'Business' ||
-    p.format === 'School Program'
-  );
-  const projectsGallery = settings?.home_projects;
+  const catalogItems = [...filteredPrograms, ...relevantMissions];
+  const heroImage = getImage(activePrograms[0] || missions[0] || {});
 
   return (
-    <div className="min-h-screen py-0 px-4">
-      <SEO 
-        title="Missions & Ateliers Robotique Casablanca" 
-        description="Parcours Ateliers Drone, Stages de Vacances Coding et Camp Robotique à Casablanca. Choisissez votre mission technologique et devenez un Maker !"
+    <main className="min-h-screen overflow-x-hidden bg-[#f3f5f7] px-4 pb-24 pt-5 text-slate-900 md:px-8">
+      <SEO
+        title="Missions & Ateliers Robotique Casablanca"
+        description="Catalogue mobile-first des ateliers MakerLab: robotique, coding, IA, design 3D et missions 3h."
         keywords="robotique casablanca, camp robotique casablanca, stage vacances enfant casablanca, atelier drone maroc, coding for kids"
       />
-      <div className="container mx-auto">
-        <ScrollReveal>
-          {/* HEADER SECTION — compact on mobile */}
-          <section className="relative pb-4 md:pb-12">
-            <div className="bg-brand-red border-4 border-black px-4 py-10 md:py-24 text-center relative overflow-hidden group shadow-neo-xl">
-              <div className="absolute inset-0 z-0 bg-[url('https://www.transparenttextures.com/patterns/diagmonds-light.png')] opacity-20"></div>
-              <div className="container mx-auto relative z-10">
-                <h1 className="font-display font-black text-4xl md:text-8xl text-white mb-2 md:mb-6 uppercase tracking-tight leading-[0.9] drop-shadow-[3px_3px_0px_rgba(0,0,0,1)] md:drop-shadow-[6px_6px_0px_rgba(0,0,0,1)]">
-                  Trouve ta <span className="text-white underline decoration-brand-orange">Mission.</span>
-                </h1>
-                <p className="text-sm md:text-2xl text-white/80 font-bold max-w-2xl mx-auto">
-                  Filtre ton expérience MakerLAB par âge et technologie.
-                </p>
+
+      <section className="mx-auto max-w-7xl">
+        <div className="relative min-h-[520px] overflow-hidden rounded-lg bg-slate-950 text-white">
+          <img src={heroImage} alt="Catalogue des programmes MakerLab" className="ml-hero-media absolute inset-0 h-full w-full object-cover" />
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(10,18,32,.95),rgba(10,18,32,.78)_48%,rgba(10,18,32,.18))]" />
+          <div className="relative z-10 flex min-h-[520px] flex-col justify-between p-5 md:p-9">
+          <div className="flex items-center justify-between">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 text-xs font-black uppercase tracking-[0.15em] text-white/80">
+              <Sparkles size={15} className="text-[#ffc938]" />
+              Catalogue des programmes
+            </div>
+            <button onClick={() => setShowFilters(value => !value)} className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white md:hidden" aria-label="Afficher les filtres">
+              <SlidersHorizontal size={19} />
+            </button>
+          </div>
+
+          <div className="grid gap-8 lg:grid-cols-[1fr_0.7fr] lg:items-end">
+            <div>
+              <h1 className="max-w-3xl font-display text-4xl font-black leading-[0.94] md:text-6xl">
+                Trouvez la mission qui va tout déclencher.
+              </h1>
+              <p className="mt-6 max-w-xl text-lg font-semibold leading-8 text-white/70">
+                Explorez par âge, intérêt et résultat. Chaque mission se termine par un projet réel.
+              </p>
+            </div>
+            <div className="rounded-lg border border-white/15 bg-white/95 p-4 text-slate-900 shadow-2xl backdrop-blur-xl">
+              <label className="flex items-center gap-3 rounded-xl bg-[#f3f5f7] px-4 py-3">
+                <Search size={18} className="text-slate-400" />
+                <input
+                  value={search}
+                  onChange={event => setSearch(event.target.value)}
+                  placeholder="Robotique, IA, Design 3D..."
+                  className="ml-search-reset min-h-0 flex-1 border-0 bg-transparent p-0 text-sm font-bold outline-none"
+                />
+              </label>
+              <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs font-black">
+                <div className="rounded-xl bg-slate-100 px-2 py-3">{catalogItems.length} options</div>
+                <div className="rounded-xl bg-slate-100 px-2 py-3">Projets réels</div>
+                <div className="rounded-xl bg-brand-orange px-2 py-3 text-white">Tous niveaux</div>
               </div>
             </div>
-          </section>
-        </ScrollReveal>
-
-        {/* ── MOBILE: Filter toggle button ───────────────────────────── */}
-        <div className="md:hidden flex items-center justify-between mb-3 px-0">
-          <button
-            onClick={() => setShowFilters(v => !v)}
-            className="flex items-center gap-2 bg-black text-white font-black text-xs uppercase tracking-widest px-4 py-2.5 border-2 border-black shadow-[3px_3px_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
-          >
-            <SlidersHorizontal size={13} strokeWidth={3} />
-            Filtrer
-            {(selectedCategory !== 'All' || selectedAge !== 'All') && (
-              <span className="bg-brand-orange text-black rounded-full w-4 h-4 text-[9px] flex items-center justify-center font-black">
-                {(selectedCategory !== 'All' ? 1 : 0) + (selectedAge !== 'All' ? 1 : 0)}
-              </span>
-            )}
-            <ChevronDown size={13} strokeWidth={3} className={`transition-transform duration-200 ${showFilters ? 'rotate-180' : ''}`} />
-          </button>
-          {(selectedCategory !== 'All' || selectedAge !== 'All') && (
-            <button
-              onClick={() => { setSelectedCategory('All'); setSelectedAge('All'); }}
-              className="flex items-center gap-1 text-xs font-black text-brand-red uppercase tracking-wider"
-            >
-              <X size={12} strokeWidth={3} /> Effacer
-            </button>
-          )}
+          </div>
+          </div>
         </div>
 
-        {/* MISSION FINDER UI — collapsible on mobile, always visible on desktop */}
-        <section className={`mb-6 md:mb-16 relative z-20 container mx-auto flex-col md:flex-row gap-3 md:gap-6 items-start md:items-center justify-center md:-mt-10 ${
-          showFilters ? 'flex' : 'hidden md:flex'
-        }`}>
-            <div className="bg-white border-4 border-black p-3 md:p-4 shadow-neo flex flex-wrap gap-1.5 md:gap-2 justify-center w-full md:w-auto">
-                <span className="w-full text-center text-[9px] font-black uppercase tracking-widest text-gray-400 mb-1">Thématique</span>
-                {categories.map(cat => (
-                    <button key={cat} onClick={() => setSelectedCategory(cat)}
-                        className={`px-2.5 py-1.5 md:px-4 md:py-2 border-2 border-black font-black text-[10px] md:text-sm uppercase transition-all shadow-neo-sm ${selectedCategory === cat ? 'bg-brand-blue text-white rotate-1 scale-105' : 'bg-white text-black hover:bg-gray-100'}`}>
-                        {cat === 'All' ? 'Tous' : cat}
-                    </button>
+        <section className={`${showFilters ? 'block' : 'hidden'} ml-card sticky top-24 z-30 mt-4 p-4 backdrop-blur-xl md:block`}>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <p className="mb-2 text-xs font-black uppercase tracking-[0.14em] text-slate-400">Univers</p>
+              <div className="flex flex-wrap gap-2">
+                {categories.map(category => (
+                  <button
+                    key={category}
+                    onClick={() => setSelectedCategory(category)}
+                    className={`ml-chip ${selectedCategory === category ? 'border-brand-blue bg-brand-blue text-white' : ''}`}
+                  >
+                    {category === 'All' ? 'Tous' : category}
+                  </button>
                 ))}
+              </div>
             </div>
-            <div className="bg-white border-4 border-black p-3 md:p-4 shadow-neo flex flex-wrap gap-1.5 md:gap-2 justify-center w-full md:w-auto">
-                <span className="w-full text-center text-[9px] font-black uppercase tracking-widest text-gray-400 mb-1">Âge</span>
+            <div>
+              <p className="mb-2 text-xs font-black uppercase tracking-[0.14em] text-slate-400">Âge</p>
+              <div className="flex flex-wrap gap-2">
                 {ages.map(age => (
-                    <button key={age} onClick={() => setSelectedAge(age)}
-                        className={`px-2.5 py-1.5 md:px-4 md:py-2 border-2 border-black font-black text-[10px] md:text-sm uppercase transition-all shadow-neo-sm ${selectedAge === age ? 'bg-brand-orange text-black -rotate-1 scale-105' : 'bg-white text-black hover:bg-gray-100'}`}>
-                        {age === 'All' ? 'Tous' : age}
-                    </button>
+                  <button
+                    key={age}
+                    onClick={() => setSelectedAge(age)}
+                    className={`ml-chip ${selectedAge === age ? 'border-brand-orange bg-brand-orange text-white' : ''}`}
+                  >
+                    {age === 'All' ? 'Tous' : age}
+                  </button>
                 ))}
+              </div>
             </div>
+          </div>
         </section>
 
-        {/* KIDS PROGRAMS */}
-        <div className="mb-16 md:mb-24">
-          <h2 className="font-display font-black text-2xl md:text-4xl uppercase border-b-4 md:border-b-8 border-brand-orange pb-3 md:pb-4 mb-6 md:mb-8 inline-block">Enfants & Familles</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-8">
-            {kidsPrograms.length > 0 ? (
-              kidsPrograms.map((item, index) => (
-                <ScrollReveal key={item.id} delay={index * 100}>
-                  <ProgramCard program={item as any} index={index} />
-                </ScrollReveal>
-              ))
-            ) : (
-              <div className="col-span-full py-10">
-                <p className="text-xl font-bold text-gray-400">Aucun programme enfant disponible pour le moment.</p>
-              </div>
-            )}
-          </div>
-        </div>
+        <section className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          {catalogItems.map((item: any, index) => {
+            const title = getTitle(item);
+            const description = getDescription(item);
+            const image = getImage(item);
+            const isMission = 'date' in item;
+            const detailPath = isMission ? `/programs/kids-2?missionId=${item.id}` : `/programs/${item.id}`;
+            const style = categoryStyle(item.category, index);
+            const Icon = style.icon;
 
-        {/* SCHOOL PROGRAMS */}
-        <div className="mb-16 md:mb-20">
-          <h2 className="font-display font-black text-2xl md:text-4xl uppercase border-b-4 md:border-b-8 border-brand-red pb-3 md:pb-4 mb-6 md:mb-8 inline-block">Écoles & Éducation</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-8">
-            {schoolPrograms.length > 0 ? (
-              schoolPrograms.map((program, index) => (
-                <ScrollReveal key={program.id} delay={index * 100}>
-                  <ProgramCard program={program} index={index} />
-                </ScrollReveal>
-              ))
-            ) : (
-              <div className="col-span-full py-10">
-                <p className="text-xl font-bold text-gray-400">Aucun programme école disponible pour le moment.</p>
-              </div>
-            )}
-          </div>
-        </div>
+            return (
+              <Reveal key={`${isMission ? 'mission' : 'program'}-${item.id}`} delay={(index % 3) * 80}>
+              <Link to={detailPath} className="ml-card ml-card-interactive group block overflow-hidden">
+                <div className="relative aspect-[4/3] overflow-hidden">
+                  <img src={image} alt={title} className="ml-image-zoom h-full w-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#111]/70 via-transparent to-transparent" />
+                  <span className="absolute left-4 top-4 rounded-full bg-white/95 px-3 py-1 text-[10px] font-black uppercase text-[#111]">{item.category || 'Mission'}</span>
+                  <span className="absolute bottom-4 left-4 rounded-full bg-brand-orange px-3 py-1 text-[10px] font-black text-white">{item.price || '400 DHS'}</span>
+                  <div className={`ml-icon absolute right-4 top-4 ${style.color} text-white shadow-lg`}>
+                    <Icon size={20} />
+                  </div>
+                </div>
+                <div className="p-5">
+                  <h2 className="text-2xl font-black leading-tight">{title}</h2>
+                  <p className="mt-2 line-clamp-2 min-h-[48px] text-sm font-semibold leading-6 text-slate-500">{description}</p>
+                  <div className="mt-4 grid grid-cols-3 gap-2 text-center text-[10px] font-black">
+                    <div className="rounded-lg bg-[#f3f5f7] px-2 py-3">{item.ageGroup || item.age || '8-17 ans'}</div>
+                    <div className="rounded-lg bg-[#f3f5f7] px-2 py-3">{item.duration || '3h'}</div>
+                    <div className={`rounded-lg bg-[#f3f5f7] px-2 py-3 ${style.text}`}>{isMission ? 'Session' : 'Programme'}</div>
+                  </div>
+                  <div className="mt-4 flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-xs font-black text-slate-500">
+                      <CheckCircle2 size={15} className="text-brand-green" />
+                      Projet réel
+                    </div>
+                    <span className="inline-flex items-center gap-1 text-sm font-black text-[#111]">
+                      Détails <ArrowRight size={15} />
+                    </span>
+                  </div>
+                </div>
+              </Link>
+              </Reveal>
+            );
+          })}
+        </section>
 
-        {/* STATS BANNER — After programs */}
-        <div className="mb-20">
-            <StatsBanner stats={settings?.key_stats || []} variant="cyan" />
-        </div>
-
-        {/* Gallery Section at the bottom */}
-        {settings?.gallery_programs?.length > 0 && (
-          <div className="mb-20">
-            <PhotoGallery 
-              images={settings.gallery_programs} 
-              title="Impact MakerLab" 
-              subtitle="L'excellence technologique en action." 
-              bgDark={true}
-            />
+        {catalogItems.length === 0 && (
+          <div className="ml-card mt-5 p-10 text-center">
+            <Users className="mx-auto mb-4 text-slate-300" size={42} />
+            <p className="text-xl font-black text-slate-500">Aucun programme disponible pour ces filtres.</p>
           </div>
         )}
-
-        <ScrollReveal>
-          <section className="mt-12 bg-white border-4 border-black shadow-neo overflow-hidden rounded-[2.5rem] mb-12">
-            <ParallaxGallery projects={projectsGallery} title="Découvre les réalisations" subtitle="Voici ce que nos Makers ont créé !" />
-          </section>
-        </ScrollReveal>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 };

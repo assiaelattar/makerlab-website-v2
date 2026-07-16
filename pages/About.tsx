@@ -1,347 +1,129 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+import { ArrowRight, Bot, Briefcase, Code2, Cpu, Gamepad2, Lightbulb, Palette, Printer, ShieldCheck, Wrench } from 'lucide-react';
 import { SEO } from '../components/SEO';
-import { ScrollReveal } from '../components/ScrollReveal';
-import { Button } from '../components/Button';
-import { 
-  Rocket, 
-  Target, 
-  Cpu, 
-  Lightbulb, 
-  Users, 
-  ShieldCheck, 
-  Wrench, 
-  Code, 
-  Gamepad2, 
-  Palette, 
-  Briefcase, 
-  Video,
-  Printer,
-  Zap
-} from 'lucide-react';
+import { AppCard, AppContainer, AppSectionHeader, AppShell, appAccentClasses } from '../components/AppStyle';
+import { PremiumHero } from '../components/PremiumHero';
+import { Reveal } from '../components/Motion';
+
+const heroImage = 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?q=80&w=1400&auto=format&fit=crop';
 
 export const About: React.FC = () => {
   return (
-    <div className="min-h-screen bg-white">
-      <SEO 
-        title="À Propos - MakerLab Academy Casablanca"
-        description="Découvrez MakerLab Academy, le centre de référence STEM au Maroc. Ateliers de robotique, codage, IA et impression 3D pour enfants et adolescents."
-        keywords="STEM education Morocco, activités STEM enfants Maroc, ateliers scientifiques Casablanca, éducation technologique jeunes, MakerLab Academy Casablanca"
+    <AppShell className="pb-24 pt-5">
+      <SEO
+        title="A Propos - MakerLab Academy Casablanca"
+        description="MakerLab Academy, centre STEM a Casablanca pour robotique, codage, IA et impression 3D."
+        keywords="STEM education Morocco, activites STEM enfants Maroc, ateliers scientifiques Casablanca"
       />
-      {/* Hero Section */}
-      <section className="relative py-12 md:py-24 overflow-hidden border-b-8 border-black bg-brand-orange/10">
-        <div className="container mx-auto px-4 relative z-10">
-          <ScrollReveal>
-            <div className="max-w-4xl mx-auto text-center">
-              <h1 className="font-display font-black text-4xl md:text-7xl mb-4 md:mb-6 leading-tight uppercase tracking-tighter">
-                Who We <span className="text-brand-red">Are</span>
-              </h1>
-              <p className="text-base md:text-2xl font-bold mb-6 md:mb-8 leading-relaxed">
-                MakerLab Academy is a <span className="bg-brand-blue/20 px-2">STEM education center in Casablanca</span> where kids and teenagers learn by <span className="underline decoration-brand-red decoration-4">building real projects</span>, not just watching or memorizing.
-              </p>
-              <div className="bg-black text-white p-4 md:p-6 rounded-2xl border-4 border-black shadow-neo inline-block rotate-1">
-                <p className="font-black text-sm md:text-xl uppercase tracking-widest">
-                  Think like engineers, creators, and innovators.
-                </p>
-              </div>
-            </div>
-          </ScrollReveal>
-        </div>
-        {/* Abstract shapes for background */}
-        <div className="absolute top-10 left-10 w-32 h-32 border-4 border-black rounded-full opacity-10 animate-pulse"></div>
-        <div className="absolute bottom-10 right-10 w-48 h-48 border-8 border-brand-red rounded-xl rotate-12 opacity-10"></div>
-      </section>
+      <AppContainer>
+        <PremiumHero
+          eyebrow="À propos de MakerLab"
+          title={<>La technologie ne se regarde pas. <span className="text-brand-orange">Elle se construit.</span></>}
+          description="MakerLab est une académie STEM où les enfants imaginent, conçoivent, codent, testent et présentent de vrais projets."
+          image={heroImage}
+          imageAlt="Espace de fabrication MakerLab"
+          accent="orange"
+          primary={{ label: 'Explorer les programmes', to: '/programs' }}
+          secondary={{ label: 'Visiter le lab', to: '/contact' }}
+          stats={[
+            ['500+', 'makers formés'],
+            ['6', 'disciplines'],
+            ['80%', 'de pratique'],
+            ['1', 'projet par mission'],
+          ]}
+        />
 
-      {/* Philosophy Section */}
-      <section className="py-12 md:py-20 border-b-8 border-black">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-            <ScrollReveal direction="left">
-              <div className="bg-brand-blue border-4 border-black rounded-3xl p-8 shadow-neo -rotate-2">
-                <h2 className="font-display font-black text-4xl mb-6 uppercase">Our Mission</h2>
-                <p className="text-xl font-bold mb-6">
-                  At MakerLab, students don't just use technology — they design it, build it, and understand it.
-                </p>
-                <div className="space-y-4">
-                  {[
-                    "Solve problems",
-                    "Build solutions",
-                    "Work creatively with technology",
-                    "Turn ideas into real projects"
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-3">
-                      <div className="w-6 h-6 bg-black text-white rounded-full flex items-center justify-center font-bold text-xs">{i+1}</div>
-                      <span className="font-black uppercase tracking-wider">{item}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </ScrollReveal>
-            <ScrollReveal direction="right">
-              <h2 className="font-display font-black text-5xl mb-8 uppercase leading-none">
-                Our <span className="text-brand-blue">Vision</span>
-              </h2>
-              <p className="text-xl font-bold mb-6 text-gray-700">
-                We want to build a new generation of young innovators in Morocco. A generation that creates instead of only consuming technology.
-              </p>
-              <div className="bg-white border-4 border-black rounded-2xl p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 transition-transform">
-                <p className="font-bold text-lg italic">
-                  "MakerLab Academy aims to become a reference for hands-on STEM education in Morocco."
-                </p>
-              </div>
-            </ScrollReveal>
-          </div>
-        </div>
-      </section>
-
-      {/* Difference Section - Engineering Process */}
-      <section className="py-20 bg-gray-50 border-b-8 border-black overflow-hidden">
-        <div className="container mx-auto px-4 text-center mb-16">
-          <ScrollReveal>
-            <h2 className="font-display font-black text-5xl md:text-6xl mb-6 uppercase">
-              What Makes Us <span className="text-brand-green">Different</span>
-            </h2>
-            <p className="text-xl font-bold text-gray-600 max-w-3xl mx-auto">
-              Most programs use pre-made kits. At MakerLab, we follow a real engineering process to go much further.
-            </p>
-            <div className="mt-8 inline-block bg-brand-red text-white border-4 border-black px-8 py-3 rounded-full font-black uppercase tracking-tighter text-xl shadow-neo rotate-1 hover:rotate-0 transition-transform">
-              🚫 THE "NO LEGO" RULE : REAL COMPONENTS ONLY
-            </div>
-          </ScrollReveal>
-        </div>
-
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <section className="py-10">
+          <AppSectionHeader
+            eyebrow="Notre méthode"
+            title="Une boucle d’ingénierie simple que les enfants vivent vraiment."
+            text="Chaque mission avance par étapes claires : une idée, des choix, un prototype, des essais et une présentation."
+          />
+          <div className="grid gap-4 md:grid-cols-4">
             {[
-              { 
-                step: "1", 
-                title: "Design", 
-                desc: "Students design using CAD tools, applying geometry and logic.", 
-                color: "bg-brand-orange", 
-                icon: Lightbulb 
-              },
-              { 
-                step: "2", 
-                title: "Build", 
-                desc: "Manufacture designs using 3D printers and laser cutters.", 
-                color: "bg-brand-red", 
-                icon: Wrench 
-              },
-              { 
-                step: "3", 
-                title: "Program", 
-                desc: "Students code and bring their projects to life.", 
-                color: "bg-brand-blue", 
-                icon: Code 
-              },
-              { 
-                step: "4", 
-                title: "Test & Improve", 
-                desc: "Debug and improve design — just like real engineers.", 
-                color: "bg-brand-green", 
-                icon: Zap 
-              }
-            ].map((s, i) => (
-              <ScrollReveal key={i} delay={i * 150}>
-                <div className={`h-full border-4 border-black p-8 rounded-3xl ${s.color} shadow-neo flex flex-col items-center text-center transform hover:scale-105 transition-transform`}>
-                  <div className="bg-white p-4 rounded-2xl border-4 border-black mb-6">
-                    <s.icon size={32} />
-                  </div>
-                  <div className="bg-black text-white px-3 py-1 rounded-full text-xs font-black mb-4 uppercase tracking-widest">
-                    Step {s.step}
-                  </div>
-                  <h3 className="font-display font-black text-2xl mb-4 uppercase">{s.title}</h3>
-                  <p className="font-bold text-sm leading-relaxed">{s.desc}</p>
+              { title: 'Imaginer', text: 'Partir d’un problème ou d’une idée créative.', icon: Lightbulb, color: 'bg-brand-orange' },
+              { title: 'Concevoir', text: 'Utiliser des outils numériques et de vraies contraintes.', icon: Palette, color: 'bg-brand-blue' },
+              { title: 'Construire', text: 'Prototyper avec l’électronique et la fabrication.', icon: Wrench, color: 'bg-brand-green' },
+              { title: 'Améliorer', text: 'Tester, corriger et présenter le résultat.', icon: ShieldCheck, color: 'bg-brand-red' },
+            ].map((item, index) => (
+              <Reveal key={item.title} delay={index * 80}>
+              <AppCard className="ml-card-interactive min-h-[240px] p-5">
+                <div className={`mb-5 flex h-12 w-12 items-center justify-center rounded-2xl ${item.color} text-white`}>
+                  <item.icon size={23} />
                 </div>
-              </ScrollReveal>
+                <h3 className="text-2xl font-black">{item.title}</h3>
+                <p className="mt-3 text-sm font-semibold leading-6 text-slate-500">{item.text}</p>
+              </AppCard>
+              </Reveal>
             ))}
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Stations Section */}
-      <section className="py-12 md:py-20 border-b-8 border-black">
-        <div className="container mx-auto px-4">
-          <ScrollReveal>
-            <div className="mb-16">
-              <h2 className="font-display font-black text-5xl mb-4 uppercase">Six Innovation Stations</h2>
-              <div className="w-32 h-3 bg-brand-red border-2 border-black"></div>
-            </div>
-          </ScrollReveal>
+        <Reveal>
+        <section className="grid gap-5 lg:grid-cols-[0.8fr_1.2fr]">
+          <AppCard className="bg-brand-blue p-6 text-white md:p-8">
+            <p className="text-xs font-black uppercase tracking-[0.14em] text-white/65">Pourquoi les parents nous font confiance</p>
+            <h2 className="mt-3 font-display text-4xl font-black leading-none">Des progrès visibles à chaque session.</h2>
+            <p className="mt-5 text-lg font-semibold leading-8 text-white/75">
+              Chaque expérience vise un résultat concret que la famille peut voir : un robot, un jeu, une maquette, un prototype ou une présentation.
+            </p>
+          </AppCard>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[
-              { title: "Computer Science & AI", icon: Cpu, desc: "Programming, artificial intelligence, and software inner workings.", color: "border-brand-blue" },
-              { title: "Robotics & Engineering", icon: Rocket, desc: "Design and build robots from scratch — no Lego kits.", color: "border-brand-red" },
-              { title: "Game Design", icon: Gamepad2, desc: "Create video games and interactive experiences.", color: "border-brand-green" },
-              { title: "Creative Design", icon: Palette, desc: "Digital design tools to develop visual creativity.", color: "border-brand-orange" },
-              { title: "Entrepreneurship", icon: Briefcase, desc: "Transform ideas into real projects and startups.", color: "border-black" },
-              { title: "Digital Storytelling", icon: Video, desc: "Communicate ideas through video, content, and media.", color: "border-brand-blue" }
-            ].map((station, i) => (
-              <ScrollReveal key={i} delay={i * 100}>
-                <div className={`border-4 ${station.color} p-8 rounded-2xl bg-white hover:bg-gray-50 transition-colors shadow-neo-sm group`}>
-                  <div className={`w-14 h-14 rounded-xl border-4 border-black flex items-center justify-center mb-6 transition-transform group-hover:-rotate-6 bg-white`}>
-                    <station.icon size={28} />
-                  </div>
-                  <h3 className="font-display font-black text-2xl mb-4 uppercase tracking-tight">{station.title}</h3>
-                  <p className="font-bold text-gray-600 leading-relaxed">{station.desc}</p>
+              { title: 'Robotique', icon: Bot },
+              { title: 'Code & IA', icon: Code2 },
+              { title: 'Design 3D', icon: Printer },
+              { title: 'Création de jeux', icon: Gamepad2 },
+              { title: 'Électronique', icon: Cpu },
+              { title: 'Entrepreneuriat', icon: Briefcase },
+            ].map((station, index) => (
+              <AppCard key={station.title} className="p-5">
+                <div className={`mb-4 flex h-11 w-11 items-center justify-center rounded-2xl ${appAccentClasses[index % appAccentClasses.length]} text-white`}>
+                  <station.icon size={21} />
                 </div>
-              </ScrollReveal>
+                <h3 className="text-xl font-black">{station.title}</h3>
+                <p className="mt-2 text-sm font-semibold leading-6 text-slate-500">Un univers pratique intégré au parcours d’apprentissage MakerLab.</p>
+              </AppCard>
             ))}
           </div>
-        </div>
-      </section>
+        </section>
+        </Reveal>
 
-      {/* Makerspace Section */}
-      <section className="py-20 bg-brand-green/10 border-b-8 border-black relative overflow-hidden">
-        <div className="container mx-auto px-4">
-          <div className="bg-white border-4 border-black rounded-[40px] p-8 md:p-16 shadow-neo grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
-            <ScrollReveal direction="left">
-              <h2 className="font-display font-black text-5xl md:text-6xl mb-8 uppercase leading-tight">
-                Our <span className="text-brand-red">Makerspace</span>
-              </h2>
-              <p className="text-xl font-bold mb-8 text-gray-700 leading-relaxed">
-                MakerLab Academy is built like a <span className="bg-brand-orange/20 px-2 italic">real innovation lab</span>. 
-                Students have access to tools used by professionals to feel like they are inside a startup lab or tech studio.
-              </p>
-              <div className="grid grid-cols-2 gap-4">
-                {[
-                  { label: "3D Printers", icon: Printer },
-                  { label: "Laser Cutting", icon: Zap },
-                  { label: "Electronics Lab", icon: Cpu },
-                  { label: "Prototyping Tools", icon: Wrench }
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-3 p-4 bg-gray-50 border-2 border-black rounded-xl font-black uppercase text-sm tracking-wider">
-                    <item.icon size={18} className="text-brand-red" />
-                    {item.label}
-                  </div>
-                ))}
+        <Reveal>
+        <section className="py-10">
+          <div className="grid gap-4 md:grid-cols-3">
+            {[
+              ['De vrais outils', 'Imprimantes 3D, électronique, capteurs, code et équipements de fabrication.'],
+              ['Des mentors présents', 'Des adultes qui rendent le travail sûr, clair et stimulant.'],
+              ['Des compétences durables', 'Confiance, créativité et résolution de problèmes au-delà de la classe.'],
+            ].map(([title, text], index) => (
+              <div key={title} className={`rounded-lg p-6 text-white shadow-lg ${appAccentClasses[index % appAccentClasses.length]}`}>
+                <h3 className="text-2xl font-black">{title}</h3>
+                <p className="mt-3 font-semibold leading-7 text-white/82">{text}</p>
               </div>
-            </ScrollReveal>
-            <ScrollReveal direction="right">
-              <div className="relative">
-                <div className="bg-brand-red absolute -top-4 -left-4 w-full h-full rounded-[40px] border-4 border-black"></div>
-                <img 
-                  src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?q=80&w=1000&auto=format&fit=crop" 
-                  alt="MakerLab Makerspace" 
-                  className="relative z-10 w-full h-[400px] object-cover rounded-[40px] border-4 border-black shadow-neo"
-                />
-              </div>
-            </ScrollReveal>
+            ))}
           </div>
-        </div>
-        {/* Background decorative elements */}
-        <div className="absolute top-0 right-0 p-10 font-display font-black text-9xl text-black/5 select-none pointer-events-none uppercase">MAKER</div>
-      </section>
+        </section>
+        </Reveal>
 
-      {/* Philosophy & Parents Section */}
-      <section className="py-12 md:py-20 border-b-8 border-black">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
-            <ScrollReveal direction="left">
-              <h2 className="font-display font-black text-4xl mb-8 uppercase">Teaching Philosophy</h2>
-              <p className="text-xl font-bold mb-8 text-gray-600">
-                We believe students learn best when they build, experiment, make mistakes, and solve real problems. 
-                Our instructors guide students like mentors in a startup or engineering lab.
+        <Reveal>
+        <section>
+          <div className="rounded-lg bg-brand-green p-6 text-white shadow-2xl md:p-10">
+            <div className="mx-auto max-w-3xl text-center">
+              <h2 className="font-display text-4xl font-black leading-none md:text-5xl">Prêt à voir le laboratoire en action ?</h2>
+              <p className="mx-auto mt-5 max-w-xl text-lg font-semibold leading-8 text-white/75">
+                La meilleure façon de comprendre MakerLab est de voir ce que les enfants construisent.
               </p>
-              <div className="space-y-6">
-                {[
-                  "Project-based learning",
-                  "Creativity & Innovation",
-                  "Collaboration & Teamwork",
-                  "Real-world Technical Skills"
-                ].map((item, i) => (
-                  <div key={i} className="flex items-start gap-4 p-4 border-2 border-black rounded-xl bg-brand-blue/10">
-                    <ShieldCheck className="text-brand-blue mt-1" />
-                    <div>
-                      <h4 className="font-black uppercase text-lg">{item}</h4>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </ScrollReveal>
-            <ScrollReveal direction="right">
-              <div className="bg-brand-orange border-4 border-black rounded-3xl p-8 shadow-neo">
-                <h2 className="font-display font-black text-4xl mb-8 uppercase">Why Parents Choose Us</h2>
-                <div className="space-y-4">
-                  {[
-                    "Develop confidence through projects",
-                    "Understand technology deeply",
-                    "Improve problem-solving skills",
-                    "Use screens productively",
-                    "Prepare for future careers"
-                  ].map((item, i) => (
-                    <div key={i} className="bg-white border-2 border-black p-4 rounded-xl flex items-center gap-4 hover:translate-x-2 transition-transform">
-                      <div className="bg-brand-red text-white p-2 rounded-lg border-2 border-black">
-                        <Zap size={16} />
-                      </div>
-                      <span className="font-bold text-lg">{item}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </ScrollReveal>
+              <Link to="/programs" className="mt-8 inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-4 font-black text-[#111]">
+                Voir les programmes <ArrowRight size={18} />
+              </Link>
+            </div>
           </div>
-        </div>
-      </section>
-
-      {/* Target Audience */}
-      <section className="py-20 bg-black text-white text-center border-b-8 border-black">
-        <div className="container mx-auto px-4 max-w-4xl">
-          <ScrollReveal>
-            <h2 className="font-display font-black text-5xl md:text-6xl mb-12 uppercase italic tracking-tighter">
-              Who Our Programs Are <span className="text-brand-blue underline">For</span>
-            </h2>
-            <div className="flex flex-wrap justify-center gap-4 mb-12">
-              {[
-                "Kids curious about tech",
-                "Teenagers",
-                "Future engineers",
-                "Innovation lovers",
-                "Beginners & Advanced"
-              ].map((item, i) => (
-                <div key={i} className="bg-white/10 hover:bg-white/20 px-6 py-3 rounded-full border-2 border-white/30 font-black uppercase text-sm tracking-widest transition-colors">
-                  {item}
-                </div>
-              ))}
-            </div>
-            <div className="mb-12">
-              <span className="font-display font-black text-7xl md:text-9xl text-brand-orange">7 - 17</span>
-              <p className="font-black uppercase text-2xl tracking-widest mt-2">Years Old</p>
-            </div>
-            <p className="text-2xl font-bold text-gray-400">
-              No previous experience is required — only curiosity.
-            </p>
-          </ScrollReveal>
-        </div>
-      </section>
-
-      {/* Call to Action */}
-      <section className="py-12 md:py-24 bg-brand-red relative overflow-hidden">
-        <div className="container mx-auto px-4 text-center relative z-10">
-          <ScrollReveal scale={0.9}>
-            <div className="max-w-3xl mx-auto">
-              <h2 className="font-display font-black text-6xl md:text-7xl mb-8 text-white uppercase leading-none tracking-tighter">
-                Join the <span className="bg-black text-brand-orange px-4">Maker</span> Movement
-              </h2>
-              <p className="text-2xl font-black text-black mb-12 uppercase leading-tight">
-                Not just someone who uses technology — but someone who builds the future.
-              </p>
-              <div className="flex flex-wrap justify-center gap-6">
-                <Button href="/register" variant="secondary" className="px-12 py-6 text-2xl font-black uppercase border-4 border-black shadow-neo-dark">
-                  Get Started
-                </Button>
-                <Button href="/programs" variant="outline" className="px-12 py-6 text-2xl font-black uppercase border-4 border-black hover:bg-black hover:text-white transition-all">
-                  Our Programs
-                </Button>
-              </div>
-            </div>
-          </ScrollReveal>
-        </div>
-        {/* Background text decoration */}
-        <div className="absolute top-1/2 left-0 -translate-y-1/2 -rotate-90 select-none pointer-events-none">
-          <span className="font-display font-black text-[20rem] text-black/10 leading-none">BUILD</span>
-        </div>
-      </section>
-    </div>
+        </section>
+        </Reveal>
+      </AppContainer>
+    </AppShell>
   );
 };

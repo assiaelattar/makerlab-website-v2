@@ -37,7 +37,6 @@ import { Contact } from './pages/Contact';
 import { About } from './pages/About';
 import { BlogDetail } from './pages/BlogDetail';
 import { ChatAssistant } from './components/ChatAssistant';
-import { BackgroundElements } from './components/BackgroundElements';
 import { BookingPage } from './pages/BookingPage';
 import { AdminBookings } from './pages/Admin/AdminBookings';
 import { AdminBlogs } from './pages/Admin/AdminBlogs';
@@ -67,6 +66,8 @@ import { AdminMakerWall } from './pages/Admin/AdminMakerWall';
 import { AdminMakerQuests } from './pages/Admin/AdminMakerQuests';
 import { MakerQuestDetail } from './pages/MakerQuestDetail';
 import { AdminSTEMQuestSettings } from './pages/Admin/AdminSTEMQuestSettings';
+import { UITest } from './pages/UITest';
+import { MobileAppStyleTest } from './pages/MobileAppStyleTest';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -203,6 +204,7 @@ const App: React.FC = () => {
                 <Route path="/thanks" element={<ThankYou />} />
                 <Route path="/reservation" element={<ReservationLP />} />
                 <Route path="/stemquest-enrollment/:id?" element={<STEMQuestEnrollment />} />
+                <Route path="/mobile-app-test" element={<MobileAppStyleTest />} />
 
                 {/* ── Make & Go lead funnel — /quiz + /apply both go here ── */}
                 <Route path="/quiz"   element={<MakeAndGo />} />
@@ -247,13 +249,12 @@ const App: React.FC = () => {
 
                 {/* ── Everything else uses the standard layout shell ── */}
                 <Route path="*" element={
-                  <div className="font-sans text-brand-dark min-h-screen flex flex-col bg-transparent relative">
-                    <BackgroundElements />
+                  <div className="makerlab-site font-sans min-h-screen flex flex-col relative">
                     
                     {/* Unified Sticky Header Container */}
                     <PublicHeader scrolled={scrolled} />
 
-                    <main className="flex-grow relative z-10 animate-in fade-in duration-300">
+                    <main className="flex-grow relative z-10">
                       <Routes>
                         <Route path="/" element={<Home />} />
                         <Route path="/programs" element={<Programs />} />
@@ -269,6 +270,7 @@ const App: React.FC = () => {
                         <Route path="/contact" element={<Contact />} />
                         <Route path="/booking/:id" element={<BookingPage />} />
                         <Route path="/about" element={<About />} />
+                        <Route path="/ui-test" element={<UITest />} />
                         <Route path="/submit" element={<SubmitProject />} />
                         <Route path="/maker-wall" element={<MakerWall />} />
                         <Route path="/maker-wall/quest/:slug" element={<MakerQuestDetail />} />

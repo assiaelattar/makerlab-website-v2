@@ -94,10 +94,10 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
             </div>
 
             {/* SINGLE-ROW MARQUEE */}
-            <div className="relative py-4">
+            <div className="relative py-4 overflow-hidden max-w-full">
                 {/* Horizontal Loop */}
                 <div 
-                    className="flex animate-marquee-left hover:pause whitespace-nowrap gap-8 py-4 px-4 overflow-visible" 
+                    className="flex animate-marquee-left hover:pause whitespace-nowrap gap-8 py-4 px-4 will-change-transform"
                     style={{ height: large ? '550px' : '300px' }}
                 >
                     {displayImages.map((img, i) => ImageItem({ img, i }))}

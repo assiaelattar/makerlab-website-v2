@@ -4,6 +4,7 @@ import { Send, User, Bot, RefreshCcw, Loader2, Sparkles, X, MessageCircle, Mic }
 import { startAssistantChat } from '../services/geminiService';
 import { GenerateContentResponse } from '@google/genai';
 import { useSettings } from '../contexts/SettingsContext';
+import { useLocation } from 'react-router-dom';
 
 interface Message {
   role: 'user' | 'bot';
@@ -12,12 +13,15 @@ interface Message {
 
 export const ChatAssistant: React.FC = () => {
   const { settings } = useSettings();
+  const { pathname } = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatSessionRef = useRef<any>(null);
+  const isHomepage = pathname === '/';
+  const hasMobileBookingDock = /^\/programs\/[^/]+/.test(pathname) || pathname.startsWith('/booking/');
 
   const chatbotConfig = settings?.chatbot_config || {
     apiKey: '',
@@ -45,6 +49,8 @@ export const ChatAssistant: React.FC = () => {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
+
+  if (isHomepage) return null;
 
   const handleSend = async () => {
     if (!input.trim() || isTyping) return;
@@ -92,44 +98,44 @@ export const ChatAssistant: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-5 right-4 md:bottom-6 md:right-6 z-[1000] flex flex-col items-end">
+    <div className={`fixed right-4 z-[1000] flex-col items-end md:bottom-6 md:right-6 ${hasMobileBookingDock ? 'bottom-24 hidden md:flex' : 'bottom-5 flex'}`}>
       
       {/* Floating Window */}
       {isOpen && (
-        <div className="mb-4 w-[calc(100vw-2rem)] md:w-[400px] max-h-[65vh] md:h-[550px] bg-white/95 backdrop-blur-xl border-4 border-black rounded-[1.5rem] md:rounded-[2.5rem] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] md:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-10 duration-300">
+        <div className="ml-card mb-4 flex max-h-[68vh] w-[calc(100vw-2rem)] flex-col overflow-hidden bg-white/95 shadow-2xl backdrop-blur-xl animate-in fade-in slide-in-from-bottom-6 duration-300 md:h-[550px] md:w-[400px]">
           
           {/* Header */}
-          <div className="bg-brand-red p-4 md:p-5 border-b-4 border-black flex justify-between items-center shrink-0">
+          <div className="flex shrink-0 items-center justify-between border-b border-white/10 bg-brand-blue p-4 md:p-5">
             <div className="flex items-center gap-3">
-              <div className="bg-brand-orange p-1.5 md:p-2 rounded-xl border-2 border-black rotate-[-3deg] shadow-neo-sm">
-                <Bot size={20} className="text-black" />
+              <div className="ml-icon h-10 w-10 bg-brand-orange text-white">
+                <Bot size={20} />
               </div>
               <div>
                 <h3 className="text-white font-display font-black tracking-wider uppercase text-base md:text-lg leading-none">GoBot</h3>
                 <div className="flex items-center gap-1.5 mt-1">
                     <span className="w-2 h-2 bg-brand-green rounded-full animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.5)]"></span>
-                    <span className="text-[10px] text-brand-green font-bold uppercase tracking-widest">En ligne</span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-white/70">En ligne</span>
                 </div>
               </div>
             </div>
             <div className="flex items-center gap-2">
-                <button onClick={handleReset} className="text-white/70 hover:text-brand-orange transition-colors p-1.5" title="Reset chat">
+                <button onClick={handleReset} className="p-1.5 text-white/70 transition-colors hover:text-brand-orange" aria-label="Recommencer la conversation">
                     <RefreshCcw size={16} />
                 </button>
-                <button onClick={() => setIsOpen(false)} className="text-white/70 hover:text-white transition-colors p-1.5" title="Fermer">
+                <button onClick={() => setIsOpen(false)} className="p-1.5 text-white/70 transition-colors hover:text-white" aria-label="Fermer la conversation">
                     <X size={20} />
                 </button>
             </div>
           </div>
 
           {/* Messages */}
-          <div className="flex-grow overflow-y-auto p-4 md:p-5 space-y-4 md:space-y-5 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-gray-50/30 custom-scrollbar">
+          <div className="custom-scrollbar flex-grow space-y-4 overflow-y-auto bg-[#f7f8fa] p-4 md:space-y-5 md:p-5">
             {messages.map((msg, i) => (
               <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[85%] p-3 md:p-4 rounded-2xl border-2 border-black font-bold text-sm shadow-neo-sm ${
+                <div className={`max-w-[85%] rounded-2xl border p-3 text-sm font-bold shadow-sm md:p-4 ${
                     msg.role === 'user' 
-                    ? 'bg-brand-blue text-black rounded-tr-none' 
-                    : 'bg-white text-black rounded-tl-none border-l-brand-red border-l-4'
+                    ? 'rounded-tr-sm border-brand-blue bg-brand-blue text-white'
+                    : 'rounded-tl-sm border-slate-200 bg-white text-slate-800'
                 }`}>
                   {msg.text || (isTyping && i === messages.length - 1 ? <div className="flex gap-1 py-1"><div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></div><div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce delay-75"></div><div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce delay-150"></div></div> : '')}
                 </div>
@@ -137,8 +143,8 @@ export const ChatAssistant: React.FC = () => {
             ))}
             {isTyping && !messages[messages.length-1].text && (
               <div className="flex justify-start">
-                <div className="bg-white p-4 rounded-2xl border-2 border-black shadow-neo-sm">
-                   <Loader2 size={20} className="animate-spin text-brand-red" />
+                <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                   <Loader2 size={20} className="animate-spin text-brand-blue" />
                 </div>
               </div>
             )}
@@ -146,8 +152,8 @@ export const ChatAssistant: React.FC = () => {
           </div>
 
           {/* Input */}
-          <div className="p-3 md:p-4 bg-white border-t-4 border-black shrink-0">
-            <div className="flex gap-2 bg-gray-100 p-1 rounded-2xl border-2 border-black shadow-inner">
+          <div className="shrink-0 border-t border-slate-200 bg-white p-3 md:p-4">
+            <div className="flex gap-2 rounded-2xl border border-slate-200 bg-slate-100 p-1">
                 <input
                 type="text"
                 value={input}
@@ -159,9 +165,10 @@ export const ChatAssistant: React.FC = () => {
                 <button
                 onClick={handleSend}
                 disabled={isTyping}
-                className="bg-brand-orange p-2.5 md:p-3 border-2 border-black rounded-xl shadow-neo-sm hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all disabled:opacity-50"
+                aria-label="Envoyer le message"
+                className="ml-icon h-11 w-11 bg-brand-orange text-white shadow-sm disabled:opacity-50"
                 >
-                <Send size={18} className="text-black" />
+                <Send size={18} />
                 </button>
             </div>
             
@@ -176,8 +183,9 @@ export const ChatAssistant: React.FC = () => {
       {/* Floating Toggle Button */}
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-14 h-14 md:w-16 md:h-16 rounded-full border-4 border-black flex items-center justify-center shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none relative ${
-            isOpen ? 'bg-red-400' : 'bg-brand-orange'
+        aria-label={isOpen ? 'Fermer l’assistant MakerLab' : 'Ouvrir l’assistant MakerLab'}
+        className={`relative flex h-14 w-14 items-center justify-center rounded-full border-4 border-white text-white shadow-xl transition-all hover:-translate-y-1 md:h-16 md:w-16 ${
+            isOpen ? 'bg-brand-red' : 'bg-brand-orange'
         }`}
       >
         {isOpen ? <X size={28} strokeWidth={3} /> : <MessageCircle size={28} strokeWidth={3} />}
@@ -186,7 +194,7 @@ export const ChatAssistant: React.FC = () => {
         {!isOpen && (
             <span className="absolute -top-1 -right-1 flex h-5 w-5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-green opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-5 w-5 bg-brand-green border-2 border-black items-center justify-center text-[10px] font-black">1</span>
+                <span className="relative inline-flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-brand-green text-[10px] font-black text-white">1</span>
             </span>
         )}
       </button>
