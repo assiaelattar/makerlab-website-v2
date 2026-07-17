@@ -24,12 +24,12 @@ export const SocialProofToast: React.FC = () => {
     const { pathname } = useLocation();
     const [current, setCurrent] = useState<BookingNotification | null>(null);
     const [isVisible, setIsVisible] = useState(false);
-    const isHome = pathname === '/';
+    const isQuietRoute = pathname === '/' || pathname.startsWith('/programs') || pathname.startsWith('/booking/');
 
     const config = settings.socialProofConfig || { enabled: true, frequency_seconds: 45, max_age_days: 2 };
 
     useEffect(() => {
-        if (!config.enabled || isHome) {
+        if (!config.enabled || isQuietRoute) {
             setIsVisible(false);
             return;
         }
@@ -65,9 +65,9 @@ export const SocialProofToast: React.FC = () => {
             clearInterval(timer);
             clearTimeout(initialTimer);
         };
-    }, [isVisible, config.enabled, config.frequency_seconds, config.max_age_days, isHome]);
+    }, [isVisible, config.enabled, config.frequency_seconds, config.max_age_days, isQuietRoute]);
 
-    if (!current || !config.enabled || isHome) return null;
+    if (!current || !config.enabled || isQuietRoute) return null;
 
     return (
         <div 
