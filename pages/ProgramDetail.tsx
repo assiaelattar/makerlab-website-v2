@@ -106,7 +106,9 @@ export const ProgramDetail: React.FC = () => {
 
   const image = program.image || fallbackImage;
   const phone = settings?.contact_info?.phone || '+212 6 00 00 00 00';
-  const bookingPath = `/booking/${program.id}?type=${program.programType === 'annual' ? 'annual' : 'workshop'}`;
+  const programFormat = `${program.programType || ''} ${program.format || ''} ${program.duration || ''}`.toLowerCase();
+  const bookingType = /annual|annuel|year program|parcours annuel/.test(programFormat) ? 'annual' : 'workshop';
+  const bookingPath = `/booking/${program.id}?type=${bookingType}`;
   const benefits = [
     { title: program.benefits || 'Un projet concret à présenter', text: 'L’enfant termine avec un résultat visible, pas seulement une notion apprise.', icon: Sparkles, color: 'bg-brand-orange' },
     { title: 'Matériel et outils inclus', text: 'Tout est préparé pour que le temps soit consacré à imaginer, fabriquer et tester.', icon: PackageCheck, color: 'bg-brand-blue' },
@@ -122,6 +124,7 @@ export const ProgramDetail: React.FC = () => {
       }))
     : defaultJourney;
   const sessions = program.schedule?.length ? program.schedule : ['Dates à venir'];
+  const journeyGridClass = journey.length <= 3 ? 'md:grid-cols-3' : journey.length === 4 ? 'md:grid-cols-4' : 'md:grid-cols-5';
 
   const BookingAction: React.FC<{ className: string; trial?: boolean; children: React.ReactNode }> = ({ className, trial = false, children }) => {
     const href = trial ? `/booking/${program.id}?type=trial` : bookingPath;
@@ -183,7 +186,7 @@ export const ProgramDetail: React.FC = () => {
                 ))}
               </div>
 
-              <div className="mt-auto flex flex-col gap-3 pt-8">
+              <div className="mt-auto hidden flex-col gap-3 pt-8 lg:flex">
                 <BookingAction className="ml-button min-h-14 bg-brand-orange px-6 text-white shadow-[0_10px_24px_rgba(255,90,31,0.24)]">
                   Réserver une place <ArrowRight size={18} />
                 </BookingAction>
@@ -210,7 +213,7 @@ export const ProgramDetail: React.FC = () => {
           ))}
         </section>
 
-        <section className="mt-14 grid gap-8 lg:grid-cols-[0.78fr_1.22fr] lg:items-start">
+        <section className="mt-12 grid gap-8 lg:grid-cols-[0.78fr_1.22fr] lg:items-start">
           <div className="lg:sticky lg:top-28">
             <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-orange">Le résultat</p>
             <h2 className="mt-3 font-display text-3xl font-black leading-[1.04] sm:text-5xl">Votre enfant ne suit pas un cours. Il mène un projet.</h2>
@@ -230,13 +233,13 @@ export const ProgramDetail: React.FC = () => {
           </div>
         </section>
 
-        <section className="mt-16 border-y border-slate-200 py-12 sm:py-16">
+        <section className="mt-14 border-y border-slate-200 py-12">
           <div className="max-w-2xl">
             <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-blue">La méthode MakerLab</p>
             <h2 className="mt-3 font-display text-3xl font-black leading-[1.04] sm:text-5xl">Une progression qui ressemble au travail d’un vrai créateur.</h2>
           </div>
 
-          <div data-motion-group className="mt-9 grid gap-3 md:grid-cols-5">
+          <div data-motion-group className={`mt-8 grid gap-3 ${journeyGridClass}`}>
             {journey.map((step, index) => (
               <article key={`${step.title}-${index}`} data-motion-item className="relative rounded-lg border border-slate-200 bg-white p-5">
                 <div className="flex items-center justify-between">

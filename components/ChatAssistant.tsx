@@ -20,7 +20,7 @@ export const ChatAssistant: React.FC = () => {
   const [isTyping, setIsTyping] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatSessionRef = useRef<any>(null);
-  const isHomepage = pathname === '/';
+  const isQuietRoute = pathname === '/' || pathname.startsWith('/programs') || pathname.startsWith('/booking/');
   const hasMobileBookingDock = /^\/programs\/[^/]+/.test(pathname) || pathname.startsWith('/booking/');
 
   const chatbotConfig = settings?.chatbot_config || {
@@ -50,7 +50,7 @@ export const ChatAssistant: React.FC = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
-  if (isHomepage) return null;
+  if (isQuietRoute) return null;
 
   const handleSend = async () => {
     if (!input.trim() || isTyping) return;
