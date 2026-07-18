@@ -3,6 +3,7 @@
     "outputDirectory": "dist",
     "rewrites": [
         { "source": "/api/make-and-go-lead", "destination": "/api/make-and-go-lead" },
+        { "source": "/api/chat", "destination": "/api/chat" },
         { "source": "/admin", "destination": "/api/admin-seo" },
         { "source": "/admin/(.*)", "destination": "/api/admin-seo" },
         { "source": "/reservation", "destination": "/api/reservation-seo" },

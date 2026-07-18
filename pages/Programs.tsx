@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
+  ArrowUpRight,
   Bot,
   Check,
   Code2,
@@ -40,6 +41,13 @@ const getImage = (item: any, index: number) => getGeneratedProgramImage(item, in
 
 const getTitle = getPublicProgramTitle;
 const getDescription = getPublicProgramDescription;
+
+const catalogTones = [
+  'bg-[#f7f5ef]',
+  'bg-[#e8eff7]',
+  'bg-[#edf5cf]',
+  'bg-[#f8e8dc]',
+];
 
 export const Programs: React.FC = () => {
   const location = useLocation();
@@ -121,70 +129,93 @@ export const Programs: React.FC = () => {
     { label: 'Vacances', description: 'Explorer', to: '/programs?type=camp', active: type === 'camp' },
     { label: 'À l’année', description: 'Progresser', to: '/programs?type=annual', active: type === 'annual' },
   ];
+  const recommendedItem = catalogItems.find(item => /make\s*&\s*go|mission|rover/i.test(getTitle(item))) || catalogItems[0];
+  const recommendedIsMission = recommendedItem && 'date' in recommendedItem;
+  const recommendedPath = recommendedItem
+    ? recommendedIsMission
+      ? `/programs/kids-2?missionId=${recommendedItem.id}`
+      : `/programs/${recommendedItem.id}`
+    : '/quiz';
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[#f6f8fa] pb-20 text-slate-900">
+    <main className="min-h-screen overflow-x-hidden bg-[#f7f5ef] pb-20 text-[#0b1726]">
       <SEO
         title="Programmes de robotique, code et IA à Casablanca"
         description="Comparez les ateliers MakerLab par âge, durée et format: robotique, coding, IA, design 3D, camps et parcours annuels."
         keywords="robotique casablanca, camp robotique casablanca, atelier enfant casablanca, coding for kids, impression 3D"
       />
 
-      <section className="border-b border-slate-200 bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-10 md:px-8 md:py-14">
-          <div className="grid gap-8 lg:grid-cols-[1fr_0.72fr] lg:items-end">
-            <div>
+      <section className="relative overflow-hidden border-b border-[#0b1726]/12 bg-[#f7f5ef]">
+        <div aria-hidden="true" className="home-hero-grid absolute inset-0 opacity-45" />
+        <div className="relative mx-auto max-w-7xl px-4 pb-0 pt-10 md:px-8 md:pt-14">
+          <div className="grid gap-9 lg:grid-cols-[0.88fr_1.12fr] lg:items-end lg:gap-12">
+            <div className="pb-2 lg:pb-12">
               <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.14em] text-brand-orange">
                 <Sparkles size={15} /> Programmes MakerLab
               </div>
-              <h1 className="mt-4 max-w-3xl font-display text-[clamp(2.5rem,4.7vw,4.2rem)] font-bold leading-[0.98]">
-                Choisir une expérience, pas juste un cours.
+              <h1 className="mt-4 max-w-3xl font-['Geist'] text-[clamp(2.65rem,5vw,5.25rem)] font-semibold leading-[0.92] tracking-[-0.05em]">
+                Choisir le premier projet qui lui donnera envie d’aller plus loin.
               </h1>
-              <p className="mt-5 max-w-2xl text-base font-semibold leading-7 text-slate-600 md:text-lg">
+              <p className="mt-6 max-w-2xl text-base font-semibold leading-7 text-[#4d5b6e] md:text-lg">
                 {focus === 'missions'
                   ? 'Les missions Make & Go sont des ateliers de 3 heures : votre enfant choisit une thématique, construit un vrai projet et repart avec son résultat.'
                   : type === 'camp'
                     ? 'Retrouvez les camps MakerLab pendant les vacances scolaires et les stages intensifs, avec les détails, la brochure et la réservation.'
                     : type === 'annual'
                       ? 'Comparez les parcours réguliers qui permettent à votre enfant de progresser, créer un portfolio et maîtriser les technologies sur la durée.'
-                      : 'Comparez les formats, puis ouvrez le programme qui correspond à son âge et à son envie de construire.'}
+                      : 'Commencez par le résultat qu’il veut construire. Chaque page explique les outils, le niveau, le risque et la prochaine étape.'}
               </p>
+              <Link to="/quiz" className="ml-button mt-7 w-full min-h-13 bg-[#df661e] px-6 text-white shadow-[0_14px_32px_rgba(223,102,30,.2)] sm:w-fit">
+                Recommandation en 2 minutes <ArrowRight size={17} />
+              </Link>
             </div>
 
-            <nav aria-label="Formats de programmes" className="grid grid-cols-2 gap-2 rounded-xl border border-slate-200 bg-[#f6f8fa] p-2 sm:grid-cols-4 lg:grid-cols-2">
-              {viewLinks.map(item => (
-                <Link
-                  key={item.label}
-                  to={item.to}
-                  aria-current={item.active ? 'page' : undefined}
-                  className={`group rounded-lg border px-4 py-3 transition ${
-                    item.active
-                      ? 'border-brand-blue bg-brand-blue text-white shadow-sm'
-                      : 'border-transparent bg-white text-slate-900 hover:border-brand-blue/30 hover:-translate-y-0.5'
-                  }`}
-                >
-                  <span className={`block text-[10px] font-extrabold uppercase tracking-[0.13em] ${item.active ? 'text-white/75' : 'text-slate-400'}`}>
-                    {item.description}
-                  </span>
-                  <span className="mt-1 flex items-center justify-between gap-2 text-sm font-extrabold">
-                    {item.label}
-                    <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
-                  </span>
-                </Link>
-              ))}
-            </nav>
+            {recommendedItem && (
+              <Link to={recommendedPath} className="group relative min-h-[350px] overflow-hidden bg-[#07111f] sm:min-h-[460px] lg:min-h-[570px]">
+                <img
+                  src={getImage(recommendedItem, 0)}
+                  alt={getTitle(recommendedItem)}
+                  className="absolute inset-0 size-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.025]"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#07111f] via-[#07111f]/15 to-transparent" />
+                <div className="absolute inset-x-0 bottom-0 p-6 text-white sm:p-8">
+                  <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#d9f56f]">Premier choix recommandé</p>
+                  <div className="mt-3 flex items-end justify-between gap-5">
+                    <div>
+                      <h2 className="font-['Geist'] text-3xl font-semibold leading-none tracking-[-0.04em] sm:text-5xl">{getTitle(recommendedItem)}</h2>
+                      <p className="mt-3 text-sm font-semibold text-white/68">{recommendedItem.duration || '3 heures'} · {recommendedItem.ageGroup || recommendedItem.age || '8-17 ans'}</p>
+                    </div>
+                    <span className="flex size-12 shrink-0 items-center justify-center bg-[#df661e] text-white sm:size-14"><ArrowUpRight size={22} /></span>
+                  </div>
+                </div>
+              </Link>
+            )}
           </div>
-        </div>
-        <div className="grid h-1 grid-cols-4">
-          <span className="bg-brand-orange" />
-          <span className="bg-brand-blue" />
-          <span className="bg-brand-green" />
-          <span className="bg-brand-red" />
+
+          <nav aria-label="Formats de programmes" className="mt-7 grid grid-cols-2 border-l border-t border-[#0b1726]/14 sm:grid-cols-4 lg:mt-0">
+            {viewLinks.map(item => (
+              <Link
+                key={item.label}
+                to={item.to}
+                aria-current={item.active ? 'page' : undefined}
+                className={`group min-h-20 border-b border-r border-[#0b1726]/14 px-4 py-4 transition sm:px-5 ${
+                  item.active
+                    ? 'bg-[#0b1726] text-white'
+                    : 'bg-[#f7f5ef]/90 text-[#0b1726] hover:bg-white'
+                }`}
+              >
+                <span className={`block text-[9px] font-extrabold uppercase tracking-[0.15em] ${item.active ? 'text-[#d9f56f]' : 'text-[#667286]'}`}>{item.description}</span>
+                <span className="mt-1 flex items-center justify-between gap-2 text-sm font-extrabold">
+                  {item.label}<ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
+                </span>
+              </Link>
+            ))}
+          </nav>
         </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-4 pt-7 md:px-8">
-        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm md:p-5">
+        <div className="border border-[#0b1726]/14 bg-white p-4 shadow-[0_18px_50px_rgba(11,23,38,.06)] md:p-5">
           <div className="flex gap-3">
             <label className="flex min-h-12 flex-1 items-center gap-3 rounded-lg border border-slate-200 bg-[#f6f8fa] px-4 transition focus-within:border-brand-blue focus-within:bg-white focus-within:ring-4 focus-within:ring-brand-blue/10">
               <Search size={18} className="shrink-0 text-slate-400" />
@@ -264,7 +295,7 @@ export const Programs: React.FC = () => {
           )}
         </div>
 
-        <section className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <section className="mt-6 grid border-l border-t border-[#0b1726]/14 md:grid-cols-2 xl:grid-cols-3">
           {catalogItems.map((item: any, index) => {
             const title = getTitle(item);
             const description = getDescription(item);
@@ -278,7 +309,7 @@ export const Programs: React.FC = () => {
               <Link
                 key={`${isMission ? 'mission' : 'program'}-${item.id}`}
                 to={detailPath}
-                className="group flex min-h-full flex-col overflow-hidden rounded-lg border border-slate-200 bg-white transition duration-200 hover:-translate-y-1 hover:border-slate-300 hover:shadow-lg"
+                className={`group flex min-h-full flex-col overflow-hidden border-b border-r border-[#0b1726]/14 transition duration-300 hover:relative hover:z-10 hover:-translate-y-1 hover:shadow-[0_28px_60px_rgba(11,23,38,.14)] ${catalogTones[index % catalogTones.length]}`}
               >
                 <div className="relative aspect-[16/10] overflow-hidden bg-slate-200">
                   <img
@@ -291,16 +322,16 @@ export const Programs: React.FC = () => {
                     }}
                     className="size-full object-cover transition duration-500 group-hover:scale-[1.025]"
                   />
-                  <span className="absolute left-4 top-4 rounded-full bg-white/95 px-3 py-2 text-[10px] font-extrabold uppercase text-slate-800 shadow-sm">
+                  <span className="absolute left-4 top-4 bg-white/95 px-3 py-2 text-[10px] font-extrabold uppercase text-slate-800 shadow-sm">
                     {getPublicProgramCategory(item)}
                   </span>
-                  <span className={`absolute right-4 top-4 flex size-10 items-center justify-center rounded-lg ${style.iconClass}`}>
+                  <span className={`absolute right-4 top-4 flex size-10 items-center justify-center ${style.iconClass}`}>
                     <Icon size={18} />
                   </span>
                 </div>
 
                 <div className="flex flex-1 flex-col p-5">
-                  <h3 className="text-2xl font-extrabold leading-tight">{title}</h3>
+                  <h3 className="font-['Geist'] text-2xl font-semibold leading-tight tracking-[-0.025em]">{title}</h3>
                   <p className="mt-3 line-clamp-2 min-h-[48px] text-sm font-semibold leading-6 text-slate-500">{description}</p>
 
                   <dl className="mt-5 grid grid-cols-3 divide-x divide-slate-200 border-y border-slate-100 py-4">

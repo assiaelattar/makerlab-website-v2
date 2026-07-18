@@ -96,14 +96,14 @@ export const ParentDecisionSystem: React.FC<ParentDecisionSystemProps> = ({
                 Pas un jouet à recopier. Un projet qui prépare la suite.
               </h2>
 
-              <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <div className="-mx-6 mt-6 flex snap-x snap-mandatory gap-3 overflow-x-auto px-6 pb-3 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0">
                 {[
                   { icon: Wrench, title: 'De vrais outils', text: 'L’enfant conçoit, fabrique, câble, code et teste.' },
                   { icon: BrainCircuit, title: 'IA augmentée', text: 'L’IA aide à explorer plus grand sans remplacer la réflexion.' },
                   { icon: BriefcaseBusiness, title: 'Vision produit', text: 'Le prototype devient une histoire, un packaging et une offre.' },
                   { icon: Rocket, title: 'Grandir par projets', text: 'Chaque mission prépare un portfolio et une ambition plus forte.' },
                 ].map(({ icon: Icon, title, text }, index) => (
-                  <article key={title} className={`rounded-2xl border border-[#061d45]/10 p-4 ${whyColors[index]}`}>
+                  <article key={title} className={`w-[76vw] max-w-[290px] shrink-0 snap-center rounded-2xl border border-[#061d45]/10 p-4 sm:w-auto sm:max-w-none ${whyColors[index]}`}>
                     <Icon size={20} className="text-[#0042a5]" />
                     <h3 className="mt-3 font-black text-[#061d45]">{title}</h3>
                     <p className="mt-1 text-xs font-semibold leading-5 text-slate-600">{text}</p>
@@ -129,13 +129,13 @@ export const ParentDecisionSystem: React.FC<ParentDecisionSystemProps> = ({
             </div>
           </div>
 
-          <div className="grid gap-0.5 border-t-2 border-[#061d45] bg-[#061d45] sm:grid-cols-3">
+          <div className="flex snap-x snap-mandatory gap-0.5 overflow-x-auto border-t-2 border-[#061d45] bg-[#061d45] sm:grid sm:grid-cols-3 sm:overflow-visible">
             {[
               { icon: ShieldCheck, title: 'Risque réduit', text: 'Si votre enfant n’apprend rien, la session est remboursée selon les conditions de l’offre.' },
               { icon: Award, title: 'Preuve de progression', text: 'Photos, certificat de participation et projet pour son portfolio.' },
               { icon: GraduationCap, title: 'Cap sur la suite', text: 'Une recommandation claire indique la prochaine mission à choisir.' },
             ].map(({ icon: Icon, title, text }, index) => (
-              <div key={title} className={`p-5 ${proofColors[index]}`}>
+              <div key={title} className={`w-[78vw] max-w-[310px] shrink-0 snap-center p-5 sm:w-auto sm:max-w-none ${proofColors[index]}`}>
                 <Icon size={21} className={index === 1 ? 'text-[#061d45]' : 'text-white'} />
                 <h3 className="mt-3 font-black">{title}</h3>
                 <p className={`mt-1 text-xs font-semibold leading-5 ${index === 1 ? 'text-[#061d45]/70' : 'text-white/75'}`}>{text}</p>
@@ -168,9 +168,9 @@ export const ParentDecisionSystem: React.FC<ParentDecisionSystemProps> = ({
         <div className="mt-8">
           <p className="text-xs font-black uppercase tracking-[0.16em] text-[#e30613]">Et après ?</p>
           <h2 className="mt-3 text-3xl font-black leading-[1.03] tracking-[-0.035em] text-[#061d45] sm:text-4xl">Le parent voit la prochaine marche.</h2>
-          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+          <div className="-mx-4 mt-6 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-4 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 sm:pb-0">
             {nextSteps.map((step, index) => (
-              <article key={step.title} className={`relative overflow-hidden rounded-2xl border-2 p-5 ${stepColors[index] || stepColors[2]}`}>
+              <article key={step.title} className={`relative w-[78vw] max-w-[310px] shrink-0 snap-center overflow-hidden rounded-2xl border-2 p-5 sm:w-auto sm:max-w-none ${stepColors[index] || stepColors[2]}`}>
                 <span className="absolute -right-1 -top-5 text-[6rem] font-black leading-none text-[#061d45]/[0.06]">{index + 1}</span>
                 <span className="relative flex h-8 w-8 items-center justify-center rounded-full bg-[#061d45] text-xs font-black text-white">{index + 1}</span>
                 <h3 className="relative mt-4 text-lg font-black text-[#061d45]">{step.title}</h3>

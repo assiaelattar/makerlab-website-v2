@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSettings } from '../../contexts/SettingsContext';
 import { Button } from '../../components/Button';
-import { Save, Upload, Image as ImageIcon, BarChart3, Search, Sparkles, KeyRound } from 'lucide-react';
+import { Save, Upload, Image as ImageIcon, BarChart3, Search, Sparkles } from 'lucide-react';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../../firebase';
 import imageCompression from 'browser-image-compression';
@@ -19,10 +19,7 @@ export const AdminSettings: React.FC = () => {
         facebook: 'https://facebook.com/makerlab',
         twitter: 'https://twitter.com/makerlab'
     });
-    const [chatbotData, setChatbotData] = useState({
-        apiKey: '',
-        knowledge: "Tu es 'MakerBot', l'assistant super cool de MakerLab Academy Casablanca. Nos ateliers durent 3h et coûtent 400 DHS. Sois enthousiaste et concis !"
-    });
+    const [chatbotKnowledge, setChatbotKnowledge] = useState("Tu es MakerBot, l’assistant de MakerLab Academy Casablanca. Réponds clairement aux familles à partir des programmes disponibles.");
     const [socialImage, setSocialImage] = useState('');
     const [isUploadingSocialImage, setIsUploadingSocialImage] = useState(false);
     const [googleAnalyticsId, setGoogleAnalyticsId] = useState('');
@@ -32,17 +29,15 @@ export const AdminSettings: React.FC = () => {
         frequency_seconds: 45,
         max_age_days: 2
     });
-    const [adminPassword, setAdminPassword] = useState('');
 
     useEffect(() => {
         if (!isLoading && settings) {
             if (settings.contact_info) setContactData(settings.contact_info);
-            if (settings.chatbot_config) setChatbotData(settings.chatbot_config);
+            if (settings.chatbot_knowledge) setChatbotKnowledge(settings.chatbot_knowledge);
             if (settings.socialImage) setSocialImage(settings.socialImage);
             if (settings.googleAnalyticsId) setGoogleAnalyticsId(settings.googleAnalyticsId);
             if (settings.gscVerification) setGscVerification(settings.gscVerification);
             if (settings.socialProofConfig) setSocialProofConfig(settings.socialProofConfig);
-            if (settings.admin_password) setAdminPassword(settings.admin_password);
         }
     }, [settings, isLoading]);
 
@@ -52,12 +47,11 @@ export const AdminSettings: React.FC = () => {
 
     const handleSave = async () => {
         await updateSetting('contact_info', contactData);
-        await updateSetting('chatbot_config', chatbotData);
+        await updateSetting('chatbot_knowledge', chatbotKnowledge);
         if (socialImage) await updateSetting('socialImage', socialImage);
         if (googleAnalyticsId.trim()) await updateSetting('googleAnalyticsId', googleAnalyticsId.trim());
         if (gscVerification.trim()) await updateSetting('gscVerification', gscVerification.trim());
         await updateSetting('socialProofConfig', socialProofConfig);
-        if (adminPassword.trim()) await updateSetting('admin_password', adminPassword.trim());
         alert('Configuration enregistrée!');
     };
 
@@ -203,48 +197,15 @@ export const AdminSettings: React.FC = () => {
                 <h2 className="font-display font-bold text-2xl mb-6">Configuration Chatbot AI</h2>
                 <div className="space-y-6">
                     <div>
-                        <label className="block font-bold mb-2">Clé API Gemini</label>
-                        <input
-                            name="apiKey"
-                            type="password"
-                            value={chatbotData.apiKey}
-                            onChange={(e) => setChatbotData({...chatbotData, apiKey: e.target.value})}
-                            placeholder="AIzaSy..."
-                            className="w-full border-4 border-black p-3 rounded-none font-mono shadow-neo-sm focus:translate-x-1 focus:translate-y-1 outline-none transition-all"
-                        />
-                        <p className="text-xs text-gray-500 mt-2">La clé API est stockée de manière sécurisée dans votre base de données.</p>
-                    </div>
-                    <div>
                         <label className="block font-bold mb-2">Base de Connaissances (Instructions Système)</label>
                         <textarea
                             name="knowledge"
-                            value={chatbotData.knowledge}
-                            onChange={(e) => setChatbotData({...chatbotData, knowledge: e.target.value})}
+                            value={chatbotKnowledge}
+                            onChange={(e) => setChatbotKnowledge(e.target.value)}
                             placeholder="Décrivez ici le rôle du bot, les services, les prix, etc."
                             className="w-full border-4 border-black p-3 rounded-none font-medium shadow-neo-sm focus:translate-x-1 focus:translate-y-1 outline-none transition-all min-h-[150px]"
                         />
-                    </div>
-                </div>
-
-                <div className="border-t-4 border-black border-dashed my-8"></div>
-
-                {/* ── Admin Panel Security ── */}
-                <h2 className="font-display font-bold text-2xl mb-6 flex items-center gap-3">
-                    <KeyRound className="text-brand-red" size={24} />
-                    Sécurité (Admin)
-                </h2>
-                <div className="space-y-6">
-                    <div>
-                        <label className="block font-bold mb-2">Mot de passe d'accès au Dashboard Admin</label>
-                        <input
-                            name="adminPassword"
-                            type="password"
-                            value={adminPassword}
-                            onChange={(e) => setAdminPassword(e.target.value)}
-                            placeholder="Laissez vide pour garder le mot de passe par défaut (makerlab2026@Mm)"
-                            className="w-full border-4 border-black p-3 rounded-none font-mono shadow-neo-sm focus:translate-x-1 focus:translate-y-1 outline-none transition-all"
-                        />
-                        <p className="text-xs text-gray-500 mt-2">Ce mot de passe est nécessaire pour accéder à ce panneau d'administration.</p>
+                        <p className="text-xs text-gray-500 mt-2">La clé Gemini est désormais conservée uniquement dans la variable serveur GEMINI_API_KEY.</p>
                     </div>
                 </div>
 

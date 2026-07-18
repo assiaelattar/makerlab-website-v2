@@ -1,21 +1,20 @@
 const generatedProgramImages = [
-  '/images/makerlab/generated/stemquest-mdf-engineering-v1.webp',
-  '/images/makerlab/generated/robotics-microbit-rover-v1.webp',
+  '/images/makerlab/generated/wind-energy-mdf-prototype-v2.png',
+  '/images/makerlab/generated/smart-door-microbit-team-v2.png',
   '/images/makerlab/generated/coding-ai-image-classifier-v1.webp',
-  '/images/makerlab/generated/cad-fdm-3d-printing-v1.webp',
-  '/images/makerlab/generated/digital-fabrication-gears-v1.webp',
-  '/images/makerlab/generated/mentor-microbit-electronics-v1.webp',
+  '/images/makerlab/generated/cad-rover-design-to-prototype-v2.png',
+  '/images/makerlab/generated/student-product-presentation-v2.png',
   '/images/makerlab/generated/holiday-camp-marble-run-v1.webp',
   '/images/makerlab/generated/jawaz-smart-toll-gate-v1.webp',
 ];
 
 export const generatedMakerlabGallery = [
-  '/images/makerlab/generated/mentor-microbit-electronics-v1.webp',
-  '/images/makerlab/generated/holiday-camp-marble-run-v1.webp',
+  '/images/makerlab/generated/smart-door-microbit-team-v2.png',
+  '/images/makerlab/generated/cad-rover-design-to-prototype-v2.png',
+  '/images/makerlab/generated/wind-energy-mdf-prototype-v2.png',
+  '/images/makerlab/generated/student-product-presentation-v2.png',
   '/images/makerlab/generated/python-dji-tello-coding-v1.webp',
-  '/images/makerlab/generated/digital-fabrication-gears-v1.webp',
-  '/images/makerlab/generated/jawaz-smart-toll-gate-v1.webp',
-  '/images/makerlab/generated/cad-fdm-3d-printing-v1.webp',
+  '/images/makerlab/generated/holiday-camp-marble-run-v1.webp',
 ];
 
 export const getGeneratedProgramImage = (item: any, index = 0) => {
@@ -42,22 +41,22 @@ export const getGeneratedProgramImage = (item: any, index = 0) => {
     return '/images/makerlab/generated/schools-arduino-workshop-v1.webp';
   }
   if (/(make\s*&\s*go|make and go|mission|3\s*heures)/.test(haystack)) {
-    return '/images/makerlab/generated/make-and-go-desk-lamp-v1.webp';
+    return '/images/makerlab/generated/smart-door-microbit-team-v2.png';
   }
   if (/(marque|brand|business|t-shirt|tshirt)/.test(haystack)) {
-    return '/images/makerlab/generated/make-and-go-desk-lamp-v1.webp';
+    return '/images/makerlab/generated/student-product-presentation-v2.png';
   }
   if (/(capcut|montage|vidéo|video|storytelling)/.test(haystack)) {
     return '/images/makerlab/generated/coding-ai-image-classifier-v1.webp';
   }
-  if (/(geek|tech)/.test(haystack)) {
-    return '/images/makerlab/generated/robotics-microbit-rover-v1.webp';
+  if (/geek/.test(haystack)) {
+    return '/images/makerlab/generated/smart-door-microbit-team-v2.png';
   }
   if (/stemquest\s*360/.test(haystack)) {
     return '/images/makerlab/generated/coding-ai-image-classifier-v1.webp';
   }
   if (/(stemquest|parcours|année|annee)/.test(haystack)) {
-    return '/images/makerlab/generated/stemquest-mdf-engineering-v1.webp';
+    return '/images/makerlab/generated/wind-energy-mdf-prototype-v2.png';
   }
   if (/(drone|tello|python)/.test(haystack)) {
     return '/images/makerlab/generated/python-dji-tello-coding-v1.webp';
@@ -66,10 +65,10 @@ export const getGeneratedProgramImage = (item: any, index = 0) => {
     return '/images/makerlab/generated/coding-ai-image-classifier-v1.webp';
   }
   if (/(3d|design|cao|cad|fusion|impression|fabrication)/.test(haystack)) {
-    return '/images/makerlab/generated/cad-fdm-3d-printing-v1.webp';
+    return '/images/makerlab/generated/cad-rover-design-to-prototype-v2.png';
   }
   if (/(robot|micro:bit|microbit|électronique|electronique|arduino)/.test(haystack)) {
-    return '/images/makerlab/generated/robotics-microbit-rover-v1.webp';
+    return '/images/makerlab/generated/smart-door-microbit-team-v2.png';
   }
 
   return generatedProgramImages[index % generatedProgramImages.length];

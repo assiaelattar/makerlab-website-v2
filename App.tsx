@@ -28,6 +28,7 @@ import { ProgramProvider } from './contexts/ProgramContext';
 import { SchoolProvider } from './contexts/SchoolContext';
 import { SettingsProvider } from './contexts/SettingsContext';
 import { MissionProvider } from './contexts/MissionContext';
+import { AdminAuthProvider } from './contexts/AdminAuthContext';
 import { AnnouncementBar } from './components/AnnouncementBar';
 
 import { Schools } from './pages/Schools';
@@ -70,6 +71,8 @@ import { AdminMakerWall } from './pages/Admin/AdminMakerWall';
 import { AdminMakerQuests } from './pages/Admin/AdminMakerQuests';
 import { MakerQuestDetail } from './pages/MakerQuestDetail';
 import { AdminSTEMQuestSettings } from './pages/Admin/AdminSTEMQuestSettings';
+import { AdminUnifiedLeads } from './pages/Admin/AdminUnifiedLeads';
+import { AdminPageContent } from './pages/Admin/AdminPageContent';
 import { UITest } from './pages/UITest';
 import { MobileAppStyleTest } from './pages/MobileAppStyleTest';
 
@@ -196,7 +199,8 @@ const App: React.FC = () => {
 
   return (
     <SettingsProvider>
-      <MissionProvider>
+      <AdminAuthProvider>
+       <MissionProvider>
         <ProgramProvider>
           <SchoolProvider>
             <Router>
@@ -225,8 +229,10 @@ const App: React.FC = () => {
                   <Route path="dashboard" element={<AdminDashboard />} />
                   <Route path="setup" element={<AdminLaunchCenter />} />
                   <Route path="content" element={<AdminContent />} />
+                  <Route path="page-content" element={<AdminPageContent />} />
                   <Route path="programs" element={<AdminDashboard />} />
                   <Route path="bookings" element={<AdminBookings />} />
+                  <Route path="inbox" element={<AdminUnifiedLeads />} />
                   <Route path="calendar" element={<AdminCalendar />} />
                   <Route path="media" element={<AdminMedia />} />
                   <Route path="settings" element={<AdminSettings />} />
@@ -307,7 +313,8 @@ const App: React.FC = () => {
             </Router>
           </SchoolProvider>
         </ProgramProvider>
-      </MissionProvider>
+       </MissionProvider>
+      </AdminAuthProvider>
     </SettingsProvider>
   );
 };

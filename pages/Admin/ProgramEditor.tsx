@@ -18,7 +18,11 @@ const emptyProgram: Program = {
   ageGroup: '',
   description: '',
   image: '',
+  imageSource: 'generated',
   imagePrompt: '',
+  publicTitle: '',
+  publicDescription: '',
+  publicCategory: '',
   duration: '3 Heures',
   price: '400 DHS',
   stats: [
@@ -324,11 +328,43 @@ export const ProgramEditor: React.FC = () => {
               <textarea name="description" value={formData.description} onChange={handleChange} className="w-full p-3 border-2 border-black rounded-lg h-32" required />
             </div>
 
+            <div className="rounded-2xl border-4 border-black bg-brand-blue/5 p-6">
+              <h3 className="font-display text-xl font-bold">Affichage public</h3>
+              <p className="mt-1 text-sm font-medium text-gray-500">Laissez un champ vide pour utiliser le contenu principal. Ces valeurs contrôlent exactement ce que voient les familles.</p>
+              <div className="mt-5 grid gap-5 md:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-sm font-bold">Titre public</label>
+                  <input name="publicTitle" value={formData.publicTitle || ''} onChange={handleChange} className="w-full rounded-lg border-2 border-black p-3" placeholder={formData.title || 'Titre affiché'} />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-bold">Catégorie publique</label>
+                  <input name="publicCategory" value={formData.publicCategory || ''} onChange={handleChange} className="w-full rounded-lg border-2 border-black p-3" placeholder={formData.category || 'Catégorie affichée'} />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="mb-2 block text-sm font-bold">Description publique</label>
+                  <textarea name="publicDescription" value={formData.publicDescription || ''} onChange={handleChange} className="h-24 w-full rounded-lg border-2 border-black p-3" placeholder="Description affichée sur les cartes et la page du programme" />
+                </div>
+              </div>
+            </div>
+
             {/* Image Section */}
             <div className="p-6 bg-brand-orange/5 border-2 border-dashed border-black rounded-2xl">
               <div className="flex items-center gap-2 mb-4">
                 <ImageIcon className="text-brand-red" />
                 <h3 className="font-display font-bold text-xl">Visuel du Workshop</h3>
+              </div>
+
+              <div className="mb-6 grid gap-3 sm:grid-cols-2">
+                {[
+                  { value: 'generated', title: 'Image MakerLab générée', text: 'Conserve les visuels GPT validés du site.' },
+                  { value: 'custom', title: 'Image personnalisée', text: 'Utilise le fichier ou l’URL configuré ci-dessous.' },
+                ].map(option => (
+                  <label key={option.value} className={`cursor-pointer rounded-xl border-2 p-4 ${formData.imageSource === option.value ? 'border-brand-orange bg-white' : 'border-black/20 bg-white/60'}`}>
+                    <input type="radio" name="imageSource" value={option.value} checked={(formData.imageSource || 'generated') === option.value} onChange={handleChange} className="mr-2" />
+                    <span className="font-black">{option.title}</span>
+                    <span className="mt-1 block text-xs font-medium text-gray-500">{option.text}</span>
+                  </label>
+                ))}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

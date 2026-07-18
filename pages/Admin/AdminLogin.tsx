@@ -3,22 +3,27 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/Button';
 import { Lock } from 'lucide-react';
-import { useSettings } from '../../contexts/SettingsContext';
+import { useAdminAuth } from '../../contexts/AdminAuthContext';
 
 export const AdminLogin: React.FC = () => {
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
-  const { settings } = useSettings();
+  const { login } = useAdminAuth();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const currentAdminPassword = settings?.admin_password || 'makerlab2026@Mm';
-    if (password === currentAdminPassword) { // Dynamic client-side check
-      localStorage.setItem('isAdmin', 'true');
+    setSubmitting(true);
+    setError(false);
+    try {
+      await login(email, password);
       navigate('/admin/dashboard');
-    } else {
+    } catch {
       setError(true);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -32,15 +37,26 @@ export const AdminLogin: React.FC = () => {
         <p className="text-gray-500 mb-8">Accès réservé au staff MakerLab</p>
 
         <form onSubmit={handleLogin} className="space-y-4">
+          <input
+            type="email"
+            placeholder="Adresse e-mail professionnelle"
+            autoComplete="username"
+            required
+            className="w-full p-4 border-2 border-black rounded-xl text-center font-bold"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
           <input 
             type="password" 
             placeholder="Mot de passe" 
+            autoComplete="current-password"
+            required
             className="w-full p-4 border-2 border-black rounded-xl text-center text-xl font-bold"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          {error && <p className="text-red-500 font-bold animate-bounce">Mot de passe incorrect !</p>}
-          <Button type="submit" className="w-full justify-center">Entrer</Button>
+          {error && <p className="text-red-500 font-bold">Identifiants incorrects ou compte non autorisé.</p>}
+          <Button type="submit" disabled={submitting} className="w-full justify-center">{submitting ? 'Connexion…' : 'Entrer'}</Button>
         </form>
       </div>
     </div>

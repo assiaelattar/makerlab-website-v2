@@ -4,9 +4,10 @@ import {
   LayoutDashboard, FileText, Settings, Image as ImageIcon,
   LogOut, Package, CalendarDays, BookOpen, School, Ticket,
   Menu, X, PenTool, Rocket, Target, Sparkles, Flame,
-  ThermometerSun, Bell, ExternalLink,
+  ThermometerSun, Bell, ExternalLink, Inbox,
 } from 'lucide-react';
 import { useLeadNotifications } from '../hooks/useLeadNotifications';
+import { useAdminAuth } from '../contexts/AdminAuthContext';
 
 /* ─── Toast component ────────────────────────────────────────────────────── */
 const TRACK_LABEL: Record<string, string> = {
@@ -104,22 +105,24 @@ export const AdminLayout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { user, loading: authLoading, logout } = useAdminAuth();
 
   const { toast, unreadCount, dismissToast, clearUnread } = useLeadNotifications();
 
   useEffect(() => {
-    const isAdmin = localStorage.getItem('isAdmin');
-    if (!isAdmin) navigate('/admin');
-  }, [navigate]);
+    if (!authLoading && !user) navigate('/admin', { replace: true });
+  }, [authLoading, navigate, user]);
 
   useEffect(() => {
     setIsSidebarOpen(false);
   }, [location]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('isAdmin');
+  const handleLogout = async () => {
+    await logout();
     navigate('/admin');
   };
+
+  if (authLoading || !user) return <div className="flex min-h-screen items-center justify-center bg-gray-100 font-black">Vérification de l’accès…</div>;
 
   const navItems = [
     { type: 'header', label: 'Lancement' },
@@ -131,6 +134,7 @@ export const AdminLayout: React.FC = () => {
 
     { type: 'header', label: 'Opérations' },
     { label: 'Inscriptions',        path: '/admin/bookings',         icon: CalendarDays },
+    { label: 'Boîte de réception',  path: '/admin/inbox',            icon: Inbox },
     { label: 'Missions & Stages',   path: '/admin/missions',         icon: Target },
     { label: 'Calendrier',          path: '/admin/calendar',         icon: CalendarDays },
     { label: 'Programmes',          path: '/admin/programs',         icon: Package },
@@ -145,6 +149,8 @@ export const AdminLayout: React.FC = () => {
     { label: 'Quêtes & Défis',      path: '/admin/maker-quests',     icon: Target },
     { label: 'Maker Wall Queue',    path: '/admin/maker-wall',       icon: Sparkles },
     { label: 'Blog & SEO',          path: '/admin/blogs',            icon: PenTool },
+    { label: 'Contenu du site',     path: '/admin/content',          icon: FileText },
+    { label: 'Textes des pages',    path: '/admin/page-content',     icon: PenTool },
     { label: 'Médiathèque',          path: '/admin/media',            icon: ImageIcon },
     { label: 'Configuration',       path: '/admin/settings',         icon: Settings },
   ];

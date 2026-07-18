@@ -1,8 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, User, Bot, RefreshCcw, Loader2, Sparkles, X, MessageCircle, Mic } from 'lucide-react';
-import { startAssistantChat } from '../services/geminiService';
-import { GenerateContentResponse } from '@google/genai';
 import { useSettings } from '../contexts/SettingsContext';
 import { useLocation } from 'react-router-dom';
 
@@ -19,14 +17,10 @@ export const ChatAssistant: React.FC = () => {
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
-  const chatSessionRef = useRef<any>(null);
   const isQuietRoute = pathname === '/' || pathname.startsWith('/programs') || pathname.startsWith('/booking/');
   const hasMobileBookingDock = /^\/programs\/[^/]+/.test(pathname) || pathname.startsWith('/booking/');
 
-  const chatbotConfig = settings?.chatbot_config || {
-    apiKey: '',
-    knowledge: "Tu es 'GoBot', l'assistant super cool de Make & Go Casablanca. Tes ateliers durent 3h et coûtent 400 DHS. Sois enthousiaste et concis !"
-  };
+  const chatbotKnowledge = settings?.chatbot_knowledge || "Tu es GoBot, l’assistant de MakerLab Academy Casablanca. Aide les familles à choisir un programme avec des réponses courtes, claires et factuelles.";
 
   useEffect(() => {
     if (messages.length === 0) {
@@ -37,16 +31,6 @@ export const ChatAssistant: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (isOpen && !chatSessionRef.current && chatbotConfig.apiKey) {
-        try {
-            chatSessionRef.current = startAssistantChat(chatbotConfig.knowledge, chatbotConfig.apiKey);
-        } catch (e) {
-            console.error("Failed to start chat session", e);
-        }
-    }
-  }, [isOpen, chatbotConfig]);
-
-  useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
@@ -54,35 +38,20 @@ export const ChatAssistant: React.FC = () => {
 
   const handleSend = async () => {
     if (!input.trim() || isTyping) return;
-    if (!chatbotConfig.apiKey) {
-        alert("Le chatbot n'est pas encore configuré (Clé API manquante).");
-        return;
-    }
-
     const userMessage = input;
     setInput('');
     setMessages(prev => [...prev, { role: 'user', text: userMessage }]);
     setIsTyping(true);
 
     try {
-      if (!chatSessionRef.current) {
-         chatSessionRef.current = startAssistantChat(chatbotConfig.knowledge, chatbotConfig.apiKey);
-      }
-
-      const stream = await chatSessionRef.current.sendMessageStream({ message: userMessage });
-      let fullText = '';
-
-      setMessages(prev => [...prev, { role: 'bot', text: '' }]);
-
-      for await (const chunk of stream) {
-        const chunkText = (chunk as GenerateContentResponse).text;
-        fullText += chunkText;
-        setMessages(prev => {
-          const newMessages = [...prev];
-          newMessages[newMessages.length - 1].text = fullText;
-          return newMessages;
-        });
-      }
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userMessage, history: messages.slice(-8), knowledgeVersion: chatbotKnowledge.length }),
+      });
+      if (!response.ok) throw new Error('Assistant unavailable');
+      const data = await response.json();
+      setMessages(prev => [...prev, { role: 'bot', text: data.text || "Je n’ai pas pu préparer une réponse." }]);
     } catch (error) {
       setMessages(prev => [...prev, { role: 'bot', text: "Désolé, j'ai un petit souci technique. Réessaie dans un instant ! 🤖" }]);
     } finally {
@@ -92,9 +61,6 @@ export const ChatAssistant: React.FC = () => {
 
   const handleReset = () => {
     setMessages([{ role: 'bot', text: "C'est reparit ! Comment puis-je t'aider ?" }]);
-    if (chatbotConfig.apiKey) {
-        chatSessionRef.current = startAssistantChat(chatbotConfig.knowledge, chatbotConfig.apiKey);
-    }
   };
 
   return (

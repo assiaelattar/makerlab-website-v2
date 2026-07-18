@@ -14,6 +14,7 @@ import { AppContainer, AppShell } from './AppStyle';
 import { Reveal } from './Motion';
 import { SEO } from './SEO';
 import { ParentDecisionSystem } from './ParentDecisionSystem';
+import { StoreMotion } from './StoreMotion';
 
 type StoreProduct = (typeof storeProducts)[number];
 
@@ -54,7 +55,7 @@ interface StoreProductDetailProps {
 }
 
 export const StoreProductDetail: React.FC<StoreProductDetailProps> = ({ product, copy }) => (
-  <AppShell className="bg-[#f4f7fb] pb-24">
+  <AppShell className="w-full max-w-full overflow-x-hidden bg-[#f4f7fb] pb-24 font-['Outfit']">
     <SEO
       title={copy.seoTitle}
       description={copy.seoDescription}
@@ -62,34 +63,33 @@ export const StoreProductDetail: React.FC<StoreProductDetailProps> = ({ product,
       image={product.heroImage}
     />
 
-    <section className="relative min-h-[700px] overflow-hidden bg-[#061d45] text-white sm:min-h-[740px] lg:min-h-[760px]">
-      <img
-        src={product.heroImage}
-        alt={copy.imageAlt}
-        className="absolute inset-0 h-full w-full object-cover object-[58%_center] lg:object-center"
-      />
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,19,47,0.05)_0%,rgba(3,19,47,0.22)_26%,rgba(3,19,47,0.97)_100%)] lg:bg-[linear-gradient(90deg,rgba(3,19,47,0.97)_0%,rgba(3,19,47,0.78)_46%,rgba(3,19,47,0.06)_82%)]" />
+    <StoreMotion />
+
+    <section className="relative overflow-hidden bg-[#061d45] text-white">
       <div className="absolute inset-x-0 top-0 h-1.5" style={{ backgroundColor: copy.accent }} />
 
-      <AppContainer className="relative flex min-h-[700px] items-end pb-7 pt-24 sm:min-h-[740px] sm:pb-10 lg:min-h-[760px] lg:items-center lg:py-24">
-        <Reveal className="w-full max-w-2xl">
+      <AppContainer className="relative py-24 sm:py-28 lg:py-32">
+        <div className="grid items-center gap-9 lg:grid-cols-[0.88fr_1.12fr] lg:gap-12">
+          <Reveal className="order-2 w-full lg:order-1">
           <Link
             to="/store"
-            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-white/25 bg-[#061d45]/45 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-white backdrop-blur-md transition hover:bg-white/15"
+            className="inline-flex min-h-11 items-center gap-2 text-xs font-black uppercase tracking-[0.12em] text-white/70 transition hover:text-white"
           >
             <ArrowLeft size={16} /> Retour au Store
           </Link>
 
-          <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-white/12 px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-white backdrop-blur-md">
+          <div className="mt-5 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.16em] text-white/65">
             <Sparkles size={14} style={{ color: copy.accent }} />
             {copy.badge}
           </div>
 
-          <h1 className="mt-5 max-w-xl text-[clamp(2.8rem,12vw,5.6rem)] font-black leading-[0.89] tracking-[-0.055em] text-white">
+          <h1 className="mt-5 max-w-5xl text-[clamp(2.75rem,7vw,5.4rem)] font-black leading-[0.9] tracking-[-0.055em] text-white">
             {copy.heroTitle}
           </h1>
-          <p className="mt-5 max-w-md text-base font-semibold leading-6 text-white/82 sm:text-lg sm:leading-7">
-            {copy.heroSummary}
+          <p data-store-words className="mt-5 max-w-xl text-base font-semibold leading-6 text-white/82 sm:text-lg sm:leading-7">
+            {copy.heroSummary.split(' ').map((word, index) => (
+              <span key={`${word}-${index}`} data-store-word className="mr-[0.28em] inline-block">{word}</span>
+            ))}
           </p>
 
           <div className="mt-7 flex flex-col gap-3 sm:flex-row">
@@ -108,14 +108,26 @@ export const StoreProductDetail: React.FC<StoreProductDetailProps> = ({ product,
             </a>
           </div>
 
-          <div className="mt-6 grid grid-cols-3 gap-2 border-t border-white/20 pt-5 sm:max-w-xl">
-            {copy.heroHighlights.map((item) => (
-              <div key={item} className="flex min-h-14 items-center justify-center rounded-xl bg-white/10 px-2 py-3 text-center backdrop-blur-md">
-                <span className="text-[10px] font-black uppercase leading-4 tracking-[0.04em] text-white sm:text-xs">{item}</span>
+          </Reveal>
+
+          <Reveal className="order-1 lg:order-2">
+            <div className="relative overflow-hidden rounded-[1.5rem] bg-white shadow-[0_30px_80px_rgba(0,0,0,.28)]">
+              <img
+                data-store-media
+                src={product.heroImage}
+                alt={copy.imageAlt}
+                className="aspect-[4/3] w-full object-contain sm:aspect-[16/11] lg:aspect-[4/3]"
+              />
+              <div className="grid grid-cols-3 gap-px bg-[#061d45]">
+                {copy.heroHighlights.map(item => (
+                  <div key={item} className="flex min-h-16 items-center justify-center bg-white px-2 py-3 text-center text-[10px] font-black uppercase leading-4 tracking-[0.04em] text-[#061d45] sm:text-xs">
+                    {item}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </Reveal>
+            </div>
+          </Reveal>
+        </div>
       </AppContainer>
     </section>
 
@@ -137,13 +149,13 @@ export const StoreProductDetail: React.FC<StoreProductDetailProps> = ({ product,
             {copy.journeyTitle}
           </h2>
 
-          <div className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-3">
+          <div className="-mx-4 mt-8 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-4 sm:mx-0 sm:grid sm:grid-flow-dense sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:flex">
             {product.journey.map((step, index) => {
               const Icon = step.icon;
               const label = copy.journeyLabels[index] ?? step.label;
 
               return (
-                <article key={step.label} className="relative overflow-hidden rounded-2xl border-2 border-[#061d45]/10 p-4 shadow-[0_14px_38px_rgba(19,51,91,0.08)] sm:p-5" style={{ backgroundColor: journeySurfaces[index % journeySurfaces.length] }}>
+                <article key={step.label} className="relative w-[72vw] max-w-[270px] shrink-0 snap-center overflow-hidden rounded-2xl border-2 border-[#061d45]/10 p-4 shadow-[0_14px_38px_rgba(19,51,91,0.08)] transition-[flex,transform] duration-700 ease-out hover:-translate-y-1 sm:w-auto sm:max-w-none lg:min-h-[260px] lg:flex-1 lg:hover:flex-[1.45] sm:p-5" style={{ backgroundColor: journeySurfaces[index % journeySurfaces.length] }}>
                   <span className="absolute right-3 top-2 text-4xl font-black text-[#061d45]/5">{index + 1}</span>
                   <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#061d45] text-white">
                     <Icon size={20} />
@@ -163,7 +175,8 @@ export const StoreProductDetail: React.FC<StoreProductDetailProps> = ({ product,
             <img
               src={product.unboxingImage}
               alt={`${product.title} : pièces et guide`}
-              className="aspect-[4/3] h-full w-full object-cover sm:aspect-[16/10] lg:min-h-[560px]"
+              data-store-media
+              className="aspect-[4/3] h-full w-full object-cover transition-transform duration-700 ease-out hover:scale-105 sm:aspect-[16/10] lg:min-h-[560px]"
             />
             <div className="p-6 sm:p-9">
               <p className="text-xs font-black uppercase tracking-[0.16em]" style={{ color: copy.accent }}>

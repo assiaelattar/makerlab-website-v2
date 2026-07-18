@@ -1,0 +1,52 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+
+    function publicSetting(settingId) {
+      return settingId in [
+        'announcement_bar', 'blogs', 'chatbot_knowledge', 'contact_info',
+        'gallery_general', 'gallery_kids', 'gallery_programs',
+        'hero_dynamic_messages', 'hero_images', 'homeSeo', 'home_video',
+        'key_stats', 'page_content', 'reservationLPSettings', 'reservationLPWeekends',
+        'socialImage', 'socialProofConfig', 'googleAnalyticsId', 'gscVerification'
+      ];
+    }
+
+    match /website-settings/{settingId} {
+      allow read: if publicSetting(settingId) || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /{collectionName}/{documentId} {
+      allow read: if collectionName in [
+        'website-programs', 'website-funnels', 'website-missions', 'website-tracks',
+        'website-demo-slots', 'website-recurrent-slots', 'workshops',
+        'school-partners', 'periods', 'offers', 'maker_quests'
+      ];
+      allow write: if isAdmin();
+    }
+
+    match /projects/{projectId} {
+      allow read: if isAdmin() || resource.data.status == 'approved';
+      allow create: if request.resource.data.status == 'pending';
+      allow update, delete: if isAdmin();
+    }
+
+    match /{collectionName}/{documentId} {
+      allow create: if collectionName in [
+        'website-bookings', 'website-contact-leads', 'website-school-leads',
+        'reservation-submissions', 'website-orientation-leads',
+        'website-landing-leads', 'lead-magnet-leads', 'make-and-go-leads',
+        'enrollments', 'trial_conversions'
+      ];
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

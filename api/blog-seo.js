@@ -9,6 +9,17 @@ const FIRESTORE_PROJECT = 'edufy-makerlab';
 const BASE_DOMAIN = process.env.BASE_DOMAIN || 'https://space.makerlab.academy';
 const DEFAULT_IMAGE = ''; // No hardcoded fallback — image comes from Firestore admin settings only
 
+const decodeValue = (field) => {
+  if (!field) return null;
+  if ('stringValue' in field) return field.stringValue;
+  if ('booleanValue' in field) return field.booleanValue;
+  if ('integerValue' in field) return Number(field.integerValue);
+  if ('doubleValue' in field) return field.doubleValue;
+  if (field.arrayValue) return (field.arrayValue.values || []).map(decodeValue);
+  if (field.mapValue) return Object.fromEntries(Object.entries(field.mapValue.fields || {}).map(([key, value]) => [key, decodeValue(value)]));
+  return null;
+};
+
 const esc = (s = '') =>
   String(s)
     .replace(/&/g, '&amp;')
@@ -95,29 +106,25 @@ export default async function handler(req, res) {
         console.warn('[blog-seo] Global settings fetch failed');
     }
 
-    const firestoreUrl = `https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/${DATABASE}/documents/website-blogs/${id}`;
-    const response = await fetch(firestoreUrl);
-    
-    if (!response.ok) {
-        console.warn(`[blog-seo] Blog document not found for: ${id}. Using fallback.`);
-        return res.status(200).send(indexHtml);
-    }
-
+    const settingsUrl = `https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/${DATABASE}/documents/website-settings/blogs`;
+    const response = await fetch(settingsUrl);
+    if (!response.ok) return res.status(200).send(indexHtml);
     const data = await response.json();
-    const blog = data.fields;
+    const blogs = decodeValue(data.fields?.value) || [];
+    const blog = blogs.find(item => item.id === id || item.slug === id);
     if (!blog) return res.status(200).send(indexHtml);
 
-    const title = blog.title?.stringValue || 'Blog MakerLab Academy';
-    let description = blog.preview?.stringValue || 
-                         blog.content?.stringValue?.substring(0, 160) || 
+    const title = blog.title || 'Blog MakerLab Academy';
+    let description = blog.preview || blog.excerpt ||
+                         blog.content?.substring(0, 160) ||
                          'Conseils et actualités sur le coding, robotique et IA.';
     
     if (description.length > 155) {
         description = description.substring(0, 152) + '...';
     }
 
-    const image = blog.ogImage?.stringValue || 
-                  blog.image?.stringValue || 
+    const image = blog.ogImage ||
+                  blog.image ||
                   globalDefaultImage;
 
     const html = buildHtml({ title, description, image, url: `${BASE_DOMAIN}${urlPath}`, gaId, gscCode });

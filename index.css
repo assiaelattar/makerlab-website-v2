@@ -8,10 +8,17 @@
 
 html,
 body {
-  overflow-x: hidden;
+  overflow-x: clip;
   scroll-behavior: smooth;
   -webkit-tap-highlight-color: transparent;
   touch-action: pan-y;
+}
+
+@supports not (overflow: clip) {
+  html,
+  body {
+    overflow-x: hidden;
+  }
 }
 
 body {
@@ -446,5 +453,130 @@ img {
 @media (prefers-reduced-motion: reduce) {
   .school-proof-track {
     animation: none !important;
+  }
+}
+
+/* Homepage discovery journey */
+.home-journey {
+  font-family: Outfit, Manrope, sans-serif;
+  background: #f3efe6;
+}
+
+.home-hero-grid {
+  background-image:
+    linear-gradient(rgba(11, 23, 38, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(11, 23, 38, 0.045) 1px, transparent 1px);
+  background-size: 56px 56px;
+  -webkit-mask-image: radial-gradient(ellipse at 50% 24%, #000 0%, rgba(0, 0, 0, 0.72) 54%, transparent 88%);
+  mask-image: radial-gradient(ellipse at 50% 24%, #000 0%, rgba(0, 0, 0, 0.72) 54%, transparent 88%);
+}
+
+.home-inline-media {
+  border: 2px solid currentColor;
+  border-radius: 999px;
+  background: #172033;
+}
+
+.home-inline-media img {
+  transform: scale(1.12);
+}
+
+.home-hero-photo {
+  background: #e8ecee;
+}
+
+.home-hero-photo img {
+  filter: saturate(0.96) contrast(1.015);
+}
+
+.program-switcher-rail > div,
+.home-format-rail {
+  scrollbar-width: none;
+}
+
+.program-switcher-rail > div::-webkit-scrollbar,
+.home-format-rail::-webkit-scrollbar {
+  display: none;
+}
+
+[data-home-parallax],
+[data-home-story-image],
+[data-home-stack-card] {
+  will-change: transform;
+}
+
+.home-discipline-track,
+.home-school-track {
+  animation: homeJourneyMarquee 34s linear infinite;
+}
+
+.home-format-card {
+  min-height: 500px;
+  transition: flex 520ms cubic-bezier(0.22, 1, 0.36, 1), transform 240ms ease;
+}
+
+.home-format-orange {
+  background: #e87722;
+  color: #fff;
+}
+
+.home-format-lime {
+  background: #d9f56f;
+  color: #0b1726;
+}
+
+.home-format-blue {
+  background: #2563a8;
+  color: #fff;
+}
+
+.home-format-rail {
+  scrollbar-width: none;
+}
+
+.home-format-rail::-webkit-scrollbar {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .home-format-card {
+    flex: 1 1 0%;
+  }
+
+  .home-format-rail:hover .home-format-card {
+    flex-grow: 0.82;
+  }
+
+  .home-format-rail .home-format-card:hover {
+    flex-grow: 1.65;
+  }
+
+  .home-program-stack-card {
+    position: sticky;
+    top: calc(7rem + (var(--home-stack-index) * 1.4rem));
+    transform-origin: top center;
+  }
+}
+
+@keyframes homeJourneyMarquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-discipline-track,
+  .home-school-track {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  [data-home-parallax],
+  [data-home-story-image],
+  [data-home-stack-card] {
+    will-change: auto;
   }
 }

@@ -38,7 +38,7 @@ export const AdminMakerQuests: React.FC = () => {
         slug: "brand-launch-final-delivery",
         category: "Art Digital & Design",
         description: "Package and deliver your print-on-demand brand assets like a professional founder.",
-        coverImage: "https://images.unsplash.com/photo-1583336718427-4638a1682498?auto=format&fit=crop&q=80&w=1200",
+        coverImage: "/images/makerlab/generated/make-and-go-desk-lamp-v1.webp",
         active: true,
         createdAt: new Date().toISOString(),
         materials: [

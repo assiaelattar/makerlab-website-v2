@@ -99,7 +99,7 @@ export default async function handler(req, res) {
     let description = 'Découvrez nos ateliers innovants en Coding, Robotique et IA.';
     let image = globalDefaultImage;
 
-    const spRes = await fetch(`https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/${DATABASE}/documents/website-school-partners`);
+    const spRes = await fetch(`https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/${DATABASE}/documents/school-partners`);
     if (spRes.ok) {
       const spData = await spRes.json();
       const schoolDoc = spData.documents?.find(d => d.fields?.slug?.stringValue === slug);
@@ -110,7 +110,7 @@ export default async function handler(req, res) {
         title = `${schoolName} × MakerLab Academy`;
         description = `Découvrez nos ateliers innovants en Coding, Robotique et IA chez ${schoolName}. Préparez vos enfants au futur du numérique !`;
 
-        const offRes = await fetch(`https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/${DATABASE}/documents/website-offers`);
+        const offRes = await fetch(`https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/${DATABASE}/documents/offers`);
         if (offRes.ok) {
           const offData = await offRes.json();
           const offerDoc = offData.documents?.find(d => 

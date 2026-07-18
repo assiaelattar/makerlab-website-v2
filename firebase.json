@@ -1,0 +1,9 @@
+{
+  "firestore": {
+    "database": "websitev2",
+    "rules": "firestore.rules"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  }
+}
