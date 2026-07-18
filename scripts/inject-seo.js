@@ -38,16 +38,34 @@ async function fsGet(path_) {
 
 async function fsList(collection) {
   try {
-    const res = await fetch(`${BASE_URL}/${PROJECT}/databases/${DATABASE}/documents/${collection}`);
-    if (!res.ok) return [];
-    const data = await res.json();
-    return data.documents || [];
+    const documents = [];
+    let pageToken = '';
+    do {
+      const suffix = pageToken ? `?pageToken=${encodeURIComponent(pageToken)}` : '';
+      const res = await fetch(`${BASE_URL}/${PROJECT}/databases/${DATABASE}/documents/${collection}${suffix}`);
+      if (!res.ok) return documents;
+      const data = await res.json();
+      documents.push(...(data.documents || []));
+      pageToken = data.nextPageToken || '';
+    } while (pageToken);
+    return documents;
   } catch { return []; }
 }
 
 function str(field)   { return field?.stringValue  || ''; }
 function bool(field)  { return field?.booleanValue  || false; }
 function mapf(field)  { return field?.mapValue?.fields || null; }
+function value(field) {
+  if (!field) return null;
+  if ('stringValue' in field) return field.stringValue;
+  if ('booleanValue' in field) return field.booleanValue;
+  if ('integerValue' in field) return Number(field.integerValue);
+  if ('doubleValue' in field) return field.doubleValue;
+  if ('timestampValue' in field) return field.timestampValue;
+  if (field.arrayValue) return (field.arrayValue.values || []).map(value);
+  if (field.mapValue) return Object.fromEntries(Object.entries(field.mapValue.fields || {}).map(([key, item]) => [key, value(item)]));
+  return null;
+}
 
 // ─── HTML helpers ─────────────────────────────────────────────────────────────
 
@@ -70,7 +88,18 @@ function injectMeta(html, property, content, isName = false) {
   return html.replace('</head>', `  <meta ${attr}="${property}" content="${content}" />\n</head>`);
 }
 
-function buildPageHtml(baseHtml, { title, description, image, url, gaId, gscCode }) {
+function injectCanonical(html, href) {
+  html = html.replace(/\s*<link\s[^>]*rel=['"]canonical['"][^>]*>/gi, '');
+  return html.replace('</head>', `  <link rel="canonical" href="${esc(href)}" />\n</head>`);
+}
+
+function injectJsonLd(html, graph) {
+  html = html.replace(/\s*<script\s+id=['"]static-json-ld['"][^>]*>[\s\S]*?<\/script>/gi, '');
+  const json = JSON.stringify({ '@context': 'https://schema.org', '@graph': graph }).replace(/</g, '\\u003c');
+  return html.replace('</head>', `  <script id="static-json-ld" type="application/ld+json">${json}</script>\n</head>`);
+}
+
+function buildPageHtml(baseHtml, { title, description, image, url, gaId, gscCode, schema = [] }) {
   let html = baseHtml;
 
   // Title
@@ -101,7 +130,21 @@ function buildPageHtml(baseHtml, { title, description, image, url, gaId, gscCode
   html = injectMeta(html, 'description',          esc(description),     true);
 
   // Robots — Explicitly allow indexing for public pages
-  html = injectMeta(html, 'robots', 'index, follow', true);
+  html = injectMeta(html, 'robots', 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1', true);
+  html = injectMeta(html, 'googlebot', 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1', true);
+  html = injectCanonical(html, url);
+
+  const pageSchema = {
+    '@type': 'WebPage',
+    '@id': `${url}#webpage`,
+    url,
+    name: title,
+    description,
+    inLanguage: 'fr-FR',
+    isPartOf: { '@id': `${SITE}/#website` },
+    ...(image ? { primaryImageOfPage: { '@type': 'ImageObject', url: image } } : {}),
+  };
+  html = injectJsonLd(html, [pageSchema, ...schema]);
 
   // GSC & GA4
   if (gscCode) html = injectMeta(html, 'google-site-verification', gscCode, true);
@@ -152,10 +195,30 @@ async function run() {
 
   // 2. Update dist/index.html (home page default)
   const homeHtml = buildPageHtml(baseHtml, {
-    title:       'MakerLab Academy — Codage, Robotique et IA pour Enfants',
-    description: 'Ateliers innovants de coding, robotique et IA pour préparer vos enfants au futur du numérique.',
+    title:       'MakerLab Academy — Robotique, Coding et IA pour Enfants à Casablanca',
+    description: 'MakerLab Academy aide les enfants de 6 à 16 ans à concevoir, coder, fabriquer et présenter de vrais projets en robotique, IA, électronique et design 3D.',
     image:       globalImage,
     url:         `${SITE}/`,
+    schema: [
+      {
+        '@type': 'EducationalOrganization',
+        '@id': `${SITE}/#organization`,
+        name: 'MakerLab Academy',
+        url: SITE,
+        logo: { '@type': 'ImageObject', url: `${SITE}/logo-full.png` },
+        description: 'Académie de technologie créative pour les enfants de 6 à 16 ans à Casablanca.',
+        address: { '@type': 'PostalAddress', addressLocality: 'Casablanca', addressCountry: 'MA' },
+        areaServed: { '@type': 'City', name: 'Casablanca' },
+      },
+      {
+        '@type': 'WebSite',
+        '@id': `${SITE}/#website`,
+        url: SITE,
+        name: 'MakerLab Academy',
+        publisher: { '@id': `${SITE}/#organization` },
+        inLanguage: 'fr-FR',
+      },
+    ],
     ...sharedOpts,
   });
   fs.writeFileSync(DIST_HTML, homeHtml, 'utf8');
@@ -205,7 +268,15 @@ async function run() {
     // Image priority: landingPage.ogImage → program.ogImage → program.image → global
     const image = str(lp?.ogImage) || str(fields.ogImage) || str(fields.image) || globalImage;
 
-    const pageOpts = { title, description, image, ...sharedOpts };
+    const courseSchema = {
+      '@type': 'Course',
+      name: title,
+      description,
+      provider: { '@id': `${SITE}/#organization` },
+      inLanguage: 'fr-FR',
+      ...(image ? { image } : {}),
+    };
+    const pageOpts = { title, description, image, schema: [courseSchema], ...sharedOpts };
 
     // /lp/:id
     const lpHtml = buildPageHtml(baseHtml, { ...pageOpts, url: `${SITE}/lp/${id}` });
@@ -223,20 +294,34 @@ async function run() {
 
   // 4. Blog posts — generate per-blog HTML files
   console.log('\n📡 Fetching blogs...');
-  const blogDocs = await fsList('website-blogs');
+  const blogSettings = await fsGet('website-settings/blogs');
+  const settingsBlogs = value(blogSettings?.value) || [];
+  const legacyBlogDocs = await fsList('website-blogs');
+  const blogDocs = settingsBlogs.length
+    ? settingsBlogs.map((blog, index) => ({ id: blog.id || blog.slug || `article-${index + 1}`, fields: blog }))
+    : legacyBlogDocs.map(doc => ({ id: doc.name.split('/').pop(), fields: Object.fromEntries(Object.entries(doc.fields || {}).map(([key, item]) => [key, value(item)])) }));
   let blogCount = 0;
   for (const doc of blogDocs) {
-    const id     = doc.name.split('/').pop();
+    const id     = doc.fields.slug || doc.id;
     const fields = doc.fields || {};
-    const title  = str(fields.title) || 'Blog MakerLab Academy';
-    let   description = str(fields.preview) || str(fields.content)?.substring(0, 160)
+    const title  = fields.title || 'Blog MakerLab Academy';
+    let   description = fields.preview || fields.excerpt || fields.content?.substring(0, 160)
                          || 'Conseils et actualités sur le coding, robotique et IA.';
     if (description.length > 155) description = description.substring(0, 152) + '...';
-    const image  = str(fields.ogImage) || str(fields.image) || globalImage;
+    const image  = fields.ogImage || fields.image || globalImage;
 
     const blogHtml = buildPageHtml(baseHtml, {
       title, description, image,
       url: `${SITE}/blog/${id}`,
+      schema: [{
+        '@type': 'Article',
+        headline: title,
+        description,
+        ...(image ? { image } : {}),
+        author: { '@id': `${SITE}/#organization` },
+        publisher: { '@id': `${SITE}/#organization` },
+        inLanguage: 'fr-FR',
+      }],
       ...sharedOpts,
     });
     writeHtml(path.join(DIST, 'blog', id, 'index.html'), blogHtml);
@@ -246,7 +331,55 @@ async function run() {
 
   // 5. School Partners — fetch for sitemap
   console.log('\n📡 Fetching school partners for sitemap...');
-  const schoolDocs = await fsList('website-school-partners');
+  const staticPages = [
+    { path: 'about', title: 'À propos de MakerLab Academy', description: 'Découvrez la méthode MakerLab Academy : apprendre la robotique, le code, l’IA et la fabrication en construisant de vrais projets.' },
+    { path: 'schools', title: 'Programmes STEM pour écoles à Casablanca', description: 'Clubs, ateliers et programmes MakerLab en robotique, coding, IA, électronique et fabrication pour les établissements scolaires.' },
+    { path: 'kids-families', title: 'Ateliers technologiques pour enfants et familles', description: 'Des missions pratiques pour les enfants de 6 à 16 ans : concevoir, coder, fabriquer, tester et présenter un projet.' },
+    { path: 'maker-wall', title: 'Maker Wall — Projets construits par les enfants', description: 'Découvrez les projets de robotique, code, IA, design 3D et électronique imaginés et construits par les jeunes makers.' },
+    { path: 'store', title: 'MakerLab Store — Kits de projets technologiques', description: 'Des kits MakerLab conçus comme de vraies missions : construire, coder, tester puis présenter un produit technologique.' },
+    { path: 'store/smart-door', title: 'Smart Door — Kit de porte intelligente', description: 'Un projet MakerLab où l’enfant construit et programme une porte intelligente avec de vrais composants.', schema: [{ '@type': 'Product', name: 'Smart Door', description: 'Kit éducatif de porte intelligente MakerLab', brand: { '@type': 'Brand', name: 'MakerLab Academy' } }] },
+    { path: 'store/nova-quest-mini', title: 'Nova Quest Mini — Console à construire et coder', description: 'Une console portable MakerLab que l’enfant assemble, programme et transforme en projet à présenter.', schema: [{ '@type': 'Product', name: 'Nova Quest Mini', description: 'Console éducative à construire et programmer', brand: { '@type': 'Brand', name: 'MakerLab Academy' } }] },
+  ];
+  for (const page of staticPages) {
+    writeHtml(path.join(DIST, ...page.path.split('/'), 'index.html'), buildPageHtml(baseHtml, {
+      title: page.title,
+      description: page.description,
+      image: globalImage,
+      url: `${SITE}/${page.path}`,
+      schema: page.schema || [],
+      ...sharedOpts,
+    }));
+  }
+  console.log(`✅ ${staticPages.length} public route pages created`);
+
+  const questDocs = (await fsList('maker_quests')).filter(doc => bool(doc.fields?.active));
+  for (const doc of questDocs) {
+    const fields = doc.fields || {};
+    const slug = str(fields.slug) || doc.name.split('/').pop();
+    const title = str(fields.title) || 'Maker Quest';
+    const description = str(fields.description) || 'Une mission MakerLab guidée pour concevoir, fabriquer, coder et présenter un vrai projet.';
+    const image = str(fields.coverImage) || globalImage;
+    const html = buildPageHtml(baseHtml, {
+      title: `${title} — Maker Quest`,
+      description,
+      image,
+      url: `${SITE}/maker-wall/quest/${slug}`,
+      schema: [{
+        '@type': 'LearningResource',
+        name: title,
+        description,
+        learningResourceType: 'Projet pratique guidé',
+        educationalLevel: 'Enfants de 6 à 16 ans',
+        provider: { '@id': `${SITE}/#organization` },
+        ...(image ? { image } : {}),
+      }],
+      ...sharedOpts,
+    });
+    writeHtml(path.join(DIST, 'maker-wall', 'quest', slug, 'index.html'), html);
+  }
+  console.log(`✅ ${questDocs.length} Maker Quest pages created`);
+
+  const schoolDocs = await fsList('school-partners');
   const schoolUrls = schoolDocs.map(doc => `/s/${str(doc.fields?.slug) || doc.name.split('/').pop()}`);
 
   // 6. Generate robots.txt and sitemap.xml
@@ -257,20 +390,35 @@ Disallow: /admin
 Disallow: /dist
 Disallow: /node_modules
 
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
 Sitemap: ${SITE}/sitemap.xml`;
   fs.writeFileSync(path.join(DIST, 'robots.txt'), robots, 'utf8');
 
   const allUrls = [
     '', '/programs', '/blog', '/about', '/contact', '/register', '/schools', '/kids-families', '/store',
+    ...staticPages.map(page => `/${page.path}`),
     ...programDocs.map(doc => `/programs/${doc.name.split('/').pop()}`),
     ...programDocs.map(doc => `/lp/${doc.name.split('/').pop()}`),
-    ...blogDocs.map(doc => `/blog/${doc.name.split('/').pop()}`),
+    ...blogDocs.map(doc => `/blog/${doc.fields?.slug || doc.id || doc.name?.split('/').pop()}`).filter(url => !url.endsWith('/undefined')),
+    ...questDocs.map(doc => `/maker-wall/quest/${str(doc.fields?.slug) || doc.name.split('/').pop()}`),
     ...schoolUrls
   ];
+  const uniqueUrls = [...new Set(allUrls)];
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  ${allUrls.map(url => `
+  ${uniqueUrls.map(url => `
   <url>
     <loc>${SITE}${url}</loc>
     <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
@@ -279,6 +427,49 @@ Sitemap: ${SITE}/sitemap.xml`;
   </url>`).join('')}
 </urlset>`;
   fs.writeFileSync(path.join(DIST, 'sitemap.xml'), sitemap, 'utf8');
+
+  const llms = `# MakerLab Academy
+
+> MakerLab Academy est une académie de technologie créative à Casablanca pour les enfants de 6 à 16 ans. Les enfants conçoivent, fabriquent, codent, testent et présentent de vrais projets en robotique, intelligence artificielle, électronique, design 3D et fabrication.
+
+## Méthode
+
+- Approche par projet : imaginer, concevoir, fabriquer, programmer, tester et présenter.
+- Ce ne sont pas des jouets à recopier ni des instructions à copier-coller.
+- Les outils sont choisis selon la mission et peuvent inclure Autodesk Fusion 360, BBC micro:bit, Microsoft MakeCode, Python et des outils d'IA générative.
+- L'IA sert de copilote pour explorer et prototyper ; elle ne remplace pas la réflexion de l'enfant.
+- Les projets peuvent être documentés dans un portfolio et développés vers une idée de produit, sa présentation et son packaging.
+- Toute garantie de remboursement dépend des conditions affichées sur l'offre concernée.
+
+## Pages principales
+
+- [Accueil](${SITE}/)
+- [Programmes et missions](${SITE}/programs)
+- [Projets des élèves — Maker Wall](${SITE}/maker-wall)
+- [Programmes pour les écoles](${SITE}/schools)
+- [Ateliers enfants et familles](${SITE}/kids-families)
+- [MakerLab Store](${SITE}/store)
+- [À propos](${SITE}/about)
+- [Blog](${SITE}/blog)
+
+## Programmes publiés
+
+${programDocs.map(doc => {
+  const fields = doc.fields || {};
+  const id = doc.name.split('/').pop();
+  return `- [${str(fields.title) || 'Programme MakerLab'}](${SITE}/programs/${id}): ${str(fields.shortDescription) || str(fields.description) || 'Programme pratique MakerLab.'}`;
+}).join('\n')}
+
+## Informations de marque
+
+- Nom : MakerLab Academy
+- Zone principale : Casablanca, Maroc
+- Langue principale du site : français
+- Public : familles, enfants de 6 à 16 ans et établissements scolaires
+- Les marques d'outils citées décrivent des technologies utilisées selon les projets et n'impliquent pas de partenariat.
+- Les noms d'écoles visibles sur le site indiquent uniquement que certains participants les fréquentent ; ils n'impliquent ni affiliation ni approbation.
+`;
+  fs.writeFileSync(path.join(DIST, 'llms.txt'), llms, 'utf8');
 
   console.log('✅ robots.txt and sitemap.xml created in dist/');
 

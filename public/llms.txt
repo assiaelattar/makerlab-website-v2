@@ -1,0 +1,26 @@
+# MakerLab Academy
+
+> MakerLab Academy est une académie de technologie créative à Casablanca pour les enfants de 6 à 16 ans. Les enfants conçoivent, fabriquent, codent, testent et présentent de vrais projets.
+
+## Ce que les enfants apprennent
+
+- Robotique, coding, intelligence artificielle, électronique, design 3D et fabrication.
+- Méthode par projet : imaginer, concevoir, fabriquer, programmer, tester et présenter.
+- Utilisation d'outils adaptés à chaque mission, notamment Autodesk Fusion 360, BBC micro:bit, Microsoft MakeCode, Python et l'IA générative.
+- Création d'un portfolio et développement progressif d'une idée vers un prototype puis un produit à présenter.
+
+## Pages principales
+
+- [Accueil](https://space.makerlab.academy/)
+- [Programmes et missions](https://space.makerlab.academy/programs)
+- [Maker Wall](https://space.makerlab.academy/maker-wall)
+- [Écoles](https://space.makerlab.academy/schools)
+- [Enfants et familles](https://space.makerlab.academy/kids-families)
+- [Store](https://space.makerlab.academy/store)
+- [À propos](https://space.makerlab.academy/about)
+
+## Précisions
+
+- Les marques citées décrivent des outils utilisés selon les projets et n'impliquent pas de partenariat.
+- Les noms d'écoles visibles sur le site indiquent que certains participants les fréquentent et n'impliquent ni affiliation ni approbation.
+- Toute garantie de remboursement dépend des conditions affichées sur l'offre concernée.

@@ -23,6 +23,7 @@ import { usePrograms } from '../contexts/ProgramContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { FAQSection } from '../components/PageReady';
 import { SEO } from '../components/SEO';
+import { ParentDecisionSystem } from '../components/ParentDecisionSystem';
 import { getGeneratedProgramImage } from '../utils/makerlabImages';
 import { getPublicProgramCategory, getPublicProgramDescription, getPublicProgramTitle } from '../utils/programDisplay';
 
@@ -114,6 +115,26 @@ export const ProgramDetail: React.FC = () => {
   const programFormat = `${program.programType || ''} ${program.format || ''} ${program.duration || ''}`.toLowerCase();
   const bookingType = /annual|annuel|year program|parcours annuel/.test(programFormat) ? 'annual' : 'workshop';
   const bookingPath = `/booking/${program.id}?type=${bookingType}`;
+  const recommendedPath = program.bookingType === 'external' && program.externalBookingUrl ? program.externalBookingUrl : bookingPath;
+  const toolContext = `${program.title} ${program.category} ${program.description} ${program.skills?.join(' ') || ''}`.toLowerCase();
+  const professionalTools = /drone|tello|python/.test(toolContext)
+    ? ['Python', 'DJI Tello', 'PyCharm', 'Logique algorithmique']
+    : /ia|intelligence artificielle|classifier|machine learning/.test(toolContext)
+      ? ['Google Teachable Machine', 'Python', 'IA générative', 'Design produit']
+      : /3d|cad|cao|fusion|fabrication|impression/.test(toolContext)
+        ? ['Autodesk Tinkercad', 'Autodesk Fusion 360', 'Impression 3D', 'Découpe laser']
+        : ['BBC micro:bit', 'Microsoft MakeCode', 'Autodesk Tinkercad', 'Électronique réelle'];
+  const parentNextSteps = bookingType === 'annual'
+    ? [
+        { title: 'Première mission', text: 'Valider son intérêt et réussir un projet concret.' },
+        { title: 'Projets avancés', text: 'Ajouter de nouveaux outils, contraintes et responsabilités.' },
+        { title: 'Portfolio MakerLab', text: 'Documenter, présenter et transformer ses projets en preuves de capacité.' },
+      ]
+    : [
+        { title: 'Cette mission', text: 'Construire un premier résultat visible avec un mentor.' },
+        { title: 'Mission suivante', text: 'Choisir une difficulté ou une technologie complémentaire.' },
+        { title: 'Parcours et portfolio', text: 'Progresser vers des projets autonomes, présentés et packagés.' },
+      ];
   const benefits = [
     { title: program.benefits || 'Un projet concret à présenter', text: 'L’enfant termine avec un résultat visible, pas seulement une notion apprise.', icon: Sparkles, color: 'bg-brand-orange' },
     { title: 'Matériel et outils inclus', text: 'Tout est préparé pour que le temps soit consacré à imaginer, fabriquer et tester.', icon: PackageCheck, color: 'bg-brand-blue' },
@@ -247,6 +268,15 @@ export const ProgramDetail: React.FC = () => {
             </div>
           ))}
         </section>
+
+        <ParentDecisionSystem
+          compact
+          recommendedTo={recommendedPath}
+          recommendedLabel={program.trialAvailable ? 'Commencer par l’atelier d’essai' : 'Commencer par cette mission'}
+          recommendedReason="C’est le point de départ le plus simple : le matériel est prêt, le groupe est petit et le mentor aide l’enfant à terminer un projet qu’il peut expliquer."
+          professionalTools={professionalTools}
+          nextSteps={parentNextSteps}
+        />
 
         <section className="mt-12 grid gap-8 lg:grid-cols-[0.78fr_1.22fr] lg:items-start">
           <div className="lg:sticky lg:top-28">

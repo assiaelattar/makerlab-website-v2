@@ -13,6 +13,7 @@ import {
   Globe, Briefcase, Video
 } from 'lucide-react';
 import { MakeAndGoForm } from '../components/MakeAndGoForm';
+import { ParentDecisionSystem } from '../components/ParentDecisionSystem';
 import { generatedMakerlabGallery, getGeneratedProgramImage } from '../utils/makerlabImages';
 
 /* ─── Icons Helper ────────────────────────────────────────────────────────── */
@@ -480,6 +481,14 @@ export const ProgramLanding: React.FC = () => {
   const programStations = Array.isArray(program.stations) ? program.stations : [];
   const selectedStationIds = Array.isArray(lp.selectedStationIds) ? lp.selectedStationIds : [];
   const selectedStations = programStations.filter(s => selectedStationIds.includes(s.id));
+  const landingToolContext = `${program.title} ${program.category} ${program.description}`.toLowerCase();
+  const landingTools = /drone|tello|python/.test(landingToolContext)
+    ? ['Python', 'DJI Tello', 'PyCharm', 'Logique algorithmique']
+    : /ia|intelligence artificielle|machine learning/.test(landingToolContext)
+      ? ['Google Teachable Machine', 'Python', 'IA générative', 'Design produit']
+      : /3d|cad|cao|fusion|fabrication|impression/.test(landingToolContext)
+        ? ['Autodesk Tinkercad', 'Autodesk Fusion 360', 'Impression 3D', 'Découpe laser']
+        : ['BBC micro:bit', 'Microsoft MakeCode', 'Autodesk Tinkercad', 'Électronique réelle'];
 
   return (
     <>
@@ -632,6 +641,20 @@ export const ProgramLanding: React.FC = () => {
             </div>
           </section>
         )}
+
+        <div className="bg-[#f4f7fb] text-slate-900">
+          <ParentDecisionSystem
+            recommendedTo={`/booking/${program.id}?type=${program.trialAvailable ? 'trial' : 'workshop'}`}
+            recommendedLabel={program.trialAvailable ? 'Commencer par l’atelier d’essai' : 'Commencer par la première mission'}
+            recommendedReason="Le matériel est prêt, le groupe est petit et le mentor accompagne chaque étape jusqu’à un résultat que l’enfant peut montrer et expliquer."
+            professionalTools={landingTools}
+            nextSteps={[
+              { title: 'Première réussite', text: 'Terminer une mission concrète et comprendre ses choix.' },
+              { title: 'Projet plus ambitieux', text: 'Ajouter une technologie, une contrainte ou une personnalisation.' },
+              { title: 'Portfolio et produit', text: 'Présenter, documenter, packager et imaginer comment proposer sa création.' },
+            ]}
+          />
+        </div>
 
         {lp.faqEnabled && <FAQSection items={lp.faqItems || []} theme={theme} />}
 

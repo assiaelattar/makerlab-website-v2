@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { SEO } from '../components/SEO';
 import { HomeMotion } from '../components/HomeMotion';
+import { ParentDecisionSystem } from '../components/ParentDecisionSystem';
 import { usePrograms } from '../contexts/ProgramContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { getGeneratedProgramImage } from '../utils/makerlabImages';
@@ -305,6 +306,18 @@ export const Home: React.FC = () => {
           </div>
         </div>
       </section>
+
+      <ParentDecisionSystem
+        recommendedTo="/quiz"
+        recommendedLabel="Commencer par la mission qui lui correspond"
+        recommendedReason="Le diagnostic rapide tient compte de son âge et de ses centres d’intérêt, puis recommande une première expérience concrète sans obliger le parent à comparer toutes les options."
+        professionalTools={['Autodesk Fusion 360', 'BBC micro:bit', 'Microsoft MakeCode', 'Python', 'IA générative']}
+        nextSteps={[
+          { title: 'Découvrir', text: 'Une mission guidée de 3 heures pour construire un premier projet complet.' },
+          { title: 'Approfondir', text: 'Un camp ou un programme régulier pour développer code, design et fabrication.' },
+          { title: 'Valoriser', text: 'Présenter, documenter et transformer ses prototypes en portfolio puis en idée de produit.' },
+        ]}
+      />
 
       {homeVideo?.videoSrc && (
         <section className="border-b border-slate-200 bg-white py-14 md:py-16">
