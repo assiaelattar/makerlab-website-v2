@@ -10,6 +10,7 @@ import {
   Info,
   LayoutGrid,
   Menu,
+  ShoppingBag,
   School,
   Sparkles,
   Trophy,
@@ -52,6 +53,7 @@ const PROGRAM_LINKS = [
 ];
 
 const DISCOVERY_LINKS = [
+  { name: 'Store', path: '/store', icon: ShoppingBag },
   { name: 'Écoles', path: '/schools', icon: School },
   { name: 'Projets', path: '/maker-wall', icon: Trophy },
   { name: 'Journal', path: '/blog', icon: BookOpen },
