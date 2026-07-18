@@ -35,8 +35,6 @@ import { KidsFamilies } from './pages/KidsFamilies';
 import { Store } from './pages/Store';
 import { SmartDoorProduct } from './pages/SmartDoorProduct';
 import { NovaQuestMiniProduct } from './pages/NovaQuestMiniProduct';
-import { ProductIntake } from './pages/ProductIntake';
-import { KitFactoryDashboard } from './pages/KitFactoryDashboard';
 import { Contact } from './pages/Contact';
 import { About } from './pages/About';
 import { BlogDetail } from './pages/BlogDetail';
@@ -209,8 +207,6 @@ const App: React.FC = () => {
                 <Route path="/reservation" element={<ReservationLP />} />
                 <Route path="/stemquest-enrollment/:id?" element={<STEMQuestEnrollment />} />
                 <Route path="/mobile-app-test" element={<MobileAppStyleTest />} />
-                <Route path="/kit-factory/dashboard" element={<KitFactoryDashboard />} />
-                <Route path="/kit-factory/intake" element={<ProductIntake />} />
 
                 {/* ── Make & Go lead funnel — /quiz + /apply both go here ── */}
                 <Route path="/quiz"   element={<MakeAndGo />} />
