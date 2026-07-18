@@ -2,9 +2,11 @@ import React from 'react';
 import { ArrowUpRight, Facebook, Instagram, Linkedin, Lock, Mail, MapPin, Phone } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useSettings } from '../contexts/SettingsContext';
+import { defaultPageContent } from '../data/defaultPageContent';
 
 export const Footer: React.FC = () => {
   const { settings } = useSettings();
+  const content = { ...defaultPageContent.footer, ...(settings?.page_content?.footer || {}) };
   const contact = settings?.contact_info || {
     email: 'hello@makerlab.ma',
     phone: '+212 6 00 00 00 00',
@@ -27,7 +29,7 @@ export const Footer: React.FC = () => {
               </div>
             </Link>
             <p className="mt-5 max-w-sm text-sm font-semibold leading-7 text-slate-500">
-              Une académie d’ingénierie et d’innovation où les enfants transforment leurs idées en projets réels.
+              {content.description}
             </p>
             <div className="mt-6 flex gap-2">
               {contact.facebook && <SocialLink href={contact.facebook} label="Facebook"><Facebook size={16} /></SocialLink>}
@@ -37,17 +39,17 @@ export const Footer: React.FC = () => {
           </div>
 
           <FooterColumn title="Programmes" links={[
-            { label: 'Tous les ateliers', path: '/programs' },
-            { label: 'Enfants et familles', path: '/kids-families' },
-            { label: 'Écoles', path: '/schools' },
-            { label: 'Orientation', path: '/register' },
+            { label: 'Comparer tous les programmes', path: '/programs' },
+            { label: 'Missions de 3 heures', path: '/programs?focus=missions' },
+            { label: 'Camps de vacances', path: '/programs?type=camp' },
+            { label: 'Parcours à l’année', path: '/programs?type=annual' },
           ]} />
 
           <FooterColumn title="Découvrir" links={[
+            { label: 'Enfants et familles', path: '/kids-families' },
+            { label: 'Écoles et établissements', path: '/schools' },
             { label: 'Projets', path: '/maker-wall' },
-            { label: 'À propos', path: '/about' },
             { label: 'Journal', path: '/blog' },
-            { label: 'Contact', path: '/contact' },
           ]} />
 
           <div>
@@ -58,7 +60,7 @@ export const Footer: React.FC = () => {
               <p className="flex items-center gap-3 break-all"><Mail size={17} className="shrink-0 text-brand-green" /> {contact.email}</p>
             </div>
             <Link to="/quiz" className="ml-button mt-6 w-full bg-brand-orange text-sm text-white">
-              Trouver un programme <ArrowUpRight size={16} />
+              {content.ctaLabel} <ArrowUpRight size={16} />
             </Link>
           </div>
         </div>

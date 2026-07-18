@@ -33,6 +33,10 @@ import { AnnouncementBar } from './components/AnnouncementBar';
 import { Schools } from './pages/Schools';
 import { KidsFamilies } from './pages/KidsFamilies';
 import { Store } from './pages/Store';
+import { SmartDoorProduct } from './pages/SmartDoorProduct';
+import { NovaQuestMiniProduct } from './pages/NovaQuestMiniProduct';
+import { ProductIntake } from './pages/ProductIntake';
+import { KitFactoryDashboard } from './pages/KitFactoryDashboard';
 import { Contact } from './pages/Contact';
 import { About } from './pages/About';
 import { BlogDetail } from './pages/BlogDetail';
@@ -205,6 +209,8 @@ const App: React.FC = () => {
                 <Route path="/reservation" element={<ReservationLP />} />
                 <Route path="/stemquest-enrollment/:id?" element={<STEMQuestEnrollment />} />
                 <Route path="/mobile-app-test" element={<MobileAppStyleTest />} />
+                <Route path="/kit-factory/dashboard" element={<KitFactoryDashboard />} />
+                <Route path="/kit-factory/intake" element={<ProductIntake />} />
 
                 {/* ── Make & Go lead funnel — /quiz + /apply both go here ── */}
                 <Route path="/quiz"   element={<MakeAndGo />} />
@@ -251,10 +257,17 @@ const App: React.FC = () => {
                 <Route path="*" element={
                   <div className="makerlab-site font-sans min-h-screen flex flex-col relative">
                     
+                    <a
+                      href="#main-content"
+                      className="fixed left-4 top-3 z-[200] -translate-y-24 rounded-lg bg-slate-950 px-4 py-3 text-sm font-black text-white shadow-xl transition-transform focus:translate-y-0"
+                    >
+                      Aller au contenu principal
+                    </a>
+
                     {/* Unified Sticky Header Container */}
                     <PublicHeader scrolled={scrolled} />
 
-                    <main className="flex-grow relative z-10">
+                    <div id="main-content" className="flex-grow relative z-10" tabIndex={-1}>
                       <Routes>
                         <Route path="/" element={<Home />} />
                         <Route path="/programs" element={<Programs />} />
@@ -267,6 +280,8 @@ const App: React.FC = () => {
                         <Route path="/schools" element={<Schools />} />
                         <Route path="/kids-families" element={<KidsFamilies />} />
                         <Route path="/store" element={<Store />} />
+                        <Route path="/store/smart-door" element={<SmartDoorProduct />} />
+                        <Route path="/store/nova-quest-mini" element={<NovaQuestMiniProduct />} />
                         <Route path="/contact" element={<Contact />} />
                         <Route path="/booking/:id" element={<BookingPage />} />
                         <Route path="/about" element={<About />} />
@@ -282,7 +297,7 @@ const App: React.FC = () => {
 
                         <Route path="*" element={<div className="container py-12 text-center"><h1>404 - Page non trouvée</h1></div>} />
                       </Routes>
-                    </main>
+                    </div>
                     <ChatAssistant />
                     <Footer />
                     <SocialProofToast />

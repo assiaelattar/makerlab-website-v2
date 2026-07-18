@@ -7,6 +7,7 @@ import { SEO } from '../components/SEO';
 import { AppContainer, AppSectionHeader, AppShell, appAccentClasses } from '../components/AppStyle';
 import { PremiumHero } from '../components/PremiumHero';
 import { Reveal } from '../components/Motion';
+import { getGeneratedProgramImage } from '../utils/makerlabImages';
 
 const posts: BlogPost[] = [
   {
@@ -18,7 +19,7 @@ const posts: BlogPost[] = [
     preview: 'Le format sprint garde les enfants concentres et donne un resultat visible tout de suite.',
     content: '<p>Contenu de test pour le blog...</p>',
     tags: ['Education', 'Methode'],
-    image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1000&auto=format&fit=crop',
+    image: '/images/makerlab/generated/python-dji-tello-coding-v1.webp',
   },
   {
     id: '2',
@@ -29,7 +30,7 @@ const posts: BlogPost[] = [
     preview: 'Des objets utiles, funs et faciles a designer pour une premiere session MakerLab.',
     content: '<p>Contenu de test pour le blog...</p>',
     tags: ['3D Print', 'DIY'],
-    image: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=1000&auto=format&fit=crop',
+    image: '/images/makerlab/generated/coding-ai-image-classifier-v1.webp',
   },
   {
     id: '3',
@@ -40,7 +41,7 @@ const posts: BlogPost[] = [
     preview: "Le print on demand montre aux enfants comment une idee peut devenir une premiere vente.",
     content: '<p>Contenu de test pour le blog...</p>',
     tags: ['Business', 'Design'],
-    image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=1000&auto=format&fit=crop',
+    image: '/images/makerlab/generated/cad-fdm-3d-printing-v1.webp',
   },
 ];
 
@@ -60,7 +61,7 @@ export const Blog: React.FC = () => {
           eyebrow="MakerLab Journal"
           title={<>Des idées utiles pour élever des <span className="text-[#74b5ff]">créateurs.</span></>}
           description="Des articles courts et concrets pour aider les familles à comprendre les compétences, les projets et le futur derrière chaque mission."
-          image={dynamicPosts[0]?.image || posts[0].image}
+          image={getGeneratedProgramImage(dynamicPosts[0] || posts[0], 2)}
           imageAlt="Jeune créateur travaillant sur un projet numérique"
           accent="blue"
           stats={[
@@ -83,7 +84,7 @@ export const Blog: React.FC = () => {
               <Reveal key={post.id} delay={(index % 3) * 90}>
               <Link to={`/blog/${post.slug || post.id}`} className="ml-card ml-card-interactive group block overflow-hidden">
                 <div className="relative aspect-[4/3] overflow-hidden">
-                  <img src={post.image} alt={post.title} className="ml-image-zoom h-full w-full object-cover" />
+                  <img src={getGeneratedProgramImage(post, index)} alt={post.title} className="ml-image-zoom h-full w-full object-cover" />
                   <span className={`absolute right-4 top-4 flex h-12 w-12 items-center justify-center rounded-2xl ${appAccentClasses[index % appAccentClasses.length]} text-white`}>
                     <Sparkles size={21} />
                   </span>

@@ -7,7 +7,7 @@ import { SEO } from '../components/SEO';
 import { AppCard, AppContainer, AppShell, ColorDots, appAccentClasses } from '../components/AppStyle';
 import { Reveal } from '../components/Motion';
 
-const orientationImage = 'https://images.unsplash.com/photo-1561557944-6e7860d1a7eb?auto=format&fit=crop&q=85&w=1400';
+const orientationImage = '/images/makerlab/generated/mentor-microbit-electronics-v1.webp';
 
 export const Register: React.FC = () => {
   const navigate = useNavigate();

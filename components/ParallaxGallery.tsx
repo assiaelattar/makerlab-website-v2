@@ -120,39 +120,39 @@ interface GalleryProps {
 const defaultProjects: ProjectData[] = [
     {
         id: '1',
-        title: 'Bras Robotique Code en Python',
+        title: 'Rover anti-obstacles',
         author: 'Ayoub',
         age: 14,
         category: 'Robotique',
-        description: 'Ayoub a construit un bras robotique piloté par intelligence artificielle pour trier des objets par couleur.',
-        image: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=800&auto=format&fit=crop'
+        description: 'Un rover en MDF piloté par micro:bit qui détecte les obstacles avec son capteur ultrason.',
+        image: '/images/makerlab/generated/robotics-microbit-rover-v1.webp'
     },
     {
         id: '2',
-        title: 'Jeu VR: Mission Mars',
+        title: 'Classificateur d’images',
         author: 'Lina',
         age: 12,
-        category: 'Jeu Vidéo',
-        description: 'Une expérience en réalité virtuelle où le joueur doit réparer une station spatiale sur Mars. Créé avec Unity.',
-        image: 'https://images.unsplash.com/photo-1622979135225-d2ba269cf1ac?q=80&w=800&auto=format&fit=crop'
+        category: 'Code & IA',
+        description: 'Une application qui apprend à reconnaître les dessins présentés devant la webcam.',
+        image: '/images/makerlab/generated/coding-ai-image-classifier-v1.webp'
     },
     {
         id: '3',
-        title: 'Drone de Surveillance',
+        title: 'Tello piloté en Python',
         author: 'Sami',
         age: 15,
         category: 'Drone',
-        description: 'Assemblage de A à Z d\'un drone FPV avec caméra embarquée et programmation des contrôleurs de vol.',
-        image: 'https://images.unsplash.com/photo-1524143986875-3b098d78b363?q=80&w=800&auto=format&fit=crop'
+        description: 'Un programme Python prépare les commandes de vol d’un DJI Tello dans un espace contrôlé.',
+        image: '/images/makerlab/generated/python-dji-tello-coding-v1.webp'
     },
     {
         id: '4',
-        title: 'App Anti-Gaspillage',
+        title: 'Engrenages imprimés en 3D',
         author: 'Kenza',
         age: 16,
-        category: 'Application',
-        description: 'Une application mobile connectant les boulangeries locales aux habitants pour réduire le gaspillage alimentaire.',
-        image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=800&auto=format&fit=crop'
+        category: 'Fabrication',
+        description: 'Des engrenages modélisés, imprimés en 3D puis mesurés avant leur assemblage dans un boîtier MDF.',
+        image: '/images/makerlab/generated/digital-fabrication-gears-v1.webp'
     }
 ];
 

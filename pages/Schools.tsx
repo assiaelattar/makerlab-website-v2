@@ -9,8 +9,11 @@ import { AppCard, AppContainer, AppSectionHeader, AppShell, appAccentClasses } f
 import { PremiumHero } from '../components/PremiumHero';
 import { Reveal } from '../components/Motion';
 import { FAQSection } from '../components/PageReady';
+import { SEO } from '../components/SEO';
+import { getGeneratedProgramImage } from '../utils/makerlabImages';
+import { defaultPageContent } from '../data/defaultPageContent';
 
-const fallbackHero = 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=80&w=1400';
+const fallbackHero = '/images/makerlab/generated/schools-arduino-workshop-v1.webp';
 
 const initialForm = {
   institution: '',
@@ -24,11 +27,12 @@ const initialForm = {
 
 export const Schools: React.FC = () => {
   const { settings } = useSettings();
+  const content = { ...defaultPageContent.schools, ...(settings?.page_content?.schools || {}) };
   const { programs } = usePrograms();
   const [formData, setFormData] = useState(initialForm);
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const schoolPrograms = programs.filter(program => program.active && program.format === 'School Program');
-  const heroImage = settings?.hero_images?.hero_bg_ecoles || schoolPrograms[0]?.image || fallbackHero;
+  const heroImage = fallbackHero;
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = event.target;
@@ -56,11 +60,17 @@ export const Schools: React.FC = () => {
 
   return (
     <AppShell className="pb-24 pt-5">
+      <SEO
+        title="Ateliers STEM pour ecoles a Casablanca"
+        description="Programmes STEM, robotique, coding et fabrication pour ecoles a Casablanca. MakerLab anime des ateliers pratiques au lab ou dans votre etablissement."
+        keywords="atelier STEM ecole Casablanca, robotique scolaire Maroc, coding ecoles Casablanca, sortie scolaire technologie"
+        image={heroImage}
+      />
       <AppContainer>
         <PremiumHero
-          eyebrow="Écoles et partenaires"
-          title={<>Transformez votre école en <span className="text-[#74b5ff]">laboratoire d’innovation.</span></>}
-          description="Des expériences STEM animées par nos mentors, avec de vrais outils, des résultats visibles et un format adapté à votre établissement."
+          eyebrow={content.eyebrow}
+          title={<>{content.title} <span className="text-[#74b5ff]">{content.accent}</span></>}
+          description={content.description}
           image={heroImage}
           imageAlt="Élèves participant à un atelier technologique"
           accent="blue"
@@ -111,7 +121,7 @@ export const Schools: React.FC = () => {
                 <Reveal key={program.id} delay={(index % 3) * 90}>
                   <Link to={`/programs/${program.id}`} className="ml-card ml-card-interactive group block overflow-hidden">
                     <div className="relative aspect-[4/3] overflow-hidden">
-                      <img src={program.image || fallbackHero} alt={program.title} className="ml-image-zoom h-full w-full object-cover" />
+                      <img src={getGeneratedProgramImage(program, index)} alt={program.title} className="ml-image-zoom h-full w-full object-cover" />
                       <div className={`absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-xl ${appAccentClasses[index % appAccentClasses.length]} text-white`}>
                         <ShieldCheck size={21} />
                       </div>

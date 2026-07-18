@@ -5,10 +5,14 @@ import { SEO } from '../components/SEO';
 import { AppCard, AppContainer, AppSectionHeader, AppShell, appAccentClasses } from '../components/AppStyle';
 import { PremiumHero } from '../components/PremiumHero';
 import { Reveal } from '../components/Motion';
+import { useSettings } from '../contexts/SettingsContext';
+import { defaultPageContent } from '../data/defaultPageContent';
 
-const heroImage = 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?q=80&w=1400&auto=format&fit=crop';
+const heroImage = '/images/makerlab/generated/digital-fabrication-gears-v1.webp';
 
 export const About: React.FC = () => {
+  const { settings } = useSettings();
+  const content = { ...defaultPageContent.about, ...(settings?.page_content?.about || {}) };
   return (
     <AppShell className="pb-24 pt-5">
       <SEO
@@ -18,9 +22,9 @@ export const About: React.FC = () => {
       />
       <AppContainer>
         <PremiumHero
-          eyebrow="À propos de MakerLab"
-          title={<>La technologie ne se regarde pas. <span className="text-brand-orange">Elle se construit.</span></>}
-          description="MakerLab est une académie STEM où les enfants imaginent, conçoivent, codent, testent et présentent de vrais projets."
+          eyebrow={content.eyebrow}
+          title={<>{content.title} <span className="text-brand-orange">{content.accent}</span></>}
+          description={content.description}
           image={heroImage}
           imageAlt="Espace de fabrication MakerLab"
           accent="orange"

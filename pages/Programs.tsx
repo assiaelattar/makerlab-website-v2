@@ -1,13 +1,11 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
   Bot,
-  CalendarDays,
   Check,
   Code2,
   Cpu,
-  GraduationCap,
   Printer,
   Search,
   SlidersHorizontal,
@@ -17,11 +15,13 @@ import {
 import { SEO } from '../components/SEO';
 import { usePrograms } from '../contexts/ProgramContext';
 import { useMissions } from '../contexts/MissionContext';
+import { getGeneratedProgramImage } from '../utils/makerlabImages';
+import { getPublicProgramCategory, getPublicProgramDescription, getPublicProgramTitle } from '../utils/programDisplay';
 
 const fallbackImages = [
-  'https://images.unsplash.com/photo-1561557944-6e7860d1a7eb?auto=format&fit=crop&q=84&w=1200',
-  'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=84&w=1200',
-  'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&q=84&w=1200',
+  '/images/makerlab/generated/stemquest-mdf-engineering-v1.webp',
+  '/images/makerlab/generated/make-and-go-desk-lamp-v1.webp',
+  '/images/makerlab/generated/schools-arduino-workshop-v1.webp',
 ];
 
 const categoryStyle = (category = '', index = 0) => {
@@ -36,19 +36,21 @@ const categoryStyle = (category = '', index = 0) => {
   ][index % 3];
 };
 
-const getImage = (item: any, index: number) => {
-  const image = item.image || item.coverImage;
-  return image && !image.includes('placehold.co') ? image : fallbackImages[index % fallbackImages.length];
-};
+const getImage = (item: any, index: number) => getGeneratedProgramImage(item, index);
 
-const getTitle = (item: any) => item.title || item.name || 'Programme MakerLab';
-const getDescription = (item: any) => item.shortDescription || item.description || 'Une expérience MakerLab entièrement pratique.';
+const getTitle = getPublicProgramTitle;
+const getDescription = getPublicProgramDescription;
 
 export const Programs: React.FC = () => {
-  const [selectedCategory, setSelectedCategory] = React.useState('All');
-  const [selectedAge, setSelectedAge] = React.useState('All');
+  const location = useLocation();
+  const navigate = useNavigate();
+  const queryParams = React.useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const focus = queryParams.get('focus');
+  const type = queryParams.get('type');
+  const [selectedCategory, setSelectedCategory] = React.useState(queryParams.get('category') || 'All');
+  const [selectedAge, setSelectedAge] = React.useState(queryParams.get('age') || 'All');
   const [showFilters, setShowFilters] = React.useState(false);
-  const [search, setSearch] = React.useState('');
+  const [search, setSearch] = React.useState(queryParams.get('search') || '');
 
   const { programs } = usePrograms();
   const { missions } = useMissions();
@@ -62,7 +64,28 @@ export const Programs: React.FC = () => {
 
   const ages = ['All', '7-11 ans', '12-17 ans', 'Adultes'];
 
+  React.useEffect(() => {
+    setSelectedCategory(queryParams.get('category') || 'All');
+    setSelectedAge(queryParams.get('age') || 'All');
+    setSearch(queryParams.get('search') || '');
+  }, [location.search, queryParams]);
+
+  const updateQuery = (updates: Record<string, string>) => {
+    const params = new URLSearchParams(location.search);
+    Object.entries(updates).forEach(([key, value]) => {
+      if (!value || value === 'All') params.delete(key);
+      else params.set(key, value);
+    });
+    const nextSearch = params.toString();
+    navigate({ pathname: '/programs', search: nextSearch ? `?${nextSearch}` : '' }, { replace: true });
+  };
+
   const filteredPrograms = activePrograms.filter(program => {
+    const programText = `${program.title} ${program.category} ${program.format || ''} ${program.programType || ''} ${program.duration || ''} ${program.tags?.join(' ') || ''} ${program.shortDescription || ''} ${program.description || ''}`.toLowerCase();
+    const isCamp = /(camp|vacance|vacances|summer|stage)/.test(programText);
+    if (focus === 'missions' && (isCamp || !/(workshop|make & go|make and go|3 heures|3h|mission)/.test(programText))) return false;
+    if (type === 'camp' && !/(camp|vacance|vacances|summer|stage)/.test(programText)) return false;
+    if (type === 'annual' && !/(annuel|annual|year program|année|annee|stemquest)/.test(programText)) return false;
     const matchesCategory = selectedCategory === 'All' || program.category === selectedCategory;
     const matchesAge = selectedAge === 'All'
       || (selectedAge === '7-11 ans' && (program.ageGroup?.match(/7|8|9|10|11/) || !program.ageGroup))
@@ -72,21 +95,32 @@ export const Programs: React.FC = () => {
     return matchesCategory && matchesAge && (!search.trim() || searchable.includes(search.trim().toLowerCase()));
   });
 
-  const relevantMissions = selectedCategory === 'All'
+  const relevantMissions = selectedCategory === 'All' && !type
     ? activeMissions.filter(mission => {
         const searchable = `${mission.title} ${mission.category || ''} ${mission.description || ''}`.toLowerCase();
         return !search.trim() || searchable.includes(search.trim().toLowerCase());
       })
     : [];
 
-  const catalogItems = [...filteredPrograms, ...relevantMissions];
-  const hasActiveFilters = selectedCategory !== 'All' || selectedAge !== 'All' || search.trim();
+  const catalogItems = [...filteredPrograms, ...relevantMissions].filter((item, index, items) => {
+    const normalizedTitle = getTitle(item).trim().toLocaleLowerCase('fr');
+    return items.findIndex(candidate => getTitle(candidate).trim().toLocaleLowerCase('fr') === normalizedTitle) === index;
+  });
+  const hasActiveFilters = Boolean(selectedCategory !== 'All' || selectedAge !== 'All' || search.trim());
 
   const clearFilters = () => {
     setSelectedCategory('All');
     setSelectedAge('All');
     setSearch('');
+    updateQuery({ category: '', age: '', search: '' });
   };
+
+  const viewLinks = [
+    { label: 'Tous', description: 'Comparer', to: '/programs', active: !focus && !type },
+    { label: '3 heures', description: 'Découvrir', to: '/programs?focus=missions', active: focus === 'missions' },
+    { label: 'Vacances', description: 'Explorer', to: '/programs?type=camp', active: type === 'camp' },
+    { label: 'À l’année', description: 'Progresser', to: '/programs?type=annual', active: type === 'annual' },
+  ];
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#f6f8fa] pb-20 text-slate-900">
@@ -107,23 +141,38 @@ export const Programs: React.FC = () => {
                 Choisir une expérience, pas juste un cours.
               </h1>
               <p className="mt-5 max-w-2xl text-base font-semibold leading-7 text-slate-600 md:text-lg">
-                Comparez les formats, puis ouvrez le programme qui correspond à son âge et à son envie de construire.
+                {focus === 'missions'
+                  ? 'Les missions Make & Go sont des ateliers de 3 heures : votre enfant choisit une thématique, construit un vrai projet et repart avec son résultat.'
+                  : type === 'camp'
+                    ? 'Retrouvez les camps MakerLab pendant les vacances scolaires et les stages intensifs, avec les détails, la brochure et la réservation.'
+                    : type === 'annual'
+                      ? 'Comparez les parcours réguliers qui permettent à votre enfant de progresser, créer un portfolio et maîtriser les technologies sur la durée.'
+                      : 'Comparez les formats, puis ouvrez le programme qui correspond à son âge et à son envie de construire.'}
               </p>
             </div>
 
-            <div className="grid grid-cols-3 divide-x divide-slate-200 rounded-lg border border-slate-200 bg-[#f6f8fa]">
-              {[
-                { icon: Cpu, title: '3 heures', text: 'pour découvrir', color: 'text-brand-orange' },
-                { icon: CalendarDays, title: 'Vacances', text: 'pour explorer', color: 'text-brand-green' },
-                { icon: GraduationCap, title: 'À l’année', text: 'pour progresser', color: 'text-brand-blue' },
-              ].map(item => (
-                <div key={item.title} className="px-3 py-4 text-center md:px-4">
-                  <item.icon size={18} className={`mx-auto ${item.color}`} />
-                  <p className="mt-2 text-sm font-extrabold">{item.title}</p>
-                  <p className="mt-1 text-[11px] font-semibold text-slate-500">{item.text}</p>
-                </div>
+            <nav aria-label="Formats de programmes" className="grid grid-cols-2 gap-2 rounded-xl border border-slate-200 bg-[#f6f8fa] p-2 sm:grid-cols-4 lg:grid-cols-2">
+              {viewLinks.map(item => (
+                <Link
+                  key={item.label}
+                  to={item.to}
+                  aria-current={item.active ? 'page' : undefined}
+                  className={`group rounded-lg border px-4 py-3 transition ${
+                    item.active
+                      ? 'border-brand-blue bg-brand-blue text-white shadow-sm'
+                      : 'border-transparent bg-white text-slate-900 hover:border-brand-blue/30 hover:-translate-y-0.5'
+                  }`}
+                >
+                  <span className={`block text-[10px] font-extrabold uppercase tracking-[0.13em] ${item.active ? 'text-white/75' : 'text-slate-400'}`}>
+                    {item.description}
+                  </span>
+                  <span className="mt-1 flex items-center justify-between gap-2 text-sm font-extrabold">
+                    {item.label}
+                    <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+                  </span>
+                </Link>
               ))}
-            </div>
+            </nav>
           </div>
         </div>
         <div className="grid h-1 grid-cols-4">
@@ -141,7 +190,10 @@ export const Programs: React.FC = () => {
               <Search size={18} className="shrink-0 text-slate-400" />
               <input
                 value={search}
-                onChange={event => setSearch(event.target.value)}
+                onChange={event => {
+                  setSearch(event.target.value);
+                  updateQuery({ search: event.target.value });
+                }}
                 placeholder="Rechercher robotique, IA, design 3D..."
                 className="ml-search-reset min-h-0 w-full border-0 bg-transparent p-0 text-sm font-bold outline-none"
               />
@@ -165,21 +217,27 @@ export const Programs: React.FC = () => {
                   <button
                     key={category}
                     type="button"
-                    onClick={() => setSelectedCategory(category)}
+                    onClick={() => {
+                      setSelectedCategory(category);
+                      updateQuery({ category });
+                    }}
                     className={`min-h-10 rounded-full border px-4 text-xs font-extrabold transition ${
                       selectedCategory === category
                         ? 'border-slate-900 bg-slate-900 text-white'
                         : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
                     }`}
                   >
-                    {category === 'All' ? 'Tous' : category}
+                    {category === 'All' ? 'Tous' : getPublicProgramCategory({ category })}
                   </button>
                 ))}
               </div>
             </div>
             <label className="block min-w-[180px]">
               <span className="mb-2 block text-[11px] font-extrabold uppercase tracking-[0.13em] text-slate-400">Âge</span>
-              <select value={selectedAge} onChange={event => setSelectedAge(event.target.value)} className="min-h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-extrabold text-slate-700">
+              <select value={selectedAge} onChange={event => {
+                setSelectedAge(event.target.value);
+                updateQuery({ age: event.target.value });
+              }} className="min-h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-extrabold text-slate-700">
                 {ages.map(age => <option key={age} value={age}>{age === 'All' ? 'Tous les âges' : age}</option>)}
               </select>
             </label>
@@ -190,7 +248,13 @@ export const Programs: React.FC = () => {
           <div>
             <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-brand-blue">Catalogue</p>
             <h2 className="mt-2 font-display text-3xl font-bold md:text-4xl">
-              {catalogItems.length} {catalogItems.length === 1 ? 'expérience disponible' : 'expériences disponibles'}
+              {focus === 'missions'
+                ? 'Missions Make & Go'
+                : type === 'camp'
+                  ? 'Camps et stages de vacances'
+                  : type === 'annual'
+                    ? 'Parcours à l’année'
+                  : `${catalogItems.length} ${catalogItems.length === 1 ? 'expérience disponible' : 'expériences disponibles'}`}
             </h2>
           </div>
           {hasActiveFilters && (
@@ -220,7 +284,7 @@ export const Programs: React.FC = () => {
                   <img
                     src={image}
                     alt={title}
-                    loading="lazy"
+                    loading={index < 3 ? 'eager' : 'lazy'}
                     onError={event => {
                       event.currentTarget.onerror = null;
                       event.currentTarget.src = fallbackImages[index % fallbackImages.length];
@@ -228,7 +292,7 @@ export const Programs: React.FC = () => {
                     className="size-full object-cover transition duration-500 group-hover:scale-[1.025]"
                   />
                   <span className="absolute left-4 top-4 rounded-full bg-white/95 px-3 py-2 text-[10px] font-extrabold uppercase text-slate-800 shadow-sm">
-                    {item.category || 'Mission'}
+                    {getPublicProgramCategory(item)}
                   </span>
                   <span className={`absolute right-4 top-4 flex size-10 items-center justify-center rounded-lg ${style.iconClass}`}>
                     <Icon size={18} />

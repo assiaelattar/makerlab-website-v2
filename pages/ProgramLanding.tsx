@@ -13,6 +13,7 @@ import {
   Globe, Briefcase, Video
 } from 'lucide-react';
 import { MakeAndGoForm } from '../components/MakeAndGoForm';
+import { generatedMakerlabGallery, getGeneratedProgramImage } from '../utils/makerlabImages';
 
 /* ─── Icons Helper ────────────────────────────────────────────────────────── */
 const StationIcon: React.FC<{ name?: string; size?: number; className?: string }> = ({ name, size = 24, className }) => {
@@ -579,26 +580,16 @@ export const ProgramLanding: React.FC = () => {
                  ) : visibleMissions.map((m, i) => (
                    <Reveal key={m.id} delay={i * 100}>
                       <div className="card-neobrutal bg-white text-black rounded-3xl md:rounded-[3rem] overflow-hidden flex flex-col h-full group">
-                         {m.coverImage && (
-                            <div className="aspect-video bg-gray-200 border-b-4 border-black relative overflow-hidden shrink-0">
-                               <img src={m.coverImage} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt={m.title} />
-                               <div className="absolute top-4 left-4 px-4 py-1.5 bg-black text-white font-black text-[9px] uppercase tracking-widest rounded-full italic shadow-neo-sm z-10">{m.date}</div>
-                            </div>
-                         )}
+                         <div className="aspect-video bg-gray-200 border-b-4 border-black relative overflow-hidden shrink-0">
+                            <img src={getGeneratedProgramImage(m, i)} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt={m.title} />
+                            <div className="absolute top-4 left-4 px-4 py-1.5 bg-black text-white font-black text-[9px] uppercase tracking-widest rounded-full italic shadow-neo-sm z-10">{m.date}</div>
+                         </div>
                          <div className="p-6 md:p-8 flex-1 flex flex-col justify-between">
                             <div>
-                               {!m.coverImage && (
-                                  <div className="flex items-center justify-between mb-8">
-                                     <div className="px-4 py-1.5 bg-black text-white font-black text-[9px] uppercase tracking-widest rounded-full italic">{m.date}</div>
-                                     <div className="p-3 bg-gray-50 rounded-2xl border-3 border-black group-hover:bg-orange-500 transition-colors"><TrendingUp size={24}/></div>
-                                  </div>
-                               )}
-                               {m.coverImage && (
-                                  <div className="flex items-center justify-between mb-4">
-                                    <span className="font-black text-[10px] text-gray-400 uppercase tracking-widest bg-gray-100 px-3 py-1 rounded-full">{m.category || 'Mission'}</span>
-                                    <div className="p-2 bg-gray-50 rounded-xl border-1 border-black group-hover:bg-orange-500 transition-colors"><TrendingUp size={16}/></div>
-                                  </div>
-                               )}
+                               <div className="flex items-center justify-between mb-4">
+                                 <span className="font-black text-[10px] text-gray-400 uppercase tracking-widest bg-gray-100 px-3 py-1 rounded-full">{m.category || 'Mission'}</span>
+                                 <div className="p-2 bg-gray-50 rounded-xl border-1 border-black group-hover:bg-orange-500 transition-colors"><TrendingUp size={16}/></div>
+                               </div>
                                <h3 className="font-black text-2xl md:text-3xl mb-4 italic leading-tight uppercase group-hover:text-orange-500 transition-colors">{m.title || m.theme}</h3>
                                <p className="text-gray-500 font-bold text-sm leading-relaxed mb-6 md:mb-8">{m.description || "Projet d'ingénierie avancée, modélisation 3D et programmation."}</p>
                             </div>
@@ -630,10 +621,10 @@ export const ProgramLanding: React.FC = () => {
                  </Reveal>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-                {lp.galleryImages.map((src, idx) => (
+                {lp.galleryImages.map((_, idx) => (
                   <Reveal key={idx} delay={idx * 100}>
                     <div className="aspect-[4/5] md:aspect-square bg-gray-100 rounded-3xl border-4 border-black overflow-hidden group hover:-translate-y-2 hover:shadow-[8px_8px_0_0_#000] transition-all duration-300">
-                      <img src={src} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt={`Galerie MakerLab ${idx}`} />
+                      <img src={generatedMakerlabGallery[idx % generatedMakerlabGallery.length]} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt={`Galerie MakerLab ${idx}`} />
                     </div>
                   </Reveal>
                 ))}

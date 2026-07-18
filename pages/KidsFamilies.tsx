@@ -2,28 +2,35 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Bot, CheckCircle2, Code2, Cpu, MessageCircle } from 'lucide-react';
 import { usePrograms } from '../contexts/ProgramContext';
-import { useSettings } from '../contexts/SettingsContext';
 import { AppCard, AppContainer, AppSectionHeader, AppShell, appAccentClasses } from '../components/AppStyle';
 import { PremiumHero } from '../components/PremiumHero';
 import { Reveal } from '../components/Motion';
 import { FAQSection } from '../components/PageReady';
+import { SEO } from '../components/SEO';
+import { getGeneratedProgramImage } from '../utils/makerlabImages';
+import { getPublicProgramDescription, getPublicProgramTitle } from '../utils/programDisplay';
 
-const fallbackHero = 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=1400';
+const fallbackHero = '/images/makerlab/generated/stemquest-mdf-engineering-v1.webp';
 const fallbackGallery = [
-  'https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?auto=format&fit=crop&q=80&w=900',
-  'https://images.unsplash.com/photo-1561557944-6e7860d1a7eb?auto=format&fit=crop&q=80&w=900',
-  'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&q=80&w=900',
+  '/images/makerlab/generated/mentor-microbit-electronics-v1.webp',
+  '/images/makerlab/generated/python-dji-tello-coding-v1.webp',
+  '/images/makerlab/generated/digital-fabrication-gears-v1.webp',
 ];
 
 export const KidsFamilies: React.FC = () => {
-  const { settings } = useSettings();
   const { programs } = usePrograms();
   const kidsPrograms = programs.filter(program => program.active && program.format !== 'School Program');
-  const heroImage = settings?.hero_images?.hero_bg_kids || kidsPrograms[0]?.image || fallbackHero;
-  const galleryImages = (settings?.gallery_kids?.length ? settings.gallery_kids : fallbackGallery).slice(0, 3);
+  const heroImage = fallbackHero;
+  const galleryImages = fallbackGallery;
 
   return (
     <AppShell className="pb-24 pt-5">
+      <SEO
+        title="Ateliers STEM pour enfants et familles a Casablanca"
+        description="Ateliers robotique, coding, IA et fabrication pour enfants a Casablanca. Petits groupes, mentors et vrais projets a presenter aux parents."
+        keywords="atelier robotique enfant Casablanca, coding enfants Maroc, STEM enfants Casablanca, impression 3D enfants"
+        image={heroImage}
+      />
       <AppContainer>
         <PremiumHero
           eyebrow="Pour les enfants et les familles"
@@ -56,15 +63,15 @@ export const KidsFamilies: React.FC = () => {
                 <Reveal key={program.id} delay={(index % 3) * 90}>
                 <Link key={program.id} to={`/programs/${program.id}`} className="ml-card ml-card-interactive group overflow-hidden">
                   <div className="relative aspect-[4/3] overflow-hidden">
-                    <img src={program.image || fallbackHero} alt={program.title} className="ml-image-zoom h-full w-full object-cover" />
+                    <img src={getGeneratedProgramImage(program, index)} alt={getPublicProgramTitle(program)} className="ml-image-zoom h-full w-full object-cover" />
                     <div className={`absolute left-4 top-4 flex h-12 w-12 items-center justify-center rounded-2xl ${appAccentClasses[index % appAccentClasses.length]} text-white shadow-lg`}>
                       <Icon size={22} />
                     </div>
                     <span className="absolute bottom-4 left-4 rounded-full bg-white/95 px-3 py-1 text-[10px] font-black uppercase">{program.price}</span>
                   </div>
                   <div className="p-5">
-                    <h2 className="text-2xl font-black leading-tight">{program.title}</h2>
-                    <p className="mt-2 line-clamp-2 min-h-[48px] text-sm font-semibold leading-6 text-slate-500">{program.shortDescription || program.description}</p>
+                    <h2 className="text-2xl font-black leading-tight">{getPublicProgramTitle(program)}</h2>
+                    <p className="mt-2 line-clamp-2 min-h-[48px] text-sm font-semibold leading-6 text-slate-500">{getPublicProgramDescription(program)}</p>
                     <div className="mt-4 grid grid-cols-3 gap-2 text-center text-[10px] font-black">
                       <span className="rounded-2xl bg-[#f7f7f4] px-2 py-3">{program.ageGroup || '8-17 ans'}</span>
                       <span className="rounded-2xl bg-[#f7f7f4] px-2 py-3">{program.duration}</span>

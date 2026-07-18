@@ -16,7 +16,7 @@ body {
 
 body {
   margin: 0;
-  background: #f3f5f7;
+  background: #edf2f7;
   color: #172033;
   font-family: Manrope, sans-serif;
   text-rendering: optimizeLegibility;
@@ -87,15 +87,60 @@ img {
 
 .makerlab-site {
   --ml-ink: #172033;
-  --ml-muted: #667085;
-  --ml-line: #e5e9ef;
+  --ml-muted: #475569;
+  --ml-line: #d8e0ea;
   --ml-surface: #ffffff;
-  --ml-soft: #f7f8fa;
-  --ml-shadow: 0 10px 30px rgba(23, 32, 51, 0.08);
-  --ml-shadow-hover: 0 16px 38px rgba(23, 32, 51, 0.13);
+  --ml-soft: #eef3f8;
+  --ml-orange: #bd4f14;
+  --ml-blue: #1f5f9f;
+  --ml-green: #157a49;
+  --ml-red: #b4232b;
+  --ml-shadow: 0 14px 36px rgba(23, 32, 51, 0.1);
+  --ml-shadow-hover: 0 20px 46px rgba(23, 32, 51, 0.16);
   min-height: 100%;
-  background: #f3f5f7;
+  background:
+    linear-gradient(180deg, #edf2f7 0%, #f7f9fc 42%, #eef5f1 100%);
   color: var(--ml-ink);
+}
+
+.makerlab-site .bg-brand-orange {
+  background-color: var(--ml-orange);
+}
+
+.makerlab-site .bg-brand-blue {
+  background-color: var(--ml-blue);
+}
+
+.makerlab-site .bg-brand-green {
+  background-color: var(--ml-green);
+}
+
+.makerlab-site .bg-brand-red {
+  background-color: var(--ml-red);
+}
+
+.makerlab-site .text-brand-orange {
+  color: var(--ml-orange);
+}
+
+.makerlab-site .text-brand-blue {
+  color: var(--ml-blue);
+}
+
+.makerlab-site .text-brand-green {
+  color: var(--ml-green);
+}
+
+.makerlab-site .text-brand-red {
+  color: var(--ml-red);
+}
+
+.makerlab-site .text-slate-400 {
+  color: #64748b;
+}
+
+.makerlab-site .text-slate-500 {
+  color: #526174;
 }
 
 .ml-reveal {
@@ -164,8 +209,11 @@ img {
 .ml-card {
   border: 1px solid var(--ml-line);
   border-radius: 8px;
-  background: var(--ml-surface);
   box-shadow: var(--ml-shadow);
+}
+
+.ml-card:not([class*="bg-"]) {
+  background: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
 }
 
 .ml-card-interactive {
@@ -222,6 +270,58 @@ img {
   font-size: 0.75rem;
   font-weight: 800;
   transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+.ml-chip.bg-brand-orange,
+.ml-chip.bg-brand-blue,
+.ml-chip.bg-brand-green,
+.ml-chip.bg-brand-red {
+  color: #fff;
+}
+
+.home-program-card {
+  background: #fff7f1;
+}
+
+.home-program-card:nth-child(4n + 2) {
+  background: #f3f8ff;
+}
+
+.home-program-card:nth-child(4n + 3) {
+  background: #f2fbf5;
+}
+
+.home-program-card:nth-child(4n + 4) {
+  background: #fff7f7;
+}
+
+.home-program-card:nth-child(4n + 1) {
+  border-color: #f4c7ad;
+}
+
+.home-program-card:nth-child(4n + 2) {
+  border-color: #bdd7f3;
+}
+
+.home-program-card:nth-child(4n + 3) {
+  border-color: #bde3ca;
+}
+
+.home-program-card:nth-child(4n + 4) {
+  border-color: #f0c4c7;
+}
+
+.home-program-card [class*="border-t"] {
+  border-color: rgba(23, 32, 51, 0.12);
+}
+
+.home-program-card img {
+  filter: saturate(0.98) contrast(1.02);
+}
+
+.home-program-card .absolute.left-4.top-4 {
+  background: rgba(255, 255, 255, 0.96);
+  color: #172033;
 }
 
 .ml-field {

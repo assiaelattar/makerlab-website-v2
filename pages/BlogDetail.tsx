@@ -4,6 +4,7 @@ import { BlogPost } from '../types';
 import { ScrollReveal } from '../components/ScrollReveal';
 import { useSettings } from '../contexts/SettingsContext';
 import { SEO } from '../components/SEO';
+import { getGeneratedProgramImage } from '../utils/makerlabImages';
 import { ArrowLeft, Calendar, User, Tag, Share2 } from 'lucide-react';
 
 export const BlogDetail: React.FC = () => {
@@ -49,7 +50,7 @@ export const BlogDetail: React.FC = () => {
             <p>Résultat ? L'enfant repart avec une réalisation physique ou numérique, et une confiance en soi décuplée. C'est l'essence même du mouvement Maker.</p>
           `,
           tags: ['Education', 'Méthode'],
-          image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1000&auto=format&fit=crop',
+          image: '/images/makerlab/generated/coding-ai-image-classifier-v1.webp',
         }
     ];
 
@@ -75,12 +76,12 @@ export const BlogDetail: React.FC = () => {
         title={post.title}
         description={post.preview}
         keywords={post.seoKeywords?.join(', ') || post.tags.join(', ')}
-        image={post.image}
+        image={getGeneratedProgramImage(post)}
       />
       {/* Header / Hero */}
       <div className="relative h-[58vh] min-h-[420px] overflow-hidden">
         <img 
-          src={post.image} 
+          src={getGeneratedProgramImage(post)}
           alt={post.title} 
           className="w-full h-full object-cover"
         />

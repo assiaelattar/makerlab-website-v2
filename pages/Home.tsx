@@ -19,13 +19,27 @@ import { SEO } from '../components/SEO';
 import { HomeMotion } from '../components/HomeMotion';
 import { usePrograms } from '../contexts/ProgramContext';
 import { useSettings } from '../contexts/SettingsContext';
+import { getGeneratedProgramImage } from '../utils/makerlabImages';
+import { getPublicProgramCategory, getPublicProgramTitle } from '../utils/programDisplay';
+import { defaultPageContent } from '../data/defaultPageContent';
 
 const fallbackImages = [
-  'https://images.unsplash.com/photo-1561557944-6e7860d1a7eb?auto=format&fit=crop&q=88&w=1800',
-  'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=88&w=1400',
-  'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&q=88&w=1400',
-  'https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?auto=format&fit=crop&q=88&w=1400',
+  '/images/makerlab/generated/home-hero-microbit-rover-v1.webp',
+  '/images/makerlab/generated/robotics-microbit-rover-v1.webp',
+  '/images/makerlab/generated/coding-ai-image-classifier-v1.webp',
+  '/images/makerlab/generated/cad-fdm-3d-printing-v1.webp',
 ];
+
+const cleanStoryImages = [
+  '/images/makerlab/generated/robotics-microbit-rover-v1.webp',
+  '/images/makerlab/generated/python-dji-tello-coding-v1.webp',
+  '/images/makerlab/generated/coding-ai-image-classifier-v1.webp',
+  '/images/makerlab/generated/mentor-microbit-electronics-v1.webp',
+];
+
+const fabricationFallbackImage = '/images/makerlab/generated/cad-fdm-3d-printing-v1.webp';
+
+const getHomeProgramImage = (program: any, index: number) => getGeneratedProgramImage(program, index);
 
 const disciplines = [
   { label: 'Robotique', icon: Bot, color: 'text-brand-orange' },
@@ -78,24 +92,61 @@ const formats = [
   },
 ];
 
+const methodWords = [
+  'Les',
+  'enfants',
+  'ne',
+  'regardent',
+  'pas',
+  'une',
+  'demo.',
+  'Ils',
+  'touchent',
+  'les',
+  'outils,',
+  'font',
+  'des',
+  'erreurs,',
+  'corrigent',
+  'leur',
+  'prototype',
+  'et',
+  'expliquent',
+  'ce',
+  'qu’ils',
+  'ont',
+  'construit.',
+];
+
 export const Home: React.FC = () => {
   const { programs } = usePrograms();
   const { settings } = useSettings();
+  const pageContent = { ...defaultPageContent.home, ...(settings?.page_content?.home || {}) };
   const activePrograms = programs.filter(program => program.active);
   const featured = activePrograms.filter(program => program.isFeatured).slice(0, 3);
   const displayPrograms = featured.length ? featured : activePrograms.slice(0, 3);
-  const configuredImages = ['home_bento_2', 'home_bento_3'].flatMap(key => {
+  const configuredImages = ['home_bento_1', 'home_bento_2', 'home_bento_3'].flatMap(key => {
     const value = settings?.hero_images?.[key];
     return Array.isArray(value) ? value : value ? [value] : [];
   });
   const realImages = activePrograms
     .map(program => program.image)
     .filter(image => image && !image.includes('placehold.co'));
-  const imagePool = [...configuredImages, ...realImages];
+  const galleryImages = ['gallery_general', 'gallery_programs', 'gallery_kids'].flatMap(key =>
+    (settings?.[key] || []).map((entry: any) => typeof entry === 'string' ? entry : entry?.url).filter(Boolean)
+  );
+  const imagePool = [...configuredImages, ...galleryImages, ...fallbackImages, ...realImages];
   const images = fallbackImages.map((fallback, index) => imagePool[index] || fallback);
+  const heroMessage = settings?.hero_dynamic_messages?.[0];
+  const keyStats = settings?.key_stats?.length ? settings.key_stats.slice(0, 3) : [
+    { value: '80%', label: 'de pratique', emoji: '🛠️' },
+    { value: '10', label: 'enfants max', emoji: '👥' },
+    { value: '1', label: 'projet final', emoji: '🚀' },
+  ];
+  const homeVideo = settings?.home_video;
 
   return (
-    <main className="makerlab-site min-h-screen overflow-x-hidden bg-white text-slate-900">
+    <main className="makerlab-site min-h-screen overflow-x-hidden text-slate-900">
       <SEO
         title="MakerLab Academy | Construire la technologie"
         description="MakerLab aide les enfants de 6 à 16 ans à concevoir, coder et fabriquer de vrais projets."
@@ -124,22 +175,24 @@ export const Home: React.FC = () => {
               <p className="hidden text-xs font-extrabold text-white/70 sm:block">6–16 ans · Petits groupes · Matériel inclus</p>
             </div>
 
-            <div className="my-auto max-w-[680px] py-8 md:py-4">
+            <div data-home-hero className="my-auto max-w-[820px] py-8 md:py-4">
               <p className="mb-4 text-[11px] font-extrabold uppercase tracking-[0.16em] text-brand-orange">
                 MakerLab Academy
               </p>
-              <h1 className="font-display text-[clamp(2.55rem,4.6vw,4.4rem)] font-bold leading-[0.98]">
-                Ils utilisent déjà la tech.
-                <span className="mt-2 block text-brand-orange">Apprenons-leur à la construire.</span>
+              <h1 className="font-display text-[clamp(2.45rem,4.25vw,4.1rem)] font-bold leading-[0.98]">
+                {heroMessage?.passive || pageContent.title}
+                <span className="mt-2 block text-brand-orange">
+                  {heroMessage ? `${heroMessage.action} ${heroMessage.result}` : pageContent.accent}
+                </span>
               </h1>
               <p className="mt-5 max-w-xl text-base font-semibold leading-7 text-white/78 md:text-lg">
-                Des projets concrets en robotique, code, IA et fabrication.
+                {pageContent.description}
               </p>
               <div className="mt-7 flex flex-col gap-3 sm:flex-row">
                 <Link to="/quiz" className="ml-button min-h-13 bg-brand-orange px-6 text-white shadow-[0_12px_28px_rgba(232,119,34,.24)]">
                   Trouver sa mission <ArrowRight size={18} />
                 </Link>
-                <Link to="/maker-wall" className="ml-button min-h-13 border border-white/25 bg-white/10 px-6 text-white backdrop-blur-xl hover:bg-white/16">
+                <Link to="/maker-wall" className="ml-button min-h-13 border border-white/25 bg-slate-950/55 px-6 text-white backdrop-blur-xl hover:bg-slate-950/70">
                   <Play size={17} /> Voir leurs projets
                 </Link>
               </div>
@@ -149,7 +202,7 @@ export const Home: React.FC = () => {
         </div>
       </section>
 
-      <section aria-label="Disciplines MakerLab" className="overflow-hidden border-b border-slate-200 bg-white">
+      <section aria-label="Disciplines MakerLab" className="overflow-hidden border-y border-slate-200 bg-[#f8fbff]">
         <div className="ml-discipline-track flex w-max items-center py-4">
           {[...disciplines, ...disciplines].map((discipline, index) => (
             <div key={`${discipline.label}-${index}`} className="flex min-w-[185px] items-center justify-center gap-3 border-r border-slate-200 px-6">
@@ -160,13 +213,19 @@ export const Home: React.FC = () => {
         </div>
       </section>
 
-      <section className="bg-[#f6f8fa] py-14 md:py-16">
+      <section className="border-b border-slate-200 bg-[#eef5fb] py-14 md:py-16">
         <div className="mx-auto max-w-7xl px-4 md:px-8">
           <div className="grid gap-5 lg:grid-cols-[0.85fr_1.15fr] lg:items-end">
             <div>
               <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-brand-blue">Ils apprennent en construisant</p>
-              <h2 className="mt-3 max-w-2xl font-display text-3xl font-bold leading-[1.05] md:text-[3.25rem]">
-                Une idée devient un projet qui fonctionne.
+              <h2 className="mt-3 max-w-3xl font-display text-3xl font-bold leading-[1.05] md:text-[3.15rem]">
+                Une idée devient
+                <span
+                  aria-hidden="true"
+                  className="mx-3 inline-block h-10 w-24 rounded-full bg-cover bg-center align-middle ring-4 ring-white md:h-12 md:w-32"
+                  style={{ backgroundImage: `url(${images[0]})` }}
+                />
+                un projet qui fonctionne.
               </h2>
             </div>
             <p className="max-w-2xl text-base font-semibold leading-7 text-slate-600 lg:justify-self-end">
@@ -190,7 +249,7 @@ export const Home: React.FC = () => {
               icon={Code2}
             />
             <ProjectScene
-              image={images[3]}
+              image={fabricationFallbackImage}
               title="Objet fabriqué"
               label="Design 3D"
               result="Un modèle numérique devient un objet réel."
@@ -198,13 +257,30 @@ export const Home: React.FC = () => {
             />
           </div>
 
-          <div className="mt-5 overflow-hidden rounded-lg border border-slate-200 bg-white">
-            <div className="grid border-b border-slate-200 px-5 py-4 md:grid-cols-[240px_1fr] md:items-center md:px-6">
-              <div>
-                <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-brand-orange">La méthode MakerLab</p>
-                <p className="mt-1 text-sm font-semibold text-slate-500">Un parcours simple, du problème à la présentation.</p>
+          <div data-home-group className="mt-5 grid grid-flow-dense gap-4 md:grid-cols-6">
+            <article data-home-item className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm md:col-span-3 md:row-span-2 md:p-7">
+              <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-brand-orange">La méthode MakerLab</p>
+              <p data-home-words className="mt-5 max-w-2xl font-display text-2xl font-bold leading-tight text-slate-950 md:text-4xl">
+                {methodWords.map((word, index) => (
+                  <span key={`${word}-${index}`} data-home-word className="mr-2 inline-block">{word}</span>
+                ))}
+              </p>
+            </article>
+
+            <article data-home-item className="overflow-hidden rounded-lg border border-slate-200 bg-slate-950 text-white md:col-span-3">
+              <div className="grid min-h-[210px] grid-cols-2">
+                <div className="p-5 md:p-6">
+                  <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-brand-green">Vrais outils</p>
+                  <h3 className="mt-3 text-2xl font-extrabold leading-tight">Pas de kits jouets. Un vrai lab.</h3>
+                </div>
+                <div className="relative overflow-hidden">
+                  <img data-home-media src={fabricationFallbackImage} alt="Prototype MakerLab et outils de fabrication" loading="lazy" className="absolute inset-0 size-full object-cover opacity-85" />
+                </div>
               </div>
-              <div className="mt-5 grid grid-cols-3 gap-y-5 md:mt-0 md:grid-cols-6">
+            </article>
+
+            <article data-home-item className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm md:col-span-3">
+              <div className="grid grid-cols-3 gap-y-5 md:grid-cols-6">
                 {buildSteps.map((step, index) => (
                   <div key={step.title} className="relative flex flex-col items-center text-center">
                     <span className={`relative z-10 flex size-10 items-center justify-center rounded-lg text-white ${step.color}`}>
@@ -217,24 +293,35 @@ export const Home: React.FC = () => {
                   </div>
                 ))}
               </div>
-            </div>
-            <div className="grid grid-cols-3 divide-x divide-slate-200">
-              {[
-                ['Vrais outils', 'encadrés'],
-                ['Petits groupes', '10 enfants max'],
-                ['Mentors présents', 'quand ça bloque'],
-              ].map(([title, detail]) => (
-                <div key={title} className="px-3 py-4 text-center md:px-5">
-                  <p className="text-sm font-extrabold text-slate-900">{title}</p>
-                  <p className="mt-1 text-xs font-semibold text-slate-500">{detail}</p>
-                </div>
-              ))}
-            </div>
+            </article>
+
+            {keyStats.map((stat: any) => (
+              <article key={`${stat.value}-${stat.label}`} data-home-item className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm md:col-span-2">
+                <span aria-hidden="true" className="text-xl">{stat.emoji}</span>
+                <p className="mt-2 font-display text-4xl font-bold text-brand-blue">{stat.value}</p>
+                <h3 className="mt-2 text-lg font-extrabold">{stat.label}</h3>
+              </article>
+            ))}
           </div>
         </div>
       </section>
 
-      <section className="bg-white py-14 md:py-16">
+      {homeVideo?.videoSrc && (
+        <section className="border-b border-slate-200 bg-white py-14 md:py-16">
+          <div className="mx-auto grid max-w-7xl gap-7 px-4 md:px-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-center">
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-brand-orange">MakerLab en action</p>
+              <h2 className="mt-3 font-display text-3xl font-bold leading-tight md:text-5xl">{homeVideo.title || 'Voir comment les enfants construisent.'}</h2>
+              {homeVideo.description && <p className="mt-4 font-semibold leading-7 text-slate-600">{homeVideo.description}</p>}
+            </div>
+            <video controls preload="metadata" poster={homeVideo.poster || undefined} className="aspect-video w-full rounded-xl bg-slate-950 object-cover shadow-xl">
+              <source src={homeVideo.videoSrc} />
+            </video>
+          </div>
+        </section>
+      )}
+
+      <section className="border-b border-slate-200 bg-[#fffaf4] py-14 md:py-16">
         <div className="mx-auto max-w-7xl px-4 md:px-8">
           <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
             <div>
@@ -308,25 +395,26 @@ export const Home: React.FC = () => {
                   key={program.id}
                   to={`/programs/${program.id}`}
                   data-home-item
-                  className="group overflow-hidden rounded-lg border border-slate-200 bg-white transition duration-200 hover:-translate-y-1 hover:shadow-lg"
+                  data-home-program-card
+                  className="home-program-card group overflow-hidden rounded-lg border border-slate-200 transition duration-200 hover:-translate-y-1 hover:shadow-lg"
                 >
                   <div className="relative aspect-[16/10] overflow-hidden bg-slate-200">
                     <img
-                      src={index === 0 ? images[0] : program.image || images[(index % 3) + 1]}
-                      alt={program.title}
+                      src={getHomeProgramImage(program, index)}
+                      alt={getPublicProgramTitle(program)}
                       loading="lazy"
                       onError={event => {
                         event.currentTarget.onerror = null;
-                        event.currentTarget.src = images[(index % 3) + 1];
+                        event.currentTarget.src = cleanStoryImages[index % cleanStoryImages.length];
                       }}
                       className="size-full object-cover transition duration-500 group-hover:scale-[1.025]"
                     />
                     <span className="absolute left-4 top-4 rounded-full bg-white/95 px-3 py-2 text-[10px] font-extrabold uppercase text-slate-800 shadow-sm">
-                      {program.category}
+                      {getPublicProgramCategory(program)}
                     </span>
                   </div>
                   <div className="p-5">
-                    <h3 className="line-clamp-2 min-h-[58px] text-xl font-extrabold leading-snug">{program.title}</h3>
+                    <h3 className="line-clamp-2 min-h-[58px] text-xl font-extrabold leading-snug">{getPublicProgramTitle(program)}</h3>
                     <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4">
                       <div className="flex gap-2 text-xs font-bold text-slate-500">
                         <span>{program.ageGroup || '6–16 ans'}</span>
@@ -344,7 +432,7 @@ export const Home: React.FC = () => {
         </section>
       )}
 
-      <section className="bg-white py-14 md:py-16">
+      <section className="bg-[#edf5f0] py-14 md:py-16">
         <div className="mx-auto max-w-7xl px-4 md:px-8">
           <div className="relative min-h-[340px] overflow-hidden rounded-lg bg-[#08111f]">
             <img src={images[1]} alt="" loading="lazy" className="absolute inset-0 size-full object-cover object-center opacity-55" />
@@ -376,15 +464,15 @@ const ProjectScene: React.FC<{
   icon: React.ComponentType<{ size?: number; className?: string }>;
 }> = ({ image, title, label, result, icon: Icon }) => (
   <article data-home-item className="group relative aspect-[4/3] min-h-[300px] overflow-hidden rounded-lg bg-slate-950">
-    <img src={image} alt={title} loading="lazy" className="absolute inset-0 size-full object-cover transition duration-500 group-hover:scale-[1.025]" />
-    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/92 via-slate-950/10 to-transparent" />
+    <img src={image} alt={title} loading="lazy" className="absolute inset-0 size-full object-cover transition duration-700 group-hover:scale-[1.04]" />
+    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/45 to-slate-950/10" />
     <div className="absolute inset-x-0 bottom-0 p-5 text-white">
       <div className="mb-4 flex size-9 items-center justify-center rounded-lg bg-white text-brand-orange">
         <Icon size={17} />
       </div>
-      <p className="text-[10px] font-extrabold uppercase tracking-[0.13em] text-white/60">{label}</p>
+      <p className="text-[10px] font-extrabold uppercase tracking-[0.13em] text-white/80">{label}</p>
       <h3 className="mt-1 text-2xl font-extrabold">{title}</h3>
-      <p className="mt-2 text-sm font-semibold leading-6 text-white/68">{result}</p>
+      <p className="mt-2 text-sm font-semibold leading-6 text-white/82">{result}</p>
     </div>
   </article>
 );

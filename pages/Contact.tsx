@@ -17,8 +17,10 @@ import { AppCard, AppContainer, AppShell } from '../components/AppStyle';
 import { PremiumHero } from '../components/PremiumHero';
 import { Reveal } from '../components/Motion';
 import { FAQSection } from '../components/PageReady';
+import { SEO } from '../components/SEO';
+import { defaultPageContent } from '../data/defaultPageContent';
 
-const contactHero = 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=85&w=1600';
+const contactHero = '/images/makerlab/generated/mentor-microbit-electronics-v1.webp';
 
 const initialForm = {
   firstName: '',
@@ -35,6 +37,7 @@ export const Contact: React.FC = () => {
   const [formData, setFormData] = useState(initialForm);
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const contact = settings?.contact_info || {};
+  const content = { ...defaultPageContent.contact, ...(settings?.page_content?.contact || {}) };
 
   useEffect(() => {
     const requestedSubject = searchParams.get('subject');
@@ -109,11 +112,17 @@ export const Contact: React.FC = () => {
 
   return (
     <AppShell className="pb-24 pt-5">
+      <SEO
+        title="Contact MakerLab Academy Casablanca"
+        description="Contactez MakerLab Academy pour choisir un atelier robotique, coding, IA ou fabrication, organiser une visite ou construire un programme pour votre ecole."
+        keywords="contact MakerLab Casablanca, atelier robotique Casablanca contact, inscription MakerLab, ecole robotique Casablanca"
+        image={contactHero}
+      />
       <AppContainer>
         <PremiumHero
-          eyebrow="Parlons de votre projet"
-          title={<>Une question. Une idée. <span className="text-[#ff7b82]">Une prochaine étape.</span></>}
-          description="Parents, écoles et partenaires : choisissez le bon canal et notre équipe vous répond avec une recommandation claire."
+          eyebrow={content.eyebrow}
+          title={<>{content.title} <span className="text-[#ff7b82]">{content.accent}</span></>}
+          description={content.description}
           image={contactHero}
           imageAlt="Équipe MakerLab accompagnant un projet"
           accent="red"

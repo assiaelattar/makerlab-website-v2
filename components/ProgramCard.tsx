@@ -3,13 +3,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Clock, Trophy, Star, Calendar, ChevronDown } from 'lucide-react';
 import { Program, Mission } from '../types';
 import { AiImage } from './AiImage';
+import { getGeneratedProgramImage } from '../utils/makerlabImages';
 
 interface Props {
   program: Program | Mission;
   index?: number;
 }
 
-const DEFAULT_MISSION_IMG = 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=800';
+const DEFAULT_MISSION_IMG = '/images/makerlab/generated/stemquest-mdf-engineering-v1.webp';
 
 export const ProgramCard: React.FC<Props> = ({ program, index = 0 }) => {
   const colors = [
@@ -29,9 +30,7 @@ export const ProgramCard: React.FC<Props> = ({ program, index = 0 }) => {
 
   // ── helpers ──────────────────────────────────────────────────────────────
   const title  = ('title' in program) ? program.title : (program as any).name;
-  const imgSrc = ('coverImage' in program && program.coverImage)
-    ? program.coverImage
-    : (('image' in program && (program as any).image) ? (program as any).image : DEFAULT_MISSION_IMG);
+  const imgSrc = getGeneratedProgramImage(program, index) || DEFAULT_MISSION_IMG;
   const xp       = ('stats' in program && program.stats?.[0]?.value) || 300;
   const isMission = 'date' in program;
   const detailPath = isMission ? `/programs/kids-2?missionId=${program.id}` : `/programs/${program.id}`;

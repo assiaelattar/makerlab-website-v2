@@ -34,11 +34,11 @@ type Screen = {
 };
 
 const images = {
-  hero: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=1200',
-  robotics: 'https://images.unsplash.com/photo-1561557944-6e7860d1a7eb?auto=format&fit=crop&q=80&w=900',
-  coding: 'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&q=80&w=900',
-  maker: 'https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?auto=format&fit=crop&q=80&w=900',
-  detail: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1200',
+  hero: '/images/makerlab/generated/home-hero-microbit-rover-v1.webp',
+  robotics: '/images/makerlab/generated/robotics-microbit-rover-v1.webp',
+  coding: '/images/makerlab/generated/coding-ai-image-classifier-v1.webp',
+  maker: '/images/makerlab/generated/digital-fabrication-gears-v1.webp',
+  detail: '/images/makerlab/generated/cad-fdm-3d-printing-v1.webp',
 };
 
 const palette = [

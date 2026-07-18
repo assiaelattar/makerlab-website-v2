@@ -53,7 +53,7 @@ export const PremiumHero: React.FC<{
           <h1 className="ml-hero-title max-w-3xl font-display text-[clamp(2.7rem,5vw,5rem)] font-black leading-[0.94]">
             <span>{title}</span>
           </h1>
-          <p className="mt-6 max-w-2xl text-base font-semibold leading-7 text-white/72 md:text-lg md:leading-8">{description}</p>
+          <p className="mt-6 max-w-2xl text-base font-semibold leading-7 text-white/82 md:text-lg md:leading-8">{description}</p>
           {(primary || secondary) && (
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               {primary && (
@@ -62,7 +62,7 @@ export const PremiumHero: React.FC<{
                 </Link>
               )}
               {secondary && (
-                <Link to={secondary.to} className="ml-button border border-white/20 bg-white/10 px-6 text-white backdrop-blur-xl hover:bg-white/20">
+                <Link to={secondary.to} className="ml-button border border-white/25 bg-slate-950/55 px-6 text-white backdrop-blur-xl hover:bg-slate-950/70">
                   {secondary.label}
                 </Link>
               )}
@@ -75,7 +75,7 @@ export const PremiumHero: React.FC<{
             {stats.map(([value, label]) => (
               <div key={label} className="bg-slate-950/55 p-4 md:p-5">
                 <p className={`font-display text-2xl font-black md:text-3xl ${theme.text}`}>{value}</p>
-                <p className="mt-1 text-[11px] font-bold text-white/55">{label}</p>
+                <p className="mt-1 text-[11px] font-bold text-white/72">{label}</p>
               </div>
             ))}
           </div>

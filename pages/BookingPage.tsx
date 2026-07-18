@@ -4,7 +4,6 @@ import {
   ArrowLeft,
   ArrowRight,
   Baby,
-  CalendarDays,
   Check,
   CheckCircle2,
   Clock3,
@@ -19,8 +18,11 @@ import { useMissions } from '../contexts/MissionContext';
 import { BookingCalendar } from '../components/BookingCalendar';
 import { generateUpcomingInstances } from '../utils/slotUtils';
 import { db } from '../firebase';
+import { SEO } from '../components/SEO';
+import { getGeneratedProgramImage } from '../utils/makerlabImages';
+import { getPublicProgramDescription, getPublicProgramTitle } from '../utils/programDisplay';
 
-const fallbackImage = 'https://images.unsplash.com/photo-1561557944-6e7860d1a7eb?auto=format&fit=crop&q=84&w=1200';
+const fallbackImage = '/images/makerlab/generated/stemquest-mdf-engineering-v1.webp';
 
 export const BookingPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -43,7 +45,7 @@ export const BookingPage: React.FC = () => {
     id: 'trial',
     title: "Atelier d'essai MakerLab",
     description: "Découvrez MakerLab pendant une session de démonstration: robotique, code et fabrication.",
-    image: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=1000',
+    image: '/images/makerlab/generated/robotics-microbit-rover-v1.webp',
     ageGroup: '7-14 ans',
     format: 'Présentiel',
     price: 'Gratuit',
@@ -53,9 +55,9 @@ export const BookingPage: React.FC = () => {
 
   const selectedMission = missionId ? missions.find(mission => mission.id === missionId) : null;
   const selectedTrack = trackId ? tracks.find(track => track.id === trackId) : null;
-  const bookingTitle = selectedMission?.title || selectedTrack?.title || activeProgram?.title || 'Réservation';
+  const bookingTitle = selectedMission?.title || selectedTrack?.title || (activeProgram ? getPublicProgramTitle(activeProgram) : 'Réservation');
   const bookingPrice = selectedMission?.price || selectedTrack?.price || activeProgram?.price || 'Sur demande';
-  const bookingDesc = selectedMission?.description || selectedTrack?.description || activeProgram?.description || '';
+  const bookingDesc = selectedMission?.description || selectedTrack?.description || (activeProgram ? getPublicProgramDescription(activeProgram) : '');
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -156,6 +158,12 @@ export const BookingPage: React.FC = () => {
 
   return (
     <main className="min-h-screen bg-[#f6f8fa] px-4 pb-16 pt-6 md:px-8 md:pt-10">
+      <SEO
+        title={`${pageTitle} - ${bookingTitle}`}
+        description={`Reservez ${bookingTitle} chez MakerLab Academy Casablanca. Notre equipe confirme la session et accompagne chaque parent avant l'inscription.`}
+        keywords="reservation atelier robotique Casablanca, inscription MakerLab, atelier enfant Casablanca"
+        image={getGeneratedProgramImage(activeProgram) || fallbackImage}
+      />
       <div className="mx-auto max-w-6xl">
         <button type="button" onClick={() => navigate(-1)} className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-extrabold text-slate-700 shadow-sm transition hover:border-slate-300">
           <ArrowLeft size={16} /> Retour au programme
@@ -165,7 +173,7 @@ export const BookingPage: React.FC = () => {
           <aside className="hidden lg:block lg:sticky lg:top-28">
             <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
               <div className="relative aspect-[16/10] overflow-hidden bg-slate-200">
-                <img src={activeProgram.image || fallbackImage} alt={bookingTitle} className="size-full object-cover" />
+                <img src={getGeneratedProgramImage(activeProgram) || fallbackImage} alt={bookingTitle} className="size-full object-cover" />
                 <span className="absolute left-4 top-4 rounded-full bg-white/95 px-3 py-2 text-[10px] font-extrabold uppercase text-slate-800 shadow-sm">{requestLabel}</span>
               </div>
               <div className="p-6">
@@ -197,8 +205,12 @@ export const BookingPage: React.FC = () => {
           </aside>
 
           <div>
-            <div className="mb-4 flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-4 lg:hidden">
-              <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-brand-orange/10 text-brand-orange"><CalendarDays size={20} /></span>
+            <div className="mb-4 flex items-center gap-3 overflow-hidden rounded-lg border border-slate-200 bg-white p-3 lg:hidden">
+              <img
+                src={getGeneratedProgramImage(activeProgram) || fallbackImage}
+                alt=""
+                className="h-14 w-16 shrink-0 rounded-md object-cover"
+              />
               <div className="min-w-0 flex-1">
                 <p className="text-[10px] font-extrabold uppercase tracking-[0.12em] text-slate-400">{requestLabel}</p>
                 <p className="truncate text-sm font-extrabold">{bookingTitle}</p>

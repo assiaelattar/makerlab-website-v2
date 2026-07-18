@@ -322,7 +322,11 @@ export interface Program {
   parentProgramId?: string;    // Links to parent mission (e.g. Make & Go)
   isFeatured?: boolean;
   image: string;
+  imageSource?: 'generated' | 'custom';
   imagePrompt?: string;
+  publicTitle?: string;
+  publicDescription?: string;
+  publicCategory?: string;
   ogImage?: string; // Dedicated social media preview image (WhatsApp, etc.)
   duration: string;
   price: string;

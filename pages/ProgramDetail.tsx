@@ -22,8 +22,11 @@ import {
 import { usePrograms } from '../contexts/ProgramContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { FAQSection } from '../components/PageReady';
+import { SEO } from '../components/SEO';
+import { getGeneratedProgramImage } from '../utils/makerlabImages';
+import { getPublicProgramCategory, getPublicProgramDescription, getPublicProgramTitle } from '../utils/programDisplay';
 
-const fallbackImage = 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1600';
+const fallbackImage = '/images/makerlab/generated/stemquest-mdf-engineering-v1.webp';
 
 const defaultJourney = [
   { title: 'Imaginer', description: 'Comprendre le défi et choisir une direction.', icon: Lightbulb, color: 'bg-brand-orange' },
@@ -104,7 +107,9 @@ export const ProgramDetail: React.FC = () => {
     );
   }
 
-  const image = program.image || fallbackImage;
+  const image = getGeneratedProgramImage(program) || fallbackImage;
+  const publicTitle = getPublicProgramTitle(program);
+  const publicDescription = getPublicProgramDescription(program);
   const phone = settings?.contact_info?.phone || '+212 6 00 00 00 00';
   const programFormat = `${program.programType || ''} ${program.format || ''} ${program.duration || ''}`.toLowerCase();
   const bookingType = /annual|annuel|year program|parcours annuel/.test(programFormat) ? 'annual' : 'workshop';
@@ -136,6 +141,33 @@ export const ProgramDetail: React.FC = () => {
 
   return (
     <main ref={pageRef} className="makerlab-site min-h-screen overflow-x-hidden pb-28 pt-4 text-slate-900">
+      <SEO
+        title={`${publicTitle} - Atelier MakerLab Casablanca`}
+        description={publicDescription}
+        keywords={[
+          program.title,
+          program.category,
+          'atelier robotique Casablanca',
+          'coding enfants Maroc',
+          'MakerLab Academy',
+        ].filter(Boolean).join(', ')}
+        image={image}
+        schemaType="Course"
+        schemaData={{
+          name: program.title,
+          description: program.description,
+          provider: {
+            '@type': 'EducationalOrganization',
+            name: 'MakerLab Academy',
+            address: {
+              '@type': 'PostalAddress',
+              addressLocality: 'Casablanca',
+              addressCountry: 'MA',
+            },
+          },
+          image,
+        }}
+      />
       <div className="mx-auto max-w-7xl px-4 md:px-8">
         <nav aria-label="Fil d’Ariane" className="mb-4 flex items-center justify-between gap-4">
           <Link to="/programs" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-black shadow-sm transition hover:border-slate-300">
@@ -147,8 +179,8 @@ export const ProgramDetail: React.FC = () => {
         <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-[0_18px_55px_rgba(23,32,51,0.10)]">
           <div className="grid lg:grid-cols-[1.08fr_0.92fr]">
             <div data-dossier-image className="relative min-h-[330px] overflow-hidden sm:min-h-[420px] lg:min-h-[610px]">
-              <img src={image} alt={`Enfant réalisant le programme ${program.title}`} loading="eager" fetchPriority="high" className="absolute inset-0 size-full object-cover" />
-              <div className="absolute inset-x-0 bottom-0 bg-slate-950/88 p-4 text-white backdrop-blur-md sm:p-5">
+              <img src={image} alt={`Enfant réalisant le programme ${publicTitle}`} loading="eager" fetchPriority="high" className="absolute inset-0 size-full object-cover" />
+              <div className="absolute inset-x-0 bottom-0 bg-slate-950/90 p-4 text-white backdrop-blur-md sm:p-5">
                 <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-black">
                   <span className="inline-flex items-center gap-2"><CheckCircle2 size={16} className="text-brand-green" /> Projet réel</span>
                   <span className="inline-flex items-center gap-2"><Hammer size={16} className="text-brand-orange" /> Outils réels</span>
@@ -159,18 +191,21 @@ export const ProgramDetail: React.FC = () => {
 
             <div data-dossier-copy className="flex flex-col p-5 sm:p-8 lg:p-10">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded-full bg-brand-orange/10 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-brand-orange">
-                  {program.category || 'Programme MakerLab'}
+                <span className="rounded-full bg-[#fff0e7] px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#8f350d]">
+                  {getPublicProgramCategory(program)}
                 </span>
                 {program.trialAvailable && (
                   <span className="rounded-full bg-brand-green/10 px-3 py-2 text-xs font-black text-brand-green">Essai disponible</span>
                 )}
+                {typeof program.spotsAvailable === 'number' && (
+                  <span className="rounded-full bg-brand-orange/10 px-3 py-2 text-xs font-black text-brand-orange">{program.spotsAvailable} places disponibles</span>
+                )}
               </div>
 
               <p className="mt-8 text-xs font-black uppercase tracking-[0.16em] text-brand-blue">La mission</p>
-              <h1 className="mt-3 max-w-xl font-display text-[clamp(2.5rem,5vw,4.8rem)] font-black leading-[0.96]">{program.title}</h1>
+              <h1 className="mt-3 max-w-xl font-display text-[clamp(2.5rem,5vw,4.8rem)] font-black leading-[0.96]">{publicTitle}</h1>
               <p className="mt-5 max-w-xl text-base font-semibold leading-7 text-slate-600 sm:text-lg sm:leading-8">
-                {program.shortDescription || program.description}
+                {publicDescription}
               </p>
 
               <div className="mt-8 grid grid-cols-3 divide-x divide-slate-200 border-y border-slate-200 py-5">
@@ -264,7 +299,7 @@ export const ProgramDetail: React.FC = () => {
             <h2 className="mt-3 font-display text-3xl font-black leading-[1.05] sm:text-4xl">Choisissez le moment. Nous préparons tout le reste.</h2>
             <div className="mt-7 flex flex-col gap-2">
               {sessions.map(session => (
-                <div key={session} className="flex min-h-14 items-center gap-3 rounded-xl border border-white/12 bg-white/10 px-4">
+                <div key={session} className="flex min-h-14 items-center gap-3 rounded-xl border border-white/12 bg-slate-950/25 px-4">
                   <Clock3 size={18} className="shrink-0 text-[#74b5ff]" />
                   <span className="font-black">{session}</span>
                 </div>
@@ -311,7 +346,7 @@ export const ProgramDetail: React.FC = () => {
 
       <div className="fixed inset-x-2 bottom-2 z-50 grid min-h-16 max-w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-lg border border-slate-200 bg-white/[0.96] p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-2xl backdrop-blur-xl lg:hidden">
         <div className="min-w-0 flex-1 px-2">
-          <p className="truncate text-xs font-bold text-slate-500">{program.title}</p>
+          <p className="truncate text-xs font-bold text-slate-500">{publicTitle}</p>
           <p className="font-black text-slate-950">{program.price}</p>
         </div>
         <BookingAction className="ml-button min-h-12 bg-brand-orange px-4 text-sm text-white">
