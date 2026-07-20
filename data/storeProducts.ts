@@ -253,3 +253,81 @@ export const novaQuestMiniProduct = {
 } as const;
 
 export const storeProducts = [smartDoorProduct, novaQuestMiniProduct] as const;
+
+export const storeConceptProducts = [
+  {
+    id: 'smart-parking-gate',
+    title: 'Smart Parking Gate',
+    status: 'Concept à valider',
+    mission: 'Construis ton premier système de ville intelligente.',
+    story:
+      'Concevoir une entrée de parking automatique qui détecte une voiture, ouvre la barrière, compte les entrées et peut afficher quand le parking est complet.',
+    learningPath: 'Design CAD de la barrière -> simulation du circuit -> logique du capteur -> mouvement servo -> MakeCode -> test avec voitures',
+    likelyComponents: ['micro:bit', 'Shield / breakout', 'Capteur ultrason', 'Servo 180°', 'LED / statut', 'Structure MDF'],
+    commercialReason:
+      'Très facile à comprendre pour les parents, proche des composants Smart Door, et très fort pour raconter les villes intelligentes et l’automatisation.',
+    nextEvidence: 'Créer un premier visuel concept, confirmer le mécanisme de barrière, puis lancer l’intake produit.',
+    action: 'Voter pour ce pilote',
+    to: '/contact?subject=smart-parking-gate-pilot',
+  },
+  {
+    id: 'smart-delivery-locker',
+    title: 'Smart Delivery Locker',
+    status: 'Concept à valider',
+    mission: 'Conçois et code un mini casier de livraison sécurisé.',
+    story:
+      'Créer un petit casier qui peut s’ouvrir avec un code, un bouton, une carte ou un déclencheur validé, puis expliquer comment les systèmes de livraison protègent les colis.',
+    learningPath: 'Design du casier -> logique d’accès -> verrou servo -> MakeCode -> test de sécurité -> amélioration du parcours utilisateur',
+    likelyComponents: ['micro:bit', 'Shield / breakout', 'Verrou servo', 'Boutons ou clavier à confirmer', 'Signal LED / statut', 'Boîte MDF'],
+    commercialReason:
+      'Moderne et très compréhensible : les parents voient immédiatement l’idée produit réelle, pas seulement l’électronique.',
+    nextEvidence: 'Confirmer le mécanisme de verrouillage le plus sûr et décider si un clavier ou module d’accès est nécessaire.',
+    action: 'Demander cette mission',
+    to: '/contact?subject=smart-delivery-locker-pilot',
+  },
+  {
+    id: 'mini-factory-sorter',
+    title: 'Mini Factory Sorter',
+    status: 'Concept à valider',
+    mission: 'Construis une mini station d’usine automatisée.',
+    story:
+      'Créer une mini ligne de production qui détecte des objets et les envoie dans différentes zones avec une barrière servo ou un bras de tri.',
+    learningPath: 'Défi d’usine -> choix du capteur -> logique de tri -> mécanisme de barrière -> code -> test de production',
+    likelyComponents: ['micro:bit', 'Shield / breakout', 'Capteur à confirmer', 'Barrière servo', 'Rail MDF', 'Petits objets de test'],
+    commercialReason:
+      'Pont parfait entre les kits MakerLab et l’idée Kit Factory : l’enfant comprend l’automatisation en construisant une petite usine.',
+    nextEvidence: 'Prototyper un mouvement de tri fiable avant toute promesse store.',
+    action: 'Voter pour le sorter',
+    to: '/contact?subject=mini-factory-sorter-pilot',
+  },
+  {
+    id: 'eco-greenhouse-guardian',
+    title: 'Eco Greenhouse Guardian',
+    status: 'Concept à valider',
+    mission: 'Construis un gardien intelligent pour plantes.',
+    story:
+      'Concevoir une mini serre qui observe son environnement et déclenche une alerte ou ouvre une petite ventilation quand la plante a besoin d’aide.',
+    learningPath: 'Problème de plante -> lecture capteur -> affichage des données -> ventilation servo ou alerte -> test des conditions',
+    likelyComponents: ['micro:bit', 'Capteur à confirmer', 'Ventilation servo ou alerte LED', 'Structure MDF / acrylique', 'Cartes guide'],
+    commercialReason:
+      'Ajoute une dimension science et environnement au store, utile pour les parents et écoles qui cherchent plus que la robotique pure.',
+    nextEvidence: 'Choisir le capteur exact et confirmer une expérience plante sûre pour la maison ou l’école.',
+    action: 'Demander la mission éco',
+    to: '/contact?subject=eco-greenhouse-guardian-pilot',
+  },
+  {
+    id: 'security-alarm-box',
+    title: 'Security Alarm Box',
+    status: 'Concept à valider',
+    mission: 'Construis ton premier système de sécurité intelligent.',
+    story:
+      'Créer une mini alarme de pièce qui détecte un mouvement ou une distance, affiche un statut, et demande à l’enfant de réfléchir à des règles de sécurité responsables.',
+    learningPath: 'Scénario sécurité -> logique de détection -> comportement de l’alarme -> code -> test des fausses alertes -> amélioration',
+    likelyComponents: ['micro:bit', 'Capteur ultrason ou mouvement', 'Buzzer ou alerte LED', 'Shield / breakout', 'Maquette MDF'],
+    commercialReason:
+      'Simple, excitant et très clair visuellement, tout en permettant d’enseigner une technologie responsable.',
+    nextEvidence: 'Confirmer le capteur, la sécurité son/lumière et le vocabulaire du guide autour de l’usage responsable.',
+    action: 'Voter pour l’alarme',
+    to: '/contact?subject=security-alarm-box-pilot',
+  },
+] as const;

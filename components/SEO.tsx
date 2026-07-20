@@ -7,29 +7,47 @@ interface SEOProps {
   keywords?: string | string[];
   image?: string;
   url?: string;
-  schemaType?: 'Organization' | 'Course' | 'Event';
-  schemaData?: any;
+  schemaType?: string;
+  schemaData?: Record<string, unknown> | Record<string, unknown>[];
+  noIndex?: boolean;
 }
 
-export const SEO: React.FC<SEOProps> = ({ 
-  title, 
-  description, 
-  keywords, 
-  image, 
+const SITE_URL = 'https://space.makerlab.academy';
+const ORGANIZATION_ID = `${SITE_URL}/#organization`;
+
+const absoluteUrl = (value: string, base = SITE_URL) => {
+  try {
+    return new URL(value, base).toString();
+  } catch {
+    return value;
+  }
+};
+
+export const SEO: React.FC<SEOProps> = ({
+  title,
+  description,
+  keywords,
+  image,
   url,
   schemaType,
-  schemaData
+  schemaData,
+  noIndex = false,
 }) => {
   const location = useLocation();
-  const baseTitle = "MakerLab Academy | Ateliers de Robotique & Coding pour Enfants à Casablanca";
-  const baseDescription = "Inscrivez vos enfants au meilleur Camp Robotique à Casablanca. Ateliers 100% pratiques sur les Drones, le Codage et l'Ingénierie. Devenez un Créateur, pas un simple assembleur !";
-  const baseKeywords = "robotique enfants Casablanca, camp robotique casablanca, stages de vacances casablanca, école de robotique maroc, drone workshop casablanca, coding for kids maroc";
+  const baseTitle = 'MakerLab Academy | Robotique, coding et IA pour enfants à Casablanca';
+  const baseDescription = 'MakerLab Academy aide les enfants de 6 à 16 ans à concevoir, coder, fabriquer et présenter de vrais projets en robotique, IA, électronique et design 3D à Casablanca.';
+  const baseKeywords = 'robotique enfants Casablanca, coding enfants Maroc, atelier intelligence artificielle, impression 3D enfants, STEM Casablanca';
 
   useEffect(() => {
-    // Update Title
-    document.title = title ? `${title} | MakerLab Academy` : baseTitle;
+    const canonicalUrl = absoluteUrl(url || location.pathname || '/');
+    const pageTitle = title
+      ? (title.toLowerCase().includes('makerlab') ? title : `${title} | MakerLab Academy`)
+      : baseTitle;
+    const pageDescription = description || baseDescription;
+    const pageImage = absoluteUrl(image || '/logo-full.png');
 
-    // Update Meta Tags
+    document.title = pageTitle;
+
     const updateMeta = (name: string, content: string) => {
       let element = document.querySelector(`meta[name="${name}"]`);
       if (!element) {
@@ -50,59 +68,92 @@ export const SEO: React.FC<SEOProps> = ({
       element.setAttribute('content', content);
     };
 
-    updateMeta('description', description || baseDescription);
+    const updateLink = (rel: string, href: string) => {
+      let element = document.querySelector(`link[rel="${rel}"]`) as HTMLLinkElement | null;
+      if (!element) {
+        element = document.createElement('link');
+        element.rel = rel;
+        document.head.appendChild(element);
+      }
+      element.href = href;
+    };
+
+    updateMeta('description', pageDescription);
     updateMeta('keywords', Array.isArray(keywords) ? keywords.join(', ') : (keywords || baseKeywords));
-    
-    // OG Tags
-    updateProperty('og:title', title ? `${title} | MakerLab Academy` : baseTitle);
-    updateProperty('og:description', description || baseDescription);
-    updateProperty('og:image', image || '/logo-full.png');
-    updateProperty('og:url', window.location.origin + location.pathname);
-    updateProperty('og:type', 'website');
+    updateMeta('robots', noIndex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1');
+    updateMeta('googlebot', noIndex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1');
+    updateLink('canonical', canonicalUrl);
 
-    // Twitter Tags
+    updateProperty('og:title', pageTitle);
+    updateProperty('og:description', pageDescription);
+    updateProperty('og:image', pageImage);
+    updateProperty('og:url', canonicalUrl);
+    updateProperty('og:type', schemaType === 'Article' ? 'article' : 'website');
+    updateProperty('og:site_name', 'MakerLab Academy');
+    updateProperty('og:locale', 'fr_FR');
+
     updateMeta('twitter:card', 'summary_large_image');
-    updateMeta('twitter:title', title ? `${title} | MakerLab Academy` : baseTitle);
-    updateMeta('twitter:description', description || baseDescription);
-    updateMeta('twitter:image', image || '/logo-full.png');
+    updateMeta('twitter:title', pageTitle);
+    updateMeta('twitter:description', pageDescription);
+    updateMeta('twitter:image', pageImage);
 
-    // JSON-LD Structured Data
-    const scriptId = 'json-ld-schema';
-    let script = document.getElementById(scriptId) as HTMLScriptElement;
-    
+    const organization = {
+      '@type': 'EducationalOrganization',
+      '@id': ORGANIZATION_ID,
+      name: 'MakerLab Academy',
+      url: SITE_URL,
+      logo: { '@type': 'ImageObject', url: `${SITE_URL}/logo-full.png` },
+      description: baseDescription,
+      address: { '@type': 'PostalAddress', addressLocality: 'Casablanca', addressCountry: 'MA' },
+      areaServed: { '@type': 'City', name: 'Casablanca' },
+    };
+
+    const webPage = {
+      '@type': 'WebPage',
+      '@id': `${canonicalUrl}#webpage`,
+      url: canonicalUrl,
+      name: pageTitle,
+      description: pageDescription,
+      isPartOf: { '@id': `${SITE_URL}/#website` },
+      about: { '@id': ORGANIZATION_ID },
+      primaryImageOfPage: { '@type': 'ImageObject', url: pageImage },
+      inLanguage: 'fr-FR',
+    };
+
+    const customItems = schemaData
+      ? (Array.isArray(schemaData) ? schemaData : [{ '@type': schemaType || 'Thing', ...schemaData }])
+      : [];
+    const graph: Record<string, unknown>[] = [webPage];
+
+    if (location.pathname === '/') {
+      graph.unshift(
+        organization,
+        {
+          '@type': 'WebSite',
+          '@id': `${SITE_URL}/#website`,
+          url: SITE_URL,
+          name: 'MakerLab Academy',
+          publisher: { '@id': ORGANIZATION_ID },
+          inLanguage: 'fr-FR',
+        },
+      );
+    }
+
+    customItems.forEach(item => graph.push({
+      ...item,
+      '@id': item['@id'] || `${canonicalUrl}#primary`,
+      url: item.url || canonicalUrl,
+    }));
+
+    let script = document.getElementById('json-ld-schema') as HTMLScriptElement | null;
     if (!script) {
       script = document.createElement('script');
-      script.id = scriptId;
+      script.id = 'json-ld-schema';
       script.type = 'application/ld+json';
       document.head.appendChild(script);
     }
+    script.textContent = JSON.stringify({ '@context': 'https://schema.org', '@graph': graph });
+  }, [title, description, keywords, image, url, location.pathname, schemaType, schemaData, noIndex]);
 
-    const defaultSchema = {
-      "@context": "https://schema.org",
-      "@type": "EducationalOrganization",
-      "name": "MakerLab Academy",
-      "url": window.location.origin,
-      "logo": window.location.origin + "/logo-full.png",
-      "address": {
-        "@type": "PostalAddress",
-        "addressLocality": "Casablanca",
-        "addressCountry": "MA"
-      }
-    };
-
-    const currentSchema = schemaType && schemaData ? {
-        "@context": "https://schema.org",
-        "@type": schemaType,
-        ...schemaData
-    } : defaultSchema;
-
-    script.textContent = JSON.stringify(currentSchema);
-
-    return () => {
-        // Optionnel: On peut laisser le script ou le nettoyer au démontage
-    };
-
-  }, [title, description, keywords, image, location, schemaType, schemaData]);
-
-  return null; // This component doesn't render anything
+  return null;
 };

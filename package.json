@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "continuity:check": "node scripts/continuity-check.mjs",
     "postbuild": "node scripts/inject-seo.js",
     "preview": "vite preview",
     "start": "node server.js"

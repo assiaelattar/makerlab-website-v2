@@ -23,6 +23,7 @@ import { usePrograms } from '../contexts/ProgramContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { FAQSection } from '../components/PageReady';
 import { SEO } from '../components/SEO';
+import { ParentDecisionSystem } from '../components/ParentDecisionSystem';
 import { getGeneratedProgramImage } from '../utils/makerlabImages';
 import { getPublicProgramCategory, getPublicProgramDescription, getPublicProgramTitle } from '../utils/programDisplay';
 
@@ -39,7 +40,7 @@ const defaultJourney = [
 export const ProgramDetail: React.FC = () => {
   const pageRef = useRef<HTMLElement>(null);
   const { id } = useParams<{ id: string }>();
-  const { getProgram } = usePrograms();
+  const { getProgram, programs, isLoading } = usePrograms();
   const { settings } = useSettings();
   const program = getProgram(id || '');
 
@@ -93,6 +94,20 @@ export const ProgramDetail: React.FC = () => {
     };
   }, [program?.id]);
 
+  if (isLoading && !program) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#f7f5ef] px-4 text-[#0b1726]">
+        <div className="w-full max-w-xl border border-[#0b1726]/12 bg-white p-7 sm:p-10" role="status" aria-live="polite">
+          <div className="h-2 w-24 animate-pulse bg-[#df661e]" />
+          <div className="mt-7 h-10 w-3/4 animate-pulse bg-[#0b1726]/10" />
+          <div className="mt-3 h-4 w-full animate-pulse bg-[#0b1726]/8" />
+          <div className="mt-2 h-4 w-4/5 animate-pulse bg-[#0b1726]/8" />
+          <p className="mt-7 text-sm font-extrabold">Chargement du programme…</p>
+        </div>
+      </main>
+    );
+  }
+
   if (!program) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#f3f5f7] px-4">
@@ -114,6 +129,26 @@ export const ProgramDetail: React.FC = () => {
   const programFormat = `${program.programType || ''} ${program.format || ''} ${program.duration || ''}`.toLowerCase();
   const bookingType = /annual|annuel|year program|parcours annuel/.test(programFormat) ? 'annual' : 'workshop';
   const bookingPath = `/booking/${program.id}?type=${bookingType}`;
+  const recommendedPath = program.bookingType === 'external' && program.externalBookingUrl ? program.externalBookingUrl : bookingPath;
+  const toolContext = `${program.title} ${program.category} ${program.description} ${program.skills?.join(' ') || ''}`.toLowerCase();
+  const professionalTools = /drone|tello|python/.test(toolContext)
+    ? ['Python', 'DJI Tello', 'PyCharm', 'Logique algorithmique']
+    : /ia|intelligence artificielle|classifier|machine learning/.test(toolContext)
+      ? ['Google Teachable Machine', 'Python', 'IA générative', 'Design produit']
+      : /3d|cad|cao|fusion|fabrication|impression/.test(toolContext)
+        ? ['Autodesk Tinkercad', 'Autodesk Fusion 360', 'Impression 3D', 'Découpe laser']
+        : ['BBC micro:bit', 'Microsoft MakeCode', 'Autodesk Tinkercad', 'Électronique réelle'];
+  const parentNextSteps = bookingType === 'annual'
+    ? [
+        { title: 'Première mission', text: 'Valider son intérêt et réussir un projet concret.' },
+        { title: 'Projets avancés', text: 'Ajouter de nouveaux outils, contraintes et responsabilités.' },
+        { title: 'Portfolio MakerLab', text: 'Documenter, présenter et transformer ses projets en preuves de capacité.' },
+      ]
+    : [
+        { title: 'Cette mission', text: 'Construire un premier résultat visible avec un mentor.' },
+        { title: 'Mission suivante', text: 'Choisir une difficulté ou une technologie complémentaire.' },
+        { title: 'Parcours et portfolio', text: 'Progresser vers des projets autonomes, présentés et packagés.' },
+      ];
   const benefits = [
     { title: program.benefits || 'Un projet concret à présenter', text: 'L’enfant termine avec un résultat visible, pas seulement une notion apprise.', icon: Sparkles, color: 'bg-brand-orange' },
     { title: 'Matériel et outils inclus', text: 'Tout est préparé pour que le temps soit consacré à imaginer, fabriquer et tester.', icon: PackageCheck, color: 'bg-brand-blue' },
@@ -130,6 +165,8 @@ export const ProgramDetail: React.FC = () => {
     : defaultJourney;
   const sessions = program.schedule?.length ? program.schedule : ['Dates à venir'];
   const journeyGridClass = journey.length <= 3 ? 'md:grid-cols-3' : journey.length === 4 ? 'md:grid-cols-4' : 'md:grid-cols-5';
+  const programNavItems = programs.filter(item => item.active).slice(0, 7);
+  const benefitTones = ['bg-[#f7f5ef]', 'bg-[#e8eff7]', 'bg-[#edf5cf]', 'bg-[#f8e8dc]'];
 
   const BookingAction: React.FC<{ className: string; trial?: boolean; children: React.ReactNode }> = ({ className, trial = false, children }) => {
     const href = trial ? `/booking/${program.id}?type=trial` : bookingPath;
@@ -140,7 +177,7 @@ export const ProgramDetail: React.FC = () => {
   };
 
   return (
-    <main ref={pageRef} className="makerlab-site min-h-screen overflow-x-hidden pb-28 pt-4 text-slate-900">
+    <main ref={pageRef} className="makerlab-site min-h-screen overflow-x-hidden bg-[#f7f5ef] pb-28 text-[#0b1726]">
       <SEO
         title={`${publicTitle} - Atelier MakerLab Casablanca`}
         description={publicDescription}
@@ -168,18 +205,43 @@ export const ProgramDetail: React.FC = () => {
           image,
         }}
       />
-      <div className="mx-auto max-w-7xl px-4 md:px-8">
+      <nav aria-label="Naviguer entre les programmes" className="program-switcher-rail border-y border-white/10 bg-[#07111f] text-white">
+        <div className="mx-auto flex max-w-7xl overflow-x-auto px-4 md:px-8">
+          <Link to="/programs" className="flex min-h-16 shrink-0 items-center gap-2 border-r border-white/12 pr-5 text-xs font-extrabold uppercase tracking-[0.14em] text-[#d9f56f]">
+            <ArrowLeft size={15} /> Tous
+          </Link>
+          {programNavItems.map(item => {
+            const isActive = item.id === program.id;
+            return (
+              <Link
+                key={item.id}
+                to={`/programs/${item.id}`}
+                aria-current={isActive ? 'page' : undefined}
+                className={`flex min-h-16 min-w-[170px] items-center border-r border-white/12 px-5 text-sm font-extrabold transition ${isActive ? 'bg-[#df661e] text-white' : 'text-white/62 hover:bg-white/8 hover:text-white'}`}
+              >
+                <span className="line-clamp-2">{getPublicProgramTitle(item)}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
+
+      <div className="mx-auto max-w-7xl px-4 pt-5 md:px-8 md:pt-7">
         <nav aria-label="Fil d’Ariane" className="mb-4 flex items-center justify-between gap-4">
-          <Link to="/programs" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-black shadow-sm transition hover:border-slate-300">
+          <Link to="/programs" className="inline-flex min-h-11 items-center gap-2 border border-[#0b1726]/14 bg-white px-4 text-sm font-extrabold transition hover:bg-[#0b1726] hover:text-white">
             <ArrowLeft size={16} /> Tous les programmes
           </Link>
-          <span className="hidden text-xs font-black uppercase tracking-[0.14em] text-slate-400 sm:block">Dossier mission</span>
+          <span className="hidden text-xs font-extrabold uppercase tracking-[0.14em] text-[#667286] sm:block">Dossier mission</span>
         </nav>
 
-        <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-[0_18px_55px_rgba(23,32,51,0.10)]">
+        <section className="overflow-hidden border border-[#0b1726]/14 bg-[#f1eee5] shadow-[0_22px_70px_rgba(23,32,51,0.10)]">
           <div className="grid lg:grid-cols-[1.08fr_0.92fr]">
             <div data-dossier-image className="relative min-h-[330px] overflow-hidden sm:min-h-[420px] lg:min-h-[610px]">
               <img src={image} alt={`Enfant réalisant le programme ${publicTitle}`} loading="eager" fetchPriority="high" className="absolute inset-0 size-full object-cover" />
+              <div aria-hidden="true" className="absolute inset-x-0 top-0 bg-gradient-to-b from-[#07111f]/88 via-[#07111f]/46 to-transparent px-5 pb-16 pt-5 text-white lg:hidden">
+                <p className="text-[9px] font-extrabold uppercase tracking-[0.18em] text-[#d9f56f]">{getPublicProgramCategory(program)}</p>
+                <p className="mt-2 max-w-sm font-['Geist'] text-3xl font-semibold leading-none tracking-[-0.04em]">{publicTitle}</p>
+              </div>
               <div className="absolute inset-x-0 bottom-0 bg-slate-950/90 p-4 text-white backdrop-blur-md sm:p-5">
                 <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-black">
                   <span className="inline-flex items-center gap-2"><CheckCircle2 size={16} className="text-brand-green" /> Projet réel</span>
@@ -189,21 +251,21 @@ export const ProgramDetail: React.FC = () => {
               </div>
             </div>
 
-            <div data-dossier-copy className="flex flex-col p-5 sm:p-8 lg:p-10">
+            <div data-dossier-copy className="flex flex-col bg-[#f1eee5] p-5 sm:p-8 lg:p-10">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded-full bg-[#fff0e7] px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#8f350d]">
+                <span className="bg-[#df661e] px-3 py-2 text-xs font-extrabold uppercase tracking-[0.12em] text-white">
                   {getPublicProgramCategory(program)}
                 </span>
                 {program.trialAvailable && (
-                  <span className="rounded-full bg-brand-green/10 px-3 py-2 text-xs font-black text-brand-green">Essai disponible</span>
+                  <span className="bg-[#d9f56f] px-3 py-2 text-xs font-extrabold text-[#0b1726]">Essai disponible</span>
                 )}
                 {typeof program.spotsAvailable === 'number' && (
-                  <span className="rounded-full bg-brand-orange/10 px-3 py-2 text-xs font-black text-brand-orange">{program.spotsAvailable} places disponibles</span>
+                  <span className="border border-[#df661e]/28 px-3 py-2 text-xs font-extrabold text-[#a74410]">{program.spotsAvailable} places disponibles</span>
                 )}
               </div>
 
               <p className="mt-8 text-xs font-black uppercase tracking-[0.16em] text-brand-blue">La mission</p>
-              <h1 className="mt-3 max-w-xl font-display text-[clamp(2.5rem,5vw,4.8rem)] font-black leading-[0.96]">{publicTitle}</h1>
+              <h1 className="mt-3 max-w-xl font-['Geist'] text-[clamp(2.5rem,5vw,4.8rem)] font-semibold leading-[0.94] tracking-[-0.05em]">{publicTitle}</h1>
               <p className="mt-5 max-w-xl text-base font-semibold leading-7 text-slate-600 sm:text-lg sm:leading-8">
                 {publicDescription}
               </p>
@@ -233,32 +295,54 @@ export const ProgramDetail: React.FC = () => {
           </div>
         </section>
 
-        <section aria-label="Garanties du programme" data-motion-group className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <nav aria-label="Dans cette page" className="flex overflow-x-auto border-x border-b border-[#0b1726]/14 bg-white">
           {[
-            { icon: Cpu, value: '80%', label: 'de pratique', color: 'text-brand-orange' },
-            { icon: Users, value: '10', label: 'enfants maximum', color: 'text-brand-blue' },
-            { icon: PackageCheck, value: '100%', label: 'matériel inclus', color: 'text-brand-green' },
-            { icon: ShieldCheck, value: '1:1', label: 'aide du mentor', color: 'text-brand-red' },
+            ['#resultat', 'Résultat'],
+            ['#methode-programme', 'Méthode'],
+            ['#sessions-programme', 'Sessions'],
+            ['#faq-programme', 'Questions'],
+          ].map(([href, label]) => (
+            <a key={href} href={href} className="flex min-h-14 min-w-[145px] flex-1 items-center justify-between border-r border-[#0b1726]/12 px-4 text-xs font-extrabold uppercase tracking-[0.11em] transition last:border-r-0 hover:bg-[#0b1726] hover:text-white">
+              {label}<ArrowRight size={14} />
+            </a>
+          ))}
+        </nav>
+
+        <section aria-label="Garanties du programme" data-motion-group className="mt-5 grid grid-cols-2 gap-px border border-[#0b1726]/14 bg-[#0b1726]/14 lg:grid-cols-4">
+          {[
+            { icon: Cpu, value: '80%', label: 'de pratique', tone: 'bg-[#07111f] text-white', color: 'text-[#d9f56f]' },
+            { icon: Users, value: '10', label: 'enfants maximum', tone: 'bg-[#df661e] text-white', color: 'text-white' },
+            { icon: PackageCheck, value: '100%', label: 'matériel inclus', tone: 'bg-[#d9f56f] text-[#0b1726]', color: 'text-[#0b1726]' },
+            { icon: ShieldCheck, value: '1:1', label: 'aide du mentor', tone: 'bg-[#2563a8] text-white', color: 'text-white' },
           ].map(item => (
-            <div key={item.label} data-motion-item className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+            <div key={item.label} data-motion-item className={`p-4 sm:p-5 ${item.tone}`}>
               <item.icon size={20} className={item.color} />
               <p className="mt-4 text-2xl font-black tabular-nums">{item.value}</p>
-              <p className="mt-1 text-xs font-bold text-slate-500">{item.label}</p>
+              <p className="mt-1 text-xs font-bold opacity-65">{item.label}</p>
             </div>
           ))}
         </section>
 
-        <section className="mt-12 grid gap-8 lg:grid-cols-[0.78fr_1.22fr] lg:items-start">
+        <ParentDecisionSystem
+          compact
+          recommendedTo={recommendedPath}
+          recommendedLabel={program.trialAvailable ? 'Commencer par l’atelier d’essai' : 'Commencer par cette mission'}
+          recommendedReason="C’est le point de départ le plus simple : le matériel est prêt, le groupe est petit et le mentor aide l’enfant à terminer un projet qu’il peut expliquer."
+          professionalTools={professionalTools}
+          nextSteps={parentNextSteps}
+        />
+
+        <section id="resultat" className="mt-16 scroll-mt-28 grid gap-8 lg:grid-cols-[0.78fr_1.22fr] lg:items-start">
           <div className="lg:sticky lg:top-28">
             <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-orange">Le résultat</p>
-            <h2 className="mt-3 font-display text-3xl font-black leading-[1.04] sm:text-5xl">Votre enfant ne suit pas un cours. Il mène un projet.</h2>
+            <h2 className="mt-3 font-['Geist'] text-3xl font-semibold leading-[1.01] tracking-[-0.035em] sm:text-5xl">Votre enfant ne suit pas un cours. Il mène un projet.</h2>
             <p className="mt-5 text-base font-semibold leading-8 text-slate-600">{program.description}</p>
           </div>
 
           <div data-motion-group className="grid gap-3 sm:grid-cols-2">
-            {benefits.map(benefit => (
-              <article key={benefit.title} data-motion-item className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-                <div className={`flex size-11 items-center justify-center rounded-xl text-white ${benefit.color}`}>
+            {benefits.map((benefit, index) => (
+              <article key={benefit.title} data-motion-item className={`border border-[#0b1726]/12 p-5 sm:p-6 ${benefitTones[index % benefitTones.length]}`}>
+                <div className={`flex size-11 items-center justify-center text-white ${benefit.color}`}>
                   <benefit.icon size={21} />
                 </div>
                 <h3 className="mt-5 text-xl font-black leading-tight">{benefit.title}</h3>
@@ -268,31 +352,31 @@ export const ProgramDetail: React.FC = () => {
           </div>
         </section>
 
-        <section className="mt-14 border-y border-slate-200 py-12">
+        <section id="methode-programme" className="mt-16 scroll-mt-28 bg-[#07111f] px-5 py-12 text-white sm:px-8 sm:py-16">
           <div className="max-w-2xl">
             <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-blue">La méthode MakerLab</p>
-            <h2 className="mt-3 font-display text-3xl font-black leading-[1.04] sm:text-5xl">Une progression qui ressemble au travail d’un vrai créateur.</h2>
+            <h2 className="mt-3 font-['Geist'] text-3xl font-semibold leading-[1.01] tracking-[-0.035em] sm:text-5xl">Une progression qui ressemble au travail d’un vrai créateur.</h2>
           </div>
 
-          <div data-motion-group className={`mt-8 grid gap-3 ${journeyGridClass}`}>
+          <div data-motion-group className={`mt-8 grid gap-px bg-white/12 ${journeyGridClass}`}>
             {journey.map((step, index) => (
-              <article key={`${step.title}-${index}`} data-motion-item className="relative rounded-lg border border-slate-200 bg-white p-5">
+              <article key={`${step.title}-${index}`} data-motion-item className="relative bg-[#101d30] p-5">
                 <div className="flex items-center justify-between">
-                  <div className={`flex size-11 items-center justify-center rounded-xl text-white ${step.color}`}>
+                  <div className={`flex size-11 items-center justify-center text-white ${step.color}`}>
                     <step.icon size={20} />
                   </div>
-                  <span className="font-mono text-xs font-black text-slate-300">0{index + 1}</span>
+                  <span className="font-mono text-xs font-black text-white/28">0{index + 1}</span>
                 </div>
                 <h3 className="mt-5 text-lg font-black">{step.title}</h3>
-                <p className="mt-2 text-sm font-semibold leading-6 text-slate-500">{step.description}</p>
+                <p className="mt-2 text-sm font-semibold leading-6 text-white/55">{step.description}</p>
               </article>
             ))}
           </div>
         </section>
 
-        <section className="mt-14 grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
-          <div className="rounded-lg bg-brand-blue p-6 text-white sm:p-8">
-            <div className="flex size-12 items-center justify-center rounded-xl bg-white/12">
+        <section id="sessions-programme" className="mt-16 scroll-mt-28 grid gap-px border border-[#0b1726]/14 bg-[#0b1726]/14 lg:grid-cols-[1.05fr_0.95fr]">
+          <div className="bg-brand-blue p-6 text-white sm:p-8">
+            <div className="flex size-12 items-center justify-center bg-white/12">
               <CalendarDays size={23} />
             </div>
             <p className="mt-8 text-xs font-black uppercase tracking-[0.14em] text-white/60">Prochaines sessions</p>
@@ -307,7 +391,7 @@ export const ProgramDetail: React.FC = () => {
             </div>
           </div>
 
-          <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+          <div className="bg-white p-6 sm:p-8">
             <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-green">Avant de réserver</p>
             <h2 className="mt-3 text-3xl font-black leading-tight">Une décision simple et sans surprise.</h2>
             <div className="mt-6 flex flex-col gap-4">
@@ -334,17 +418,37 @@ export const ProgramDetail: React.FC = () => {
           </div>
         </section>
 
-        <FAQSection
-          items={[
-            { question: 'Faut-il avoir déjà codé ou construit un robot ?', answer: 'Non. Le mentor adapte les explications au niveau du groupe et guide chaque étape du projet.' },
-            { question: 'Le matériel est-il compris dans le tarif ?', answer: 'Oui. Tout le matériel utilisé pendant la session est fourni, sauf indication contraire dans la description du programme.' },
-            { question: 'Que se passe-t-il si mon enfant a besoin d’aide ?', answer: 'Les groupes restent volontairement petits pour que le mentor puisse observer, débloquer et encourager chaque participant.' },
-            { question: 'Puis-je vous parler avant de réserver ?', answer: `Oui. Appelez-nous au ${phone} ou envoyez un message depuis la page contact.` },
-          ]}
-        />
+        <div id="faq-programme" className="scroll-mt-28">
+          <FAQSection
+            items={[
+              { question: 'Faut-il avoir déjà codé ou construit un robot ?', answer: 'Non. Le mentor adapte les explications au niveau du groupe et guide chaque étape du projet.' },
+              { question: 'Le matériel est-il compris dans le tarif ?', answer: 'Oui. Tout le matériel utilisé pendant la session est fourni, sauf indication contraire dans la description du programme.' },
+              { question: 'Que se passe-t-il si mon enfant a besoin d’aide ?', answer: 'Les groupes restent volontairement petits pour que le mentor puisse observer, débloquer et encourager chaque participant.' },
+              { question: 'Puis-je vous parler avant de réserver ?', answer: `Oui. Appelez-nous au ${phone} ou envoyez un message depuis la page contact.` },
+            ]}
+          />
+        </div>
+
+        <section className="mt-10 border-y border-[#0b1726]/14 py-8">
+          <div className="flex items-center justify-between gap-5">
+            <div>
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-[#df661e]">Comparer avant de décider</p>
+              <h2 className="mt-2 font-['Geist'] text-2xl font-semibold tracking-[-0.025em]">Explorer une autre porte d’entrée.</h2>
+            </div>
+            <Link to="/programs" className="hidden items-center gap-2 text-sm font-extrabold sm:inline-flex">Tous les programmes <ArrowRight size={16} /></Link>
+          </div>
+          <div className="mt-6 flex gap-2 overflow-x-auto pb-2">
+            {programNavItems.filter(item => item.id !== program.id).slice(0, 4).map(item => (
+              <Link key={item.id} to={`/programs/${item.id}`} className="min-w-[230px] border border-[#0b1726]/14 bg-white p-4 transition hover:bg-[#0b1726] hover:text-white">
+                <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] opacity-55">{getPublicProgramCategory(item)}</p>
+                <p className="mt-2 font-['Geist'] text-lg font-semibold leading-tight">{getPublicProgramTitle(item)}</p>
+              </Link>
+            ))}
+          </div>
+        </section>
       </div>
 
-      <div className="fixed inset-x-2 bottom-2 z-50 grid min-h-16 max-w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-lg border border-slate-200 bg-white/[0.96] p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-2xl backdrop-blur-xl lg:hidden">
+      <div className="fixed inset-x-2 bottom-2 z-50 grid min-h-16 max-w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border border-[#0b1726]/14 bg-white/[0.96] p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-2xl backdrop-blur-xl lg:hidden">
         <div className="min-w-0 flex-1 px-2">
           <p className="truncate text-xs font-bold text-slate-500">{publicTitle}</p>
           <p className="font-black text-slate-950">{program.price}</p>

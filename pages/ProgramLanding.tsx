@@ -13,6 +13,7 @@ import {
   Globe, Briefcase, Video
 } from 'lucide-react';
 import { MakeAndGoForm } from '../components/MakeAndGoForm';
+import { ParentDecisionSystem } from '../components/ParentDecisionSystem';
 import { generatedMakerlabGallery, getGeneratedProgramImage } from '../utils/makerlabImages';
 
 /* ─── Icons Helper ────────────────────────────────────────────────────────── */
@@ -40,7 +41,7 @@ const STYLES = `
     0%,100%{ box-shadow:0 0 0 0 var(--theme-pulse),8px 8px 0 0 #000; }
     50%    { box-shadow:0 0 0 20px rgba(0,0,0,0),8px 8px 0 0 #000; }
   }
-  .cta-pulse{ animation:pulse-cta 2s infinite; }
+  .cta-pulse{ animation:none; }
   @keyframes float-y{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
   .float-y{ animation:float-y 3s ease-in-out infinite; }
   @keyframes count-in{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
@@ -50,11 +51,10 @@ const STYLES = `
   .revealed{ animation:reveal-up .8s cubic-bezier(.22,1,.36,1) forwards; }
   @keyframes shimmer {0%{background-position:-200% 0;}100%{background-position:200% 0;}}
   .shimmer-text{
-    background: var(--theme-shimmer);
-    background-size:200% auto;
-    -webkit-background-clip:text; background-clip:text;
-    -webkit-text-fill-color:transparent;
-    animation:shimmer 5s linear infinite;
+    background:none;
+    color:inherit;
+    -webkit-text-fill-color:currentColor;
+    animation:none;
   }
   .wa-btn{ animation:wa-bounce 2.5s ease-in-out infinite; }
   .noise-bg::before{
@@ -76,12 +76,12 @@ const STYLES = `
   @keyframes ticker{from{transform:translateX(0);}to{transform:translateX(-50%);}}
   .ticker-inner{ display:flex; animation:ticker 25s linear infinite; white-space:nowrap; }
   .card-neobrutal {
-    border: 4px solid black;
-    box-shadow: 8px 8px 0 0 black;
+    border: 1px solid rgba(11,23,38,.14);
+    box-shadow: 0 24px 60px rgba(11,23,38,.12);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
-  .card-neobrutal:hover { transform: translate(-2px, -2px); box-shadow: 12px 12px 0 0 black; }
-  .card-neobrutal:active { transform: translate(4px, 4px); box-shadow: 2px 2px 0 0 black; }
+  .card-neobrutal:hover { transform: translateY(-3px); box-shadow: 0 30px 70px rgba(11,23,38,.16); }
+  .card-neobrutal:active { transform: translateY(0); box-shadow: 0 16px 38px rgba(11,23,38,.1); }
 `;
 
 /* ─── Defaults & Themes ----------------------------------------------------- */
@@ -480,56 +480,67 @@ export const ProgramLanding: React.FC = () => {
   const programStations = Array.isArray(program.stations) ? program.stations : [];
   const selectedStationIds = Array.isArray(lp.selectedStationIds) ? lp.selectedStationIds : [];
   const selectedStations = programStations.filter(s => selectedStationIds.includes(s.id));
+  const landingToolContext = `${program.title} ${program.category} ${program.description}`.toLowerCase();
+  const landingTools = /drone|tello|python/.test(landingToolContext)
+    ? ['Python', 'DJI Tello', 'PyCharm', 'Logique algorithmique']
+    : /ia|intelligence artificielle|machine learning/.test(landingToolContext)
+      ? ['Google Teachable Machine', 'Python', 'IA générative', 'Design produit']
+      : /3d|cad|cao|fusion|fabrication|impression/.test(landingToolContext)
+        ? ['Autodesk Tinkercad', 'Autodesk Fusion 360', 'Impression 3D', 'Découpe laser']
+        : ['BBC micro:bit', 'Microsoft MakeCode', 'Autodesk Tinkercad', 'Électronique réelle'];
+  const landingImage = getGeneratedProgramImage(program) || generatedMakerlabGallery[0];
 
   return (
     <>
       <style>{STYLES}</style>
-      <div className="font-sans text-white bg-black overflow-x-hidden" style={{ 
+      <div className="program-landing overflow-x-hidden bg-[#f7f5ef] font-sans text-[#0b1726]" style={{
         '--theme-primary': theme.primary, 
         '--theme-primary-rgb': theme.primaryRGB,
         '--theme-pulse': `rgba(${theme.primaryRGB}, 0.7)`,
         '--theme-shimmer': theme.shimmer
       } as React.CSSProperties}>
 
-        {/* ══ TICKER ══ */}
-        <div className={`${theme.bg} text-black py-3 overflow-hidden relative z-50 border-b-6 border-black shadow-xl`}>
-          <div className="ticker-inner">
-            {[...Array(2)].map((_, i) => (
-              <span key={i} className="flex items-center gap-12 px-12">
-                {['⚡ PROJETS 100% RÉELS', '🏆 BUILT NOT BOUGHT', `🚀 PROGRAMME : ${program.title.toUpperCase()}`, '🔥 ÉLITE INNOVATION'].map((txt, j) => (
-                   <span key={j} className="font-black text-[12px] uppercase tracking-[0.2em]">{txt}</span>
-                ))}
-              </span>
-            ))}
+        <header className="relative z-50 border-b border-[#0b1726]/12 bg-white">
+          <div className="mx-auto flex min-h-18 max-w-7xl items-center justify-between gap-4 px-5 py-3 sm:px-8">
+            <a href="/" className="font-['Geist'] text-lg font-semibold tracking-[-0.03em] text-[#0b1726]">MAKER<span className="text-[#df661e]">LAB</span> <span className="ml-1 text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#667286]">Academy</span></a>
+            <div className="flex items-center gap-2">
+              <a href="/programs" className="hidden min-h-11 items-center px-4 text-sm font-extrabold text-[#0b1726] sm:inline-flex">Comparer</a>
+              <button onClick={() => missionsRef.current?.scrollIntoView({ behavior: 'smooth' })} className="min-h-11 bg-[#df661e] px-4 text-sm font-extrabold text-white sm:px-5">Voir les sessions</button>
+            </div>
           </div>
-        </div>
+        </header>
 
         {/* ══ HERO ══ */}
-        <section ref={heroRef} className="relative min-h-[85vh] flex flex-col justify-center noise-bg px-6 py-20 lg:py-40 text-center overflow-hidden" style={{ background: theme.gradient }}>
-           <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 50% 50%, var(--theme-primary), transparent 70%)' }}></div>
-           <Reveal>
-              <div className="flex flex-col items-center gap-6 mb-12">
-                 {lp.heroSurTitre && <span className="font-black text-xs md:text-sm uppercase tracking-[0.6em] text-orange-500 italic rotate-[-1deg]">{lp.heroSurTitre}</span>}
-                 <div className="flex flex-col md:flex-row items-center gap-6">
-                    <div className="px-6 py-2 bg-orange-500 text-black font-black text-xs uppercase tracking-widest rounded-full border-3 border-black shadow-[4px_4px_0_0_black]">MAKERLAB ACADEMY</div>
-                    <Countdown theme={theme} />
-                 </div>
+        <section ref={heroRef} className="relative overflow-hidden bg-[#f7f5ef]">
+          <div aria-hidden="true" className="home-hero-grid absolute inset-0 opacity-45" />
+          <div className="relative mx-auto grid max-w-7xl gap-10 px-5 py-12 sm:px-8 sm:py-16 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-14 lg:py-20">
+            <div>
+              <Reveal>
+                <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#df661e] sm:text-xs">{lp.heroSurTitre || t('heroPreHeadline')}</p>
+                <h1 className="mt-5 max-w-3xl font-['Geist'] text-[2.35rem] font-semibold leading-[0.92] tracking-[-0.052em] text-[#0b1726] sm:text-[clamp(3.2rem,5.3vw,5.6rem)]">{lp.heroHeadline || t('heroHeadline')}</h1>
+                <p className="mt-6 max-w-2xl text-base font-semibold leading-7 text-[#526074] sm:text-lg sm:leading-8">{lp.heroSubHeadline || t('heroSubHeadline')}</p>
+              </Reveal>
+              <Reveal delay={140}>
+                <button onClick={() => missionsRef.current?.scrollIntoView({ behavior: 'smooth' })} className="mt-8 flex min-h-14 w-full items-center justify-center gap-3 bg-[#df661e] px-6 text-base font-extrabold text-white shadow-[0_18px_42px_rgba(223,102,30,.22)] transition hover:bg-[#c95618] sm:w-fit">
+                  {lp.heroCtaText || 'Choisir une première mission'} <ArrowRight size={18} />
+                </button>
+                <div className="mt-7 flex flex-wrap gap-x-5 gap-y-2 text-xs font-extrabold text-[#536174]">
+                  <span>{program.ageGroup || '8-17 ans'}</span><span>·</span><span>{program.duration || 'Projet guidé'}</span><span>·</span><span>Matériel inclus</span>
+                </div>
+              </Reveal>
+            </div>
+
+            <Reveal delay={100}>
+              <div className="relative min-h-[360px] overflow-hidden border border-[#0b1726]/12 bg-[#07111f] sm:min-h-[520px]">
+                <img src={landingImage} alt={`Projet du programme ${program.title}`} className="absolute inset-0 size-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#07111f] via-transparent to-transparent" />
+                <div className="absolute inset-x-0 bottom-0 p-6 text-white sm:p-8">
+                  <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#d9f56f]">De l’idée au prototype</p>
+                  <p className="mt-2 font-['Geist'] text-3xl font-semibold tracking-[-0.035em] sm:text-4xl">{program.title}</p>
+                </div>
               </div>
-           </Reveal>
-           <Reveal delay={100}>
-              <p className="text-orange-500 font-black text-xs md:text-sm uppercase tracking-[0.4em] mb-4 md:mb-6 italic">{t('heroPreHeadline')}</p>
-              <h1 className="font-black text-5xl md:text-6xl lg:text-7xl leading-[1] md:leading-[1.1] mb-6 md:mb-10 shimmer-text italic tracking-tighter uppercase">{lp.heroHeadline || t('heroHeadline')}</h1>
-              <p className="text-lg md:text-xl lg:text-2xl text-gray-400 font-black max-w-4xl mx-auto mb-10 md:mb-16 leading-tight italic uppercase">{lp.heroSubHeadline || t('heroSubHeadline')}</p>
-           </Reveal>
-           <Reveal delay={300}>
-              <button 
-                onClick={() => missionsRef.current?.scrollIntoView({ behavior: 'smooth' })} 
-                className="cta-pulse w-full md:w-auto px-6 py-6 md:px-12 md:py-6 bg-white text-black font-black text-xl md:text-2xl uppercase tracking-widest border-4 md:border-6 border-black rounded-3xl md:rounded-[3rem] shadow-[8px_8px_0_0_#000] md:shadow-[10px_10px_0_0_#000] hover:translate-x-2 hover:translate-y-2 hover:shadow-none transition-all active:scale-95"
-              >
-                 {lp.heroCtaText || "REJOINDRE LA MISSION"}
-              </button>
-              <p className="mt-8 text-orange-500 font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 animate-bounce"><ArrowDownCircle size={14}/> {lp.heroScarcityText || "PLACES LIMITÉES"}</p>
-           </Reveal>
+            </Reveal>
+          </div>
         </section>
 
         {/* ══ FRAMEWORK SECTIONS ══ */}
@@ -558,31 +569,31 @@ export const ProgramLanding: React.FC = () => {
         )}
 
         {/* ══ MISSIONS ══ */}
-        <section ref={missionsRef} className="py-20 md:py-32 px-6 bg-[#0c0c0c]">
+        <section ref={missionsRef} className="bg-[#07111f] px-5 py-20 text-white sm:px-8 md:py-28">
            <div className="max-w-5xl mx-auto">
               <div className="text-center mb-16 md:mb-24 relative z-10">
-                 <h2 className="font-black text-5xl md:text-8xl uppercase italic text-orange-500 mb-4 md:mb-6 leading-none tracking-tighter">{lp.missionsHeadline || "SESSIONS OUVERTES."}</h2>
-                 <p className="text-gray-500 font-black text-sm md:text-xl uppercase tracking-widest">{lp.missionsSubHeadline || "Sélectionnez votre créneau de déploiement."}</p>
-                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[15vw] font-black opacity-[0.03] pointer-events-none select-none italic uppercase">CALENDAR</div>
+                  <p className="mb-4 text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#d9f56f]">La première étape</p>
+                  <h2 className="font-['Geist'] text-4xl font-semibold leading-none tracking-[-0.04em] text-white md:text-6xl">{lp.missionsHeadline || 'Sessions disponibles'}</h2>
+                  <p className="mx-auto mt-5 max-w-2xl text-base font-semibold text-white/55 md:text-lg">{lp.missionsSubHeadline || 'Choisissez le projet et le moment qui conviennent à votre enfant.'}</p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                  {visibleMissions.length === 0 ? (
-                   <div className="col-span-2 py-20 text-center border-4 border-dashed border-gray-800 rounded-[3rem]">
-                     <p className="font-black text-3xl text-gray-500 uppercase italic mb-4">Sessions à venir...</p>
-                     <p className="text-gray-600 font-bold max-w-md mx-auto">Les prochaines sessions seront bientôt annoncées. Inscrivez-vous pour être alerté(e) en premier.</p>
-                     <button
-                       onClick={() => setSelectedTarget({ title: program!.title, price: program!.price, date: 'À confirmer' })}
-                       className="mt-8 px-8 py-4 bg-orange-500 text-black font-black rounded-[1.5rem] uppercase text-xs tracking-widest italic border-4 border-black shadow-[6px_6px_0_0_#000] hover:shadow-none transition-all"
+                    <div className="col-span-2 border border-dashed border-white/18 px-6 py-16 text-center">
+                      <p className="font-['Geist'] text-3xl font-semibold text-white">Sessions à venir</p>
+                      <p className="mx-auto mt-4 max-w-md font-semibold text-white/52">Les prochaines dates seront bientôt annoncées. Laissez vos coordonnées pour être informé en premier.</p>
+                      <button
+                        onClick={() => setSelectedTarget({ title: program!.title, price: program!.price, date: 'À confirmer' })}
+                        className="mt-8 min-h-13 bg-[#df661e] px-7 text-sm font-extrabold text-white transition hover:bg-[#c95618]"
                      >
                        M'alerter des prochaines sessions →
                      </button>
                    </div>
                  ) : visibleMissions.map((m, i) => (
                    <Reveal key={m.id} delay={i * 100}>
-                      <div className="card-neobrutal bg-white text-black rounded-3xl md:rounded-[3rem] overflow-hidden flex flex-col h-full group">
-                         <div className="aspect-video bg-gray-200 border-b-4 border-black relative overflow-hidden shrink-0">
+                       <div className="card-neobrutal group flex h-full flex-col overflow-hidden bg-[#f7f5ef] text-[#0b1726]">
+                          <div className="relative aspect-video shrink-0 overflow-hidden bg-gray-200">
                             <img src={getGeneratedProgramImage(m, i)} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt={m.title} />
-                            <div className="absolute top-4 left-4 px-4 py-1.5 bg-black text-white font-black text-[9px] uppercase tracking-widest rounded-full italic shadow-neo-sm z-10">{m.date}</div>
+                             <div className="absolute left-4 top-4 z-10 bg-[#07111f] px-4 py-2 text-[9px] font-extrabold uppercase tracking-widest text-white">{m.date}</div>
                          </div>
                          <div className="p-6 md:p-8 flex-1 flex flex-col justify-between">
                             <div>
@@ -590,14 +601,14 @@ export const ProgramLanding: React.FC = () => {
                                  <span className="font-black text-[10px] text-gray-400 uppercase tracking-widest bg-gray-100 px-3 py-1 rounded-full">{m.category || 'Mission'}</span>
                                  <div className="p-2 bg-gray-50 rounded-xl border-1 border-black group-hover:bg-orange-500 transition-colors"><TrendingUp size={16}/></div>
                                </div>
-                               <h3 className="font-black text-2xl md:text-3xl mb-4 italic leading-tight uppercase group-hover:text-orange-500 transition-colors">{m.title || m.theme}</h3>
+                                <h3 className="mb-4 font-['Geist'] text-2xl font-semibold leading-tight tracking-[-0.03em] transition-colors group-hover:text-[#df661e] md:text-3xl">{m.title || m.theme}</h3>
                                <p className="text-gray-500 font-bold text-sm leading-relaxed mb-6 md:mb-8">{m.description || "Projet d'ingénierie avancée, modélisation 3D et programmation."}</p>
                             </div>
                             <div className="flex flex-col md:flex-row items-start md:items-center justify-between pt-6 md:pt-8 border-t-3 border-black gap-4 mt-auto">
                                <span className="font-black text-3xl md:text-4xl italic tracking-tighter">{m.price}</span>
-                               <button 
-                                 onClick={() => setSelectedTarget(m)}
-                                 className="w-full md:w-auto text-center px-8 py-4 bg-orange-500 text-black font-black rounded-2xl md:rounded-[1.5rem] uppercase text-[10px] md:text-xs tracking-widest italic border-4 border-black shadow-[6px_6px_0_0_#000] hover:shadow-none translate-y-[-2px] hover:translate-y-0 transition-all font-sans shrink-0"
+                                <button
+                                  onClick={() => setSelectedTarget(m)}
+                                  className="w-full shrink-0 bg-[#df661e] px-8 py-4 text-center text-xs font-extrabold uppercase tracking-widest text-white transition hover:bg-[#c95618] md:w-auto"
                                >
                                   RÉSERVER →
                                </button>
@@ -633,27 +644,40 @@ export const ProgramLanding: React.FC = () => {
           </section>
         )}
 
+        <div className="bg-[#f4f7fb] text-slate-900">
+          <ParentDecisionSystem
+            recommendedTo={`/booking/${program.id}?type=${program.trialAvailable ? 'trial' : 'workshop'}`}
+            recommendedLabel={program.trialAvailable ? 'Commencer par l’atelier d’essai' : 'Commencer par la première mission'}
+            recommendedReason="Le matériel est prêt, le groupe est petit et le mentor accompagne chaque étape jusqu’à un résultat que l’enfant peut montrer et expliquer."
+            professionalTools={landingTools}
+            nextSteps={[
+              { title: 'Première réussite', text: 'Terminer une mission concrète et comprendre ses choix.' },
+              { title: 'Projet plus ambitieux', text: 'Ajouter une technologie, une contrainte ou une personnalisation.' },
+              { title: 'Portfolio et produit', text: 'Présenter, documenter, packager et imaginer comment proposer sa création.' },
+            ]}
+          />
+        </div>
+
         {lp.faqEnabled && <FAQSection items={lp.faqItems || []} theme={theme} />}
 
         {/* ══ FINAL BLOCK ══ */}
-        <section className="py-24 md:py-40 px-6 text-center noise-bg relative overflow-hidden" style={{ background: theme.gradient }}>
-           <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none"><Rocket className="w-96 h-96 md:w-[500px] md:h-[500px]" strokeWidth={0.5}/></div>
+        <section className="relative overflow-hidden bg-[#07111f] px-6 py-24 text-center text-white md:py-32">
            <Reveal>
-              <h2 className="font-black text-4xl md:text-7xl mb-8 md:mb-12 uppercase italic shimmer-text leading-none relative z-10">{lp.finalCtaHeadline || "DEVENIR UN MAKEMAKER."}</h2>
+               <h2 className="relative z-10 mx-auto mb-8 max-w-5xl font-['Geist'] text-4xl font-semibold leading-[0.96] tracking-[-0.045em] md:text-7xl">{lp.finalCtaHeadline || 'Commencer par un projet dont il sera fier.'}</h2>
               <button 
                 onClick={() => missionsRef.current?.scrollIntoView({ behavior: 'smooth' })} 
-                className="w-full md:w-auto px-6 py-6 md:px-16 md:py-8 bg-orange-500 text-black font-black text-2xl md:text-4xl italic uppercase tracking-widest border-4 md:border-8 border-black rounded-3xl md:rounded-[3.5rem] shadow-[8px_8px_0_0_#000] md:shadow-[15px_15px_0_0_#000] hover:translate-x-1 hover:translate-y-1 md:hover:translate-x-3 md:hover:translate-y-3 hover:shadow-none transition-all scale-100 md:scale-110 active:scale-95 relative z-10"
+                className="relative z-10 min-h-14 w-full bg-[#df661e] px-7 text-base font-extrabold text-white transition hover:bg-[#c95618] md:w-auto md:px-10"
               >
                   LANCER LA SESSION
               </button>
-              <p className="mt-8 md:mt-12 text-gray-500 font-black text-[10px] md:text-sm uppercase tracking-[0.2em] md:tracking-[0.5em] italic relative z-10">{lp.finalCtaBody || "Ne laissez pas le futur s'écrire sans eux."}</p>
+               <p className="relative z-10 mt-7 text-sm font-semibold text-white/50">{lp.finalCtaBody || 'Nous recommandons ensuite la prochaine mission selon ce qu’il a aimé construire.'}</p>
            </Reveal>
         </section>
 
         {/* ══ STICKY ══ */}
         <div className={`fixed bottom-0 left-0 right-0 z-[400] transition-transform duration-500 ${showStickyBar ? 'translate-y-0' : 'translate-y-full'}`}>
-           <div className="mx-6 mb-6">
-              <div className="bg-white border-6 border-black p-4 md:p-6 flex items-center justify-between max-w-5xl mx-auto rounded-[2.5rem] shadow-[10px_10px_0_0_#000]">
+           <div className="mx-2 mb-2 sm:mx-6 sm:mb-6">
+              <div className="mx-auto flex max-w-5xl items-center justify-between border border-[#0b1726]/14 bg-white p-3 shadow-[0_18px_60px_rgba(0,0,0,.24)] md:p-4">
                  <div className="hidden md:block">
                     <p className="font-black text-xs uppercase tracking-widest text-orange-500 mb-1 italic">Dernières places disponibles</p>
                     <p className="font-black text-lg uppercase italic text-black leading-none">Programme : {program.title}</p>
@@ -661,7 +685,7 @@ export const ProgramLanding: React.FC = () => {
                  <div className="md:hidden text-black">
                     <p className="font-black text-[10px] uppercase italic">{program.title}</p>
                  </div>
-                 <button onClick={() => missionsRef.current?.scrollIntoView({ behavior: 'smooth' })} className="px-8 py-4 bg-orange-500 text-black font-black uppercase text-xs md:text-sm rounded-[1.5rem] border-4 border-black hover:scale-105 active:scale-95 transition-all shadow-lg italic">RÉSERVER MA PLACE →</button>
+                  <button onClick={() => missionsRef.current?.scrollIntoView({ behavior: 'smooth' })} className="min-h-12 bg-[#df661e] px-5 text-xs font-extrabold uppercase text-white transition hover:bg-[#c95618] md:text-sm">Voir les sessions →</button>
               </div>
            </div>
         </div>

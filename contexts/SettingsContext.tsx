@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { collection, doc, getDocs, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
 interface SettingsContextType {
@@ -10,6 +10,28 @@ interface SettingsContextType {
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
+const PUBLIC_SETTING_KEYS = [
+    'announcement_bar',
+    'blogs',
+    'chatbot_knowledge',
+    'contact_info',
+    'gallery_general',
+    'gallery_kids',
+    'gallery_programs',
+    'hero_dynamic_messages',
+    'hero_images',
+    'homeSeo',
+    'home_video',
+    'key_stats',
+    'page_content',
+    'reservationLPSettings',
+    'reservationLPWeekends',
+    'socialImage',
+    'socialProofConfig',
+    'googleAnalyticsId',
+    'gscVerification',
+];
+
 export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [settings, setSettings] = useState<Record<string, any>>({});
     const [isLoading, setIsLoading] = useState(true);
@@ -17,11 +39,10 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     useEffect(() => {
         const fetchSettings = async () => {
             try {
-                const querySnapshot = await getDocs(collection(db, 'website-settings'));
                 const data: Record<string, any> = {};
-
-                querySnapshot.forEach(document => {
-                    data[document.id] = document.data().value;
+                const documents = await Promise.all(PUBLIC_SETTING_KEYS.map(async key => ({ key, snapshot: await getDoc(doc(db, 'website-settings', key)) })));
+                documents.forEach(({ key, snapshot }) => {
+                    if (snapshot.exists()) data[key] = snapshot.data().value;
                 });
 
                 if (Object.keys(data).length > 0) {

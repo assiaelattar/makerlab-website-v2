@@ -13,20 +13,28 @@ import { Link } from 'react-router-dom';
 import { AppContainer, AppShell } from '../components/AppStyle';
 import { Reveal } from '../components/Motion';
 import { SEO } from '../components/SEO';
-import { storeProducts } from '../data/storeProducts';
+import { storeConceptProducts, storeProducts } from '../data/storeProducts';
 
-const productPresentation: Record<string, { eyebrow: string; summary: string; accent: string }> = {
+const productPresentation: Record<string, { eyebrow: string; summary: string; accent: string; surface: string }> = {
   'smart-door': {
     eyebrow: 'Électronique + code',
     summary: "Une porte intelligente qui détecte, décide et s'ouvre.",
     accent: '#e30613',
+    surface: '#fff0f1',
   },
   'nova-quest-mini': {
     eyebrow: 'Robotique + exploration',
     summary: 'Un rover à concevoir, programmer et lancer en mission.',
     accent: '#f7b500',
+    surface: '#fff5cf',
   },
 };
+
+const conceptPalettes = [
+  { surface: '#dff5ff', ink: '#0042a5', badge: '#8bd9f4' },
+  { surface: '#fff0cf', ink: '#8a5900', badge: '#f7cf64' },
+  { surface: '#e4f7ec', ink: '#087a43', badge: '#83d5a6' },
+];
 
 const makerSteps = [
   { label: 'Concevoir', icon: Palette },
@@ -80,7 +88,7 @@ export const Store: React.FC = () => {
                 href="#missions"
                 className="inline-flex min-h-12 items-center justify-center rounded-xl border border-white/35 bg-white/10 px-6 py-3.5 text-sm font-black text-white backdrop-blur-md transition hover:bg-white/18 focus:outline-none focus:ring-4 focus:ring-white/20"
               >
-                Voir les 2 missions
+                Voir les missions
               </a>
             </div>
 
@@ -106,7 +114,7 @@ export const Store: React.FC = () => {
               </h2>
             </div>
             <span className="hidden rounded-full bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#0042a5] shadow-sm sm:inline-flex">
-              2 projets pilotes
+              2 pilotes + 5 idées
             </span>
           </div>
         </Reveal>
@@ -117,7 +125,7 @@ export const Store: React.FC = () => {
 
             return (
               <Reveal key={product.id} delay={index * 80}>
-                <article className="group flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-[#d7e2f1] bg-white shadow-[0_20px_55px_rgba(19,51,91,0.10)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_28px_70px_rgba(19,51,91,0.16)]">
+                <article className="group flex h-full flex-col overflow-hidden rounded-[1.75rem] border-2 shadow-[0_20px_55px_rgba(19,51,91,0.10)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_28px_70px_rgba(19,51,91,0.16)]" style={{ borderColor: presentation.accent, backgroundColor: presentation.surface }}>
                   <Link to={`/store/${product.slug}`} className="relative block overflow-hidden bg-[#dfe9f7]">
                     <img
                       src={product.heroImage}
@@ -142,7 +150,7 @@ export const Store: React.FC = () => {
 
                     <div className="mt-5 flex flex-wrap gap-2">
                       {product.highlights.slice(0, 3).map((item) => (
-                        <span key={item} className="inline-flex items-center gap-1.5 rounded-full bg-[#f2f6fc] px-3 py-2 text-[11px] font-black text-[#24476f]">
+                        <span key={item} className="inline-flex items-center gap-1.5 rounded-full bg-white/75 px-3 py-2 text-[11px] font-black text-[#24476f] shadow-sm">
                           <CheckCircle2 size={14} className="text-[#10a858]" />
                           {item}
                         </span>
@@ -161,6 +169,80 @@ export const Store: React.FC = () => {
             );
           })}
         </div>
+
+        <Reveal>
+          <section className="mt-10 rounded-[1.75rem] border-2 border-[#0042a5] bg-[#dff5ff] p-5 shadow-[0_20px_55px_rgba(19,51,91,0.08)] sm:mt-14 sm:p-7">
+            <div className="flex flex-col justify-between gap-5 border-b border-slate-100 pb-6 lg:flex-row lg:items-end">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-[#e30613]">Idées à valider</p>
+                <h2 className="mt-3 max-w-2xl text-4xl font-black leading-[0.96] tracking-[-0.04em] text-[#061d45] sm:text-5xl">
+                  Votez pour la prochaine mission MakerLab.
+                </h2>
+                <p className="mt-4 max-w-2xl text-base font-semibold leading-7 text-slate-600">
+                  Ces produits ne sont pas encore publiés. Ils servent à tester l’intérêt avant de créer le visuel, le guide, le packaging, le BOM et la page produit complète.
+                </p>
+              </div>
+              <span className="inline-flex w-fit rounded-full bg-[#fff3f4] px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#e30613]">
+                Pas encore en vente
+              </span>
+            </div>
+
+            <div className="mt-6 grid gap-4 lg:grid-cols-3">
+              {storeConceptProducts.map((concept, index) => {
+                const palette = conceptPalettes[index % conceptPalettes.length];
+                return (
+                <Reveal key={concept.id} delay={index * 70}>
+                  <article className="flex h-full flex-col rounded-[1.35rem] border-2 p-5 transition hover:-translate-y-0.5 hover:shadow-lg" style={{ backgroundColor: palette.surface, borderColor: palette.badge }}>
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="rounded-full px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.13em] shadow-sm" style={{ backgroundColor: palette.badge, color: palette.ink }}>
+                        Concept {index + 1}
+                      </span>
+                      <span className="rounded-full bg-[#fff3f4] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.13em] text-[#e30613]">
+                        À valider
+                      </span>
+                    </div>
+
+                    <h3 className="mt-5 text-3xl font-black leading-[0.98] tracking-[-0.035em] text-[#061d45]">{concept.title}</h3>
+                    <p className="mt-3 text-sm font-black uppercase leading-5" style={{ color: palette.ink }}>{concept.mission}</p>
+                    <p className="mt-3 text-sm font-semibold leading-6 text-slate-600">{concept.story}</p>
+
+                    <div className="mt-5 rounded-xl bg-white/70 p-4 shadow-sm">
+                      <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">Parcours d’apprentissage</p>
+                      <p className="mt-2 text-sm font-bold leading-6 text-slate-700">{concept.learningPath}</p>
+                    </div>
+
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {concept.likelyComponents.slice(0, 4).map((item) => (
+                        <span key={item} className="rounded-full bg-white/80 px-3 py-1.5 text-[11px] font-black text-[#24476f] shadow-sm">
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+
+                    <div className="mt-5 grid gap-3">
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">Pourquoi c’est store-friendly</p>
+                        <p className="mt-1 text-xs font-semibold leading-5 text-slate-600">{concept.commercialReason}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">Prochaine preuve</p>
+                        <p className="mt-1 text-xs font-semibold leading-5 text-slate-600">{concept.nextEvidence}</p>
+                      </div>
+                    </div>
+
+                    <a
+                      href={concept.to}
+                      className="mt-auto inline-flex min-h-11 items-center justify-between rounded-xl bg-[#061d45] px-4 py-3 text-sm font-black text-white transition hover:bg-[#0042a5] focus:outline-none focus:ring-4 focus:ring-[#0042a5]/20"
+                    >
+                      {concept.action} <ArrowRight size={16} />
+                    </a>
+                  </article>
+                </Reveal>
+                );
+              })}
+            </div>
+          </section>
+        </Reveal>
 
         <Reveal>
           <section className="mt-8 overflow-hidden rounded-[1.75rem] bg-[#061d45] text-white shadow-xl sm:mt-12">

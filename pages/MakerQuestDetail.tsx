@@ -6,6 +6,19 @@ import { MakerQuest } from '../types';
 import { Sparkles, ArrowLeft, CheckCircle2, Flag, Lightbulb, Pickaxe, Send, Box } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { SEO } from '../components/SEO';
+import { ParentDecisionSystem } from '../components/ParentDecisionSystem';
+
+const getQuestTools = (quest: MakerQuest) => {
+  const text = `${quest.title} ${quest.category} ${quest.description} ${quest.guide}`.toLowerCase();
+  const tools = new Set<string>();
+  if (/3d|cad|fusion|impression/.test(text)) tools.add('Autodesk Fusion 360');
+  if (/micro:bit|microbit|robot|électron|electron/.test(text)) tools.add('BBC micro:bit');
+  if (/makecode|bloc|block/.test(text)) tools.add('Microsoft MakeCode');
+  if (/python|drone|ia|intelligence artificielle/.test(text)) tools.add('Python');
+  if (/ia|intelligence artificielle|image|vision/.test(text)) tools.add('IA générative');
+  return tools.size ? [...tools] : ['BBC micro:bit', 'Microsoft MakeCode', 'Autodesk Fusion 360'];
+};
 
 export const MakerQuestDetail: React.FC = () => {
   const { slug } = useParams();
@@ -52,6 +65,20 @@ export const MakerQuestDetail: React.FC = () => {
 
   return (
     <div className="pt-32 pb-24 min-h-screen">
+      <SEO
+        title={`${quest.title} — Maker Quest`}
+        description={`${quest.description} Une mission MakerLab guidée où les enfants conçoivent, fabriquent, codent et présentent un vrai projet.`}
+        image={quest.coverImage}
+        schemaType="LearningResource"
+        schemaData={{
+          name: quest.title,
+          description: quest.description,
+          image: quest.coverImage,
+          educationalLevel: 'Enfants de 6 à 16 ans',
+          learningResourceType: 'Projet pratique guidé',
+          provider: { '@type': 'EducationalOrganization', name: 'MakerLab Academy', url: 'https://space.makerlab.academy' },
+        }}
+      />
       <div className="container max-w-5xl">
         
         <Link to="/maker-wall" className="inline-flex items-center gap-2 font-black uppercase text-sm mb-8 hover:translate-x-2 transition-transform bg-white px-4 py-2 rounded-xl border-2 border-black shadow-neo-sm">
@@ -143,6 +170,19 @@ export const MakerQuestDetail: React.FC = () => {
         </div>
 
       </div>
+
+      <ParentDecisionSystem
+        recommendedTo={`/submit?questId=${quest.id}&questTitle=${encodeURIComponent(quest.title)}`}
+        recommendedLabel={`Construire : ${quest.title}`}
+        recommendedReason="Cette mission donne un objectif clair, une liste de matériel et un guide de réalisation. L’enfant avance par essais, explique ses choix et montre un résultat concret."
+        professionalTools={getQuestTools(quest)}
+        nextSteps={[
+          { title: 'Construire', text: 'Suivre le guide, tester le prototype et résoudre les problèmes rencontrés.' },
+          { title: 'Présenter', text: 'Documenter le résultat et le soumettre au Maker Wall avec ses propres explications.' },
+          { title: 'Progresser', text: 'Choisir une mission plus avancée ou rejoindre un programme pour enrichir son portfolio.' },
+        ]}
+        compact
+      />
     </div>
   );
 };
