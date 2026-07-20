@@ -1,5 +1,11 @@
 # Delivery changelog
 
+## 2026-07-20 — GitHub feature-branch publication
+
+- Published the public visual journey, immersive video gallery, operating memory, and localhost Signal Room source as commit `01f3669` on `origin/codex/frontend-program-visuals`.
+- Explicitly excluded the local `App.tsx` and `components/AdminLayout.tsx` modifications from the commit.
+- No merge to `main` or Hostinger deployment has been claimed or verified.
+
 ## 2026-07-20 — Immersive MakerLab video moments
 
 - Replaced the homepage's single YouTube highlight with a compact four-window film strip showing the MakerLab journey from idea to presentation.

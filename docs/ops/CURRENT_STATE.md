@@ -36,6 +36,8 @@ MakerLab Academy is a Moroccan technology academy for young makers. The public w
 ## Current release status
 
 - Branch: `codex/frontend-program-visuals`.
+- GitHub publication: commit `01f3669` was pushed to `origin/codex/frontend-program-visuals` on 2026-07-20. This is a feature-branch publication only; it has not been merged to `main` or verified as deployed by Hostinger.
+- The local `App.tsx` and `components/AdminLayout.tsx` modifications were deliberately left unstaged and were not part of commit `01f3669`.
 - The local repository and `docs/ops/` are the source of truth for accepted work and features in progress. `space.makerlab.academy` is a separately verified deployed snapshot; it can lag behind local work and must never be used as the implementation reference.
 - New visual diversity and automatic program-image mapping have been built successfully with `npx vite build`.
 - GitHub CLI is authenticated as `assiaelattar`. Changes can be pushed to the feature branch, but the production branch watched by Hostinger still needs confirmation before a Git push can be treated as a deployment.
