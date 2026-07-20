@@ -20,9 +20,9 @@ import { getGeneratedProgramImage } from '../utils/makerlabImages';
 import { getPublicProgramCategory, getPublicProgramDescription, getPublicProgramTitle } from '../utils/programDisplay';
 
 const fallbackImages = [
-  '/images/makerlab/generated/stemquest-mdf-engineering-v1.webp',
-  '/images/makerlab/generated/make-and-go-desk-lamp-v1.webp',
-  '/images/makerlab/generated/schools-arduino-workshop-v1.webp',
+  '/images/makerlab/generated/junior-microbit-nightlight-v2.png',
+  '/images/makerlab/generated/vr-oculus-quest-product-design-v2.png',
+  '/images/makerlab/generated/branding-product-kit-v2.png',
 ];
 
 const categoryStyle = (category = '', index = 0) => {
@@ -138,7 +138,7 @@ export const Programs: React.FC = () => {
     : '/quiz';
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[#f7f5ef] pb-20 text-[#0b1726]">
+    <main className="programs-page min-h-screen overflow-x-hidden bg-[#f7f5ef] pb-20 text-[#0b1726]">
       <SEO
         title="Programmes de robotique, code et IA à Casablanca"
         description="Comparez les ateliers MakerLab par âge, durée et format: robotique, coding, IA, design 3D, camps et parcours annuels."

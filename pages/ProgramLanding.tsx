@@ -493,7 +493,7 @@ export const ProgramLanding: React.FC = () => {
   return (
     <>
       <style>{STYLES}</style>
-      <div className="overflow-x-hidden bg-[#f7f5ef] font-sans text-[#0b1726]" style={{
+      <div className="program-landing overflow-x-hidden bg-[#f7f5ef] font-sans text-[#0b1726]" style={{
         '--theme-primary': theme.primary, 
         '--theme-primary-rgb': theme.primaryRGB,
         '--theme-pulse': `rgba(${theme.primaryRGB}, 0.7)`,

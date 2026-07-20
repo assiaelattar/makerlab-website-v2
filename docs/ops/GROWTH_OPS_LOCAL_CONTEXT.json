@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-07-19T16:19:49.906Z",
+  "organization": {
+    "academyName": "MakerLab Academy",
+    "website": "space.makerlab.academy",
+    "location": "Morocco",
+    "primaryAudience": "Parents and schools",
+    "positioning": "Children design, build and present real technology projects."
+  },
+  "offers": {
+    "ageRange": "6–17",
+    "recommendedEntry": "",
+    "keyOutcomes": ""
+  },
+  "measurement": {
+    "primaryGoal": "",
+    "events": "",
+    "owner": "",
+    "consentStatus": "not-reviewed"
+  },
+  "integrations": {
+    "ga4": {
+      "status": "not-started",
+      "property": "",
+      "owner": "",
+      "notes": ""
+    },
+    "searchConsole": {
+      "status": "not-started",
+      "property": "",
+      "owner": "",
+      "notes": ""
+    },
+    "firebase": {
+      "status": "not-started",
+      "property": "edufy-makerlab",
+      "owner": "",
+      "notes": ""
+    },
+    "crm": {
+      "status": "not-started",
+      "property": "",
+      "owner": "",
+      "notes": ""
+    },
+    "businessProfile": {
+      "status": "not-started",
+      "property": "",
+      "owner": "",
+      "notes": ""
+    }
+  },
+  "operatingLoop": {
+    "dailyBriefTime": "08:30",
+    "decisionOwner": "",
+    "weeklyReview": "",
+    "approvalBoundary": "Human approval is required before external publishing, permission changes, campaigns, or lead messaging."
+  }
+}

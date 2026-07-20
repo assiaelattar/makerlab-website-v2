@@ -16,11 +16,11 @@ import {
   ScanSearch,
   ShieldCheck,
   Sparkles,
-  Volume2,
   Wrench,
 } from 'lucide-react';
 import { SEO } from '../components/SEO';
 import { HomeMotion } from '../components/HomeMotion';
+import { MakerMomentsVideoGallery } from '../components/MakerMomentsVideoGallery';
 import { usePrograms } from '../contexts/ProgramContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { defaultPageContent } from '../data/defaultPageContent';
@@ -29,62 +29,29 @@ import { getPublicProgramCategory, getPublicProgramDescription, getPublicProgram
 
 const fallbackImages = [
   '/images/makerlab/generated/home-hero-microbit-rover-v1.webp',
-  '/images/makerlab/generated/smart-door-microbit-team-v2.png',
-  '/images/makerlab/generated/cad-rover-design-to-prototype-v2.png',
-  '/images/makerlab/generated/wind-energy-mdf-prototype-v2.png',
+  '/images/makerlab/generated/vr-oculus-quest-product-design-v2.png',
+  '/images/makerlab/generated/dji-tello-python-flightlab-v2.png',
+  '/images/makerlab/generated/branding-product-kit-v2.png',
 ];
 
 const cleanStoryImages = [
   '/images/makerlab/generated/smart-door-microbit-team-v2.png',
   '/images/makerlab/generated/cad-rover-design-to-prototype-v2.png',
-  '/images/makerlab/generated/wind-energy-mdf-prototype-v2.png',
-  '/images/makerlab/generated/student-product-presentation-v2.png',
-  '/images/makerlab/generated/python-dji-tello-coding-v1.webp',
+  '/images/makerlab/generated/computer-vision-teachable-rover-v2.png',
+  '/images/makerlab/generated/saas-vibe-coding-deploy-v2.png',
+  '/images/makerlab/generated/print-on-demand-sublimation-v2.png',
+  '/images/makerlab/generated/branding-product-kit-v2.png',
+  '/images/makerlab/generated/junior-microbit-nightlight-v2.png',
 ];
 
 const fabricationImage = '/images/makerlab/generated/cad-rover-design-to-prototype-v2.png';
 const heroEditorialImage = '/images/makerlab/generated/home-hero-microbit-rover-editorial-v2.webp';
 const featuredVideoId = 'TgAnL9XGu3U';
-const featuredVideoEmbedUrl = `https://www.youtube-nocookie.com/embed/${featuredVideoId}?start=5&autoplay=1&mute=1&loop=1&playlist=${featuredVideoId}&controls=1&rel=0&modestbranding=1&playsinline=1&enablejsapi=1`;
 
-const YouTubeHighlight: React.FC = () => {
-  const frameRef = React.useRef<HTMLIFrameElement>(null);
-  const [soundEnabled, setSoundEnabled] = React.useState(false);
-
-  const enableSound = () => {
-    const player = frameRef.current?.contentWindow;
-    if (!player) return;
-
-    player.postMessage(JSON.stringify({ event: 'command', func: 'unMute', args: [] }), '*');
-    player.postMessage(JSON.stringify({ event: 'command', func: 'setVolume', args: [80] }), '*');
-    player.postMessage(JSON.stringify({ event: 'command', func: 'playVideo', args: [] }), '*');
-    setSoundEnabled(true);
-  };
-
-  return (
-    <div className="relative aspect-video overflow-hidden border border-white/12 bg-black shadow-[0_28px_80px_rgba(0,0,0,.38)]">
-      <iframe
-        ref={frameRef}
-        src={featuredVideoEmbedUrl}
-        title="MakerLab Academy en mouvement"
-        loading="lazy"
-        className="absolute inset-0 size-full"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        referrerPolicy="strict-origin-when-cross-origin"
-        allowFullScreen
-      />
-      {!soundEnabled && (
-        <button
-          type="button"
-          onClick={enableSound}
-          className="absolute bottom-4 left-1/2 z-10 flex min-h-11 -translate-x-1/2 items-center gap-2 whitespace-nowrap bg-[#e87722] px-5 text-sm font-extrabold text-white shadow-[0_12px_30px_rgba(0,0,0,.35)] transition hover:bg-[#ce6218] focus:outline-none focus-visible:ring-4 focus-visible:ring-white/70 sm:bottom-6"
-          aria-label="Activer le son de la vidéo"
-        >
-          <Volume2 size={17} /> Activer le son
-        </button>
-      )}
-    </div>
-  );
+const getYouTubeVideoId = (source?: string) => {
+  if (!source) return featuredVideoId;
+  const match = source.match(/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:embed\/|watch\?v=))([\w-]{11})/i);
+  return match?.[1] || featuredVideoId;
 };
 
 const disciplines = [
@@ -122,7 +89,7 @@ const storyChapters = [
     label: 'Robotique + électronique',
     title: 'Le rover quitte l’écran et répond au monde réel.',
     text: 'Capteurs, logique et erreurs de câblage deviennent une enquête concrète. L’enfant ne suit pas une notice : il observe, teste et décide.',
-    image: '/images/makerlab/generated/smart-door-microbit-team-v2.png',
+    image: '/images/makerlab/generated/computer-vision-teachable-rover-v2.png',
     tools: ['BBC micro:bit', 'MakeCode', 'Capteurs'],
     accent: '#d9f56f',
   },
@@ -130,7 +97,7 @@ const storyChapters = [
     label: 'Code + intelligence artificielle',
     title: 'Une intuition devient une application qui comprend.',
     text: 'L’IA accélère l’exploration, mais le maker garde la vision : choisir les données, construire l’interface et expliquer ses décisions.',
-    image: '/images/makerlab/generated/student-product-presentation-v2.png',
+    image: '/images/makerlab/generated/saas-vibe-coding-deploy-v2.png',
     tools: ['Python', 'Google AI', 'Prototypage'],
     accent: '#e87722',
   },
@@ -375,16 +342,18 @@ export const Home: React.FC = () => {
         </div>
       </section>
 
-      <section className="bg-[#07111f] pb-20 text-white sm:pb-28">
-        <div data-home-reveal className="mx-auto grid max-w-7xl gap-7 px-5 sm:px-8 lg:grid-cols-[0.65fr_1.35fr] lg:items-end">
-          <div>
-            <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[#e87722]">MakerLab en mouvement</p>
-            <h2 className="mt-4 font-['Outfit'] text-4xl font-semibold leading-tight">{homeVideo?.title || 'Voir les idées prendre forme.'}</h2>
-            <p className="mt-4 max-w-md font-medium leading-7 text-white/60">
-              {homeVideo?.description || 'Entrez dans le Lab et regardez les jeunes makers imaginer, construire et tester leurs projets.'}
+      <section id="moments" className="bg-[#07111f] pb-20 text-white sm:pb-28">
+        <div data-home-reveal className="mx-auto max-w-7xl px-5 sm:px-8">
+          <div className="grid gap-6 border-t border-white/12 pt-7 lg:grid-cols-[0.72fr_1.28fr] lg:items-end lg:gap-12">
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[#e87722]">MakerLab en mouvement</p>
+              <h2 className="mt-4 max-w-xl font-['Outfit'] text-4xl font-semibold leading-[1.02] sm:text-5xl">{homeVideo?.title || 'Entrez quelques secondes. Ressentez toute l’énergie du Lab.'}</h2>
+            </div>
+            <p className="max-w-2xl font-medium leading-7 text-white/60 lg:justify-self-end lg:text-lg">
+              {homeVideo?.description || 'Ici, on ne regarde pas la technologie de loin. On imagine, on fabrique, on rate, on recommence — ensemble.'}
             </p>
           </div>
-          <YouTubeHighlight />
+          <MakerMomentsVideoGallery videoIds={[getYouTubeVideoId(homeVideo?.videoSrc)]} />
         </div>
       </section>
 
